@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Info, TrendingUp, AlertTriangle, ShieldCheck } from 'lucide-react';
 
-type ScreenerPreset = 'previous' | 'latest';
+type ScreenerPreset = 'previous' | 'latest' | 'no_filter';
 
 interface ScreenerViewProps {
   onSelectTicker: (ticker: string) => void;
@@ -9,20 +9,20 @@ interface ScreenerViewProps {
 
 export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
   const [preset, setPreset] = useState<ScreenerPreset>('latest');
-  const [epsGrowthMin, setEpsGrowthMin] = useState<number>(0);
-  const [dpsGrowthMin, setDpsGrowthMin] = useState<number>(0);
+  const [epsGrowthMin, setEpsGrowthMin] = useState<number | ''>(0);
+  const [dpsGrowthMin, setDpsGrowthMin] = useState<number | ''>(0);
   const [peBandMode, setPeBandMode] = useState<string>('none');
   const [pbvBandMode, setPbvBandMode] = useState<string>('none');
-  const [fScoreMin, setFScoreMin] = useState<number>(5);
-  const [zScoreMin, setZScoreMin] = useState<number>(2.5);
-  const [viScoreMin, setViScoreMin] = useState<number>(12);
+  const [fScoreMin, setFScoreMin] = useState<number | ''>(5);
+  const [zScoreMin, setZScoreMin] = useState<number | ''>(2.5);
+  const [viScoreMin, setViScoreMin] = useState<number | ''>(12);
   
   // New metrics
-  const [yieldMin, setYieldMin] = useState<number>(5);
-  const [deMax, setDeMax] = useState<number | ''>(1); // Allow empty
+  const [yieldMin, setYieldMin] = useState<number | ''>(5);
+  const [deMax, setDeMax] = useState<number | ''>(1);
   const [peMax, setPeMax] = useState<number | ''>(12);
   const [pbvMax, setPbvMax] = useState<number | ''>(2.5);
-  const [roeMin, setRoeMin] = useState<number>(15);
+  const [roeMin, setRoeMin] = useState<number | ''>(15);
 
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
@@ -31,6 +31,22 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
 
   const applyPreset = (nextPreset: ScreenerPreset) => {
     setPreset(nextPreset);
+
+    if (nextPreset === 'no_filter') {
+      setEpsGrowthMin('');
+      setDpsGrowthMin('');
+      setPeBandMode('none');
+      setPbvBandMode('none');
+      setFScoreMin('');
+      setZScoreMin('');
+      setViScoreMin('');
+      setYieldMin('');
+      setDeMax('');
+      setPeMax('');
+      setPbvMax('');
+      setRoeMin('');
+      return;
+    }
 
     if (nextPreset === 'previous') {
       setEpsGrowthMin(5);
@@ -72,18 +88,18 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          epsGrowthMin,
-          dpsGrowthMin,
+          epsGrowthMin: epsGrowthMin === '' ? undefined : Number(epsGrowthMin),
+          dpsGrowthMin: dpsGrowthMin === '' ? undefined : Number(dpsGrowthMin),
           peBandMode: peBandMode === 'none' ? undefined : peBandMode,
           pbvBandMode: pbvBandMode === 'none' ? undefined : pbvBandMode,
-          fScoreMin,
-          zScoreMin,
-          viScoreMin,
-          yieldMin,
+          fScoreMin: fScoreMin === '' ? undefined : Number(fScoreMin),
+          zScoreMin: zScoreMin === '' ? undefined : Number(zScoreMin),
+          viScoreMin: viScoreMin === '' ? undefined : Number(viScoreMin),
+          yieldMin: yieldMin === '' ? undefined : Number(yieldMin),
           deMax: deMax === '' ? undefined : Number(deMax),
           peMax: peMax === '' ? undefined : Number(peMax),
           pbvMax: pbvMax === '' ? undefined : Number(pbvMax),
-          roeMin,
+          roeMin: roeMin === '' ? undefined : Number(roeMin),
         }),
       });
 
@@ -130,6 +146,13 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
             >
               สูตรเข้มข้น (ล่าสุด)
             </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('no_filter')}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'no_filter' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              ไม่ตั้งค่ากรอง
+            </button>
           </div>
         </div>
 
@@ -148,7 +171,8 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
               <input
                 type="number"
                 value={epsGrowthMin}
-                onChange={(e) => setEpsGrowthMin(Number(e.target.value))}
+                placeholder="ไม่กรอง"
+                onChange={(e) => setEpsGrowthMin(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
               />
             </div>
@@ -160,7 +184,8 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
               <input
                 type="number"
                 value={dpsGrowthMin}
-                onChange={(e) => setDpsGrowthMin(Number(e.target.value))}
+                placeholder="ไม่กรอง"
+                onChange={(e) => setDpsGrowthMin(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
               />
             </div>
@@ -173,8 +198,9 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
               <input
                 type="number"
                 step="0.1"
+                placeholder="ไม่กรอง"
                 value={yieldMin}
-                onChange={(e) => setYieldMin(Number(e.target.value))}
+                onChange={(e) => setYieldMin(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
               />
             </div>
@@ -187,8 +213,9 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
               <input
                 type="number"
                 step="0.1"
+                placeholder="ไม่กรอง"
                 value={roeMin}
-                onChange={(e) => setRoeMin(Number(e.target.value))}
+                onChange={(e) => setRoeMin(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
               />
             </div>
@@ -278,8 +305,9 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
                 type="number"
                 min="0"
                 max="9"
+                placeholder="ไม่กรอง"
                 value={fScoreMin}
-                onChange={(e) => setFScoreMin(Number(e.target.value))}
+                onChange={(e) => setFScoreMin(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
               />
             </div>
@@ -292,8 +320,9 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
               <input
                 type="number"
                 step="0.1"
+                placeholder="ไม่กรอง"
                 value={zScoreMin}
-                onChange={(e) => setZScoreMin(Number(e.target.value))}
+                onChange={(e) => setZScoreMin(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
               />
             </div>
@@ -307,8 +336,9 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
                 type="number"
                 min="0"
                 max="20"
+                placeholder="ไม่กรอง"
                 value={viScoreMin}
-                onChange={(e) => setViScoreMin(Number(e.target.value))}
+                onChange={(e) => setViScoreMin(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
               />
             </div>
