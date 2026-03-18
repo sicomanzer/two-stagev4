@@ -1,0 +1,28 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "0 10 * * *"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/fundamentals",
+      "destination": "/api/fundamentals.py"
+    },
+    {
+      "source": "/api/fundamentals/(.*)",
+      "destination": "/api/fundamentals.py"
+    }
+  ],
+  "builds": [
+    {
+      "src": "api/**/*.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ]
+}

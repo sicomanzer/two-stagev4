@@ -1,0 +1,4633 @@
+{
+  "sectors": {
+    "AGRI": [
+      "GFPT",
+      "LEE",
+      "NER",
+      "PCE",
+      "PPPM",
+      "SMO",
+      "STA",
+      "TEGH",
+      "TFM",
+      "TL",
+      "TRUBB",
+      "UPOIC",
+      "UVAN",
+      "VPO"
+    ],
+    "FOOD": [
+      "AAI",
+      "APURE",
+      "ASIAN",
+      "BR",
+      "BRR",
+      "BTG",
+      "CBG",
+      "CFRESH",
+      "CH",
+      "CHAO",
+      "CM",
+      "COCOCO",
+      "CPF",
+      "CPI",
+      "FM",
+      "HTC",
+      "ICHI",
+      "ITC",
+      "JDF",
+      "KBS",
+      "KCG",
+      "KSL",
+      "KTIS",
+      "LST",
+      "M",
+      "MADAME",
+      "MALEE",
+      "NRF",
+      "NSL",
+      "OKJ",
+      "OSP",
+      "PB",
+      "PLUS",
+      "PM",
+      "PQS",
+      "PRG",
+      "RBF",
+      "SAPPE",
+      "SAUCE",
+      "SNNP",
+      "SNP",
+      "SORKON",
+      "SSF",
+      "SST",
+      "SUN",
+      "TC",
+      "TFG",
+      "TFMAMA",
+      "TIPCO",
+      "TKN",
+      "TU",
+      "TVO",
+      "TWPC",
+      "XBIO",
+      "ZEN"
+    ],
+    "FASHION": [
+      "AFC",
+      "AURA",
+      "BTNC",
+      "CPH",
+      "CPL",
+      "NC",
+      "PAF",
+      "PDJ",
+      "PG",
+      "SABINA",
+      "SUC",
+      "TTT",
+      "UPF",
+      "WACOAL",
+      "WFX"
+    ],
+    "HOME": [
+      "AJA",
+      "FANCY",
+      "FTI",
+      "KYE",
+      "L&E",
+      "MODERN",
+      "OGC",
+      "ROCK",
+      "SIAM",
+      "TCMC"
+    ],
+    "PERSON": [
+      "APCO",
+      "BIZ",
+      "BLC",
+      "DDD",
+      "IP",
+      "JCT",
+      "KISS",
+      "NAM",
+      "NEO",
+      "NV",
+      "S&J",
+      "SNPS",
+      "STGT",
+      "TMAN",
+      "TNR",
+      "TOG"
+    ],
+    "BANK": [
+      "BAY",
+      "BBL",
+      "CREDIT",
+      "KBANK",
+      "KKP",
+      "KTB",
+      "LHFG",
+      "SCB",
+      "TCAP",
+      "TISCO",
+      "TTB"
+    ],
+    "FIN": [
+      "AEONTS",
+      "AMANAH",
+      "ASAP",
+      "ASK",
+      "ASP",
+      "BAM",
+      "BYD",
+      "CGH",
+      "CHASE",
+      "CHAYO",
+      "EAST",
+      "FNS",
+      "FSX",
+      "GBX",
+      "HENG",
+      "IFS",
+      "JMT",
+      "KCAR",
+      "KGI",
+      "KTC",
+      "MFC",
+      "MICRO",
+      "ML",
+      "MST",
+      "MTC",
+      "NCAP",
+      "PL",
+      "S11",
+      "SAK",
+      "SAWAD",
+      "SCAP",
+      "SGC",
+      "STARM",
+      "TH",
+      "THANI",
+      "TIDLOR",
+      "TK",
+      "TNITY",
+      "TURBO",
+      "XPG"
+    ],
+    "INSUR": [
+      "AYUD",
+      "BKIH",
+      "BLA",
+      "BUI",
+      "CHARAN",
+      "INSURE",
+      "MTI",
+      "NKI",
+      "TGH",
+      "THRE",
+      "THREL",
+      "TIPH",
+      "TLI",
+      "TQM",
+      "TSI",
+      "TVH"
+    ],
+    "AUTO": [
+      "ACG",
+      "AH",
+      "CWT",
+      "EASON",
+      "HFT",
+      "IHL",
+      "INGRS",
+      "IRC",
+      "MGC",
+      "NEX",
+      "PCSGH",
+      "POLY",
+      "SAT",
+      "SPG",
+      "STANLY",
+      "TKT",
+      "TNPC",
+      "TRU",
+      "TSC"
+    ],
+    "IMM": [
+      "AKR",
+      "ALLA",
+      "ASEFA",
+      "CPT",
+      "CRANE",
+      "CTW",
+      "FMT",
+      "FTE",
+      "HTECH",
+      "MASTEC",
+      "PCC",
+      "PK",
+      "PSP",
+      "QTC",
+      "SCI",
+      "SE",
+      "SELIC",
+      "SNC",
+      "TCJ",
+      "TPCS",
+      "VARO"
+    ],
+    "PAPER": [
+      "UTP"
+    ],
+    "PETRO": [
+      "BCT",
+      "CMAN",
+      "GC",
+      "GGC",
+      "IVL",
+      "PATO",
+      "PMTA",
+      "PTTGC",
+      "SUTHA",
+      "TPA",
+      "UAC",
+      "UP"
+    ],
+    "PKG": [
+      "AJ",
+      "ALUCON",
+      "BGC",
+      "CSC",
+      "NEP",
+      "PJW",
+      "PTL",
+      "SCGP",
+      "SFLEX",
+      "SITHAI",
+      "SLP",
+      "SMPC",
+      "SPACK",
+      "TFI",
+      "THIP",
+      "TMD",
+      "TPAC",
+      "TPBI",
+      "TPP"
+    ],
+    "STEEL": [
+      "2S",
+      "AMC",
+      "BSBM",
+      "CEN",
+      "CITY",
+      "CSP",
+      "GJS",
+      "INOX",
+      "LHK",
+      "MCS",
+      "PAP",
+      "PERM",
+      "SMIT",
+      "SSSC",
+      "TGPRO",
+      "THE",
+      "TMT",
+      "TSTH",
+      "TWP"
+    ],
+    "CONMAT": [
+      "CCP",
+      "DCC",
+      "DCON",
+      "DRT",
+      "EPG",
+      "GEL",
+      "PPP",
+      "Q-CON",
+      "SCC",
+      "SCCC",
+      "SCGD",
+      "SCP",
+      "SKN",
+      "STECH",
+      "TASCO",
+      "TOA",
+      "TPIPL",
+      "UMI",
+      "VNG",
+      "WIIK",
+      "WINDOW"
+    ],
+    "PROP": [
+      "A5",
+      "AMATA",
+      "AMATAV",
+      "ANAN",
+      "AP",
+      "ASW",
+      "AWC",
+      "BLAND",
+      "BRI",
+      "BROCK",
+      "CGD",
+      "CI",
+      "CMC",
+      "CPN",
+      "ESTAR",
+      "EVER",
+      "FPT",
+      "J",
+      "JCK",
+      "KC",
+      "KUN",
+      "LALIN",
+      "LH",
+      "LPN",
+      "MBK",
+      "MJD",
+      "MK",
+      "NCH",
+      "NNCL",
+      "NOBLE",
+      "NVD",
+      "ORI",
+      "ORN",
+      "PEACE",
+      "PIN",
+      "PLAT",
+      "PRECHA",
+      "PROUD",
+      "PSH",
+      "QH",
+      "RABBIT",
+      "RICHY",
+      "RML",
+      "ROJNA",
+      "S",
+      "SA",
+      "SAMCO",
+      "SC",
+      "SENA",
+      "SIRI",
+      "SPALI",
+      "STELLA",
+      "TITLE",
+      "UV",
+      "WHA",
+      "WIN"
+    ],
+    "PF&REIT": [
+      "AIMCG",
+      "AIMIRT",
+      "ALLY",
+      "AMATAR",
+      "AXTRART",
+      "B-WORK",
+      "BAREIT",
+      "BOFFICE",
+      "CPNCG",
+      "CPNREIT",
+      "CPTREIT",
+      "CTARAF",
+      "DREIT",
+      "FTREIT",
+      "FUTURERT",
+      "GAHREIT",
+      "GROREIT",
+      "GVREIT",
+      "HPF",
+      "IMPACT",
+      "INETREIT",
+      "ISSARA",
+      "KPNREIT",
+      "KTBSTMR",
+      "LHHOTEL",
+      "LHRREIT",
+      "LHSC",
+      "LUXF",
+      "M-PAT",
+      "M-STOR",
+      "MII",
+      "MJLF",
+      "MNIT",
+      "MNRF",
+      "POPF",
+      "PROSPECT",
+      "QHBREIT",
+      "QHHRREIT",
+      "QHOP",
+      "SPRIME",
+      "SRIPANWA",
+      "SSTRT",
+      "TIF1",
+      "TLHPF",
+      "TNPF",
+      "TPRIME",
+      "TTLPF",
+      "TU-PF",
+      "WHABT",
+      "WHAIR",
+      "WHART"
+    ],
+    "CONS": [
+      "APCS",
+      "BJCHI",
+      "BKD",
+      "CIVIL",
+      "CK",
+      "CNT",
+      "DEMCO",
+      "EMC",
+      "ITD",
+      "JR",
+      "NL",
+      "PLE",
+      "PREB",
+      "PYLON",
+      "RT",
+      "SEAFCO",
+      "SOLAR",
+      "SQ",
+      "SRICHA",
+      "STECON",
+      "STI",
+      "STPI",
+      "SYNTEC",
+      "TEAMG",
+      "TEKA",
+      "TPOLY",
+      "TRC",
+      "TRITN",
+      "UNIQ",
+      "WGE"
+    ],
+    "ENERG": [
+      "ACC",
+      "ACE",
+      "AE",
+      "AGE",
+      "AI",
+      "AIE",
+      "ATLAS",
+      "BAFS",
+      "BANPU",
+      "BBGI",
+      "BCP",
+      "BCPG",
+      "BGRIM",
+      "BIOTEC",
+      "BPP",
+      "BRRGIF",
+      "CKP",
+      "EA",
+      "EASTW",
+      "EGATIF",
+      "EGCO",
+      "EP",
+      "ETC",
+      "GPSC",
+      "GREEN",
+      "GULF",
+      "GUNKUL",
+      "IRPC",
+      "KBSPIF",
+      "LANNA",
+      "MDX",
+      "OR",
+      "PRIME",
+      "PTG",
+      "PTT",
+      "PTTEP",
+      "RATCH",
+      "RPC",
+      "SCG",
+      "SCN",
+      "SEAOIL",
+      "SGP",
+      "SKE",
+      "SPCG",
+      "SPRC",
+      "SSP",
+      "SUPER",
+      "SUPEREIF",
+      "SUSCO",
+      "TAE",
+      "TCC",
+      "TGE",
+      "TOP",
+      "TPIPP",
+      "TSE",
+      "TTW",
+      "UBE",
+      "WHAUP",
+      "WP"
+    ],
+    "MINE": [],
+    "COMM": [
+      "ADVICE",
+      "B52",
+      "BEAUTY",
+      "BIG",
+      "BJC",
+      "COM7",
+      "CPALL",
+      "CPAXT",
+      "CPW",
+      "CRC",
+      "CSS",
+      "DOHOME",
+      "FN",
+      "GLOBAL",
+      "HMPRO",
+      "ILM",
+      "IT",
+      "KAMART",
+      "LOXLEY",
+      "MC",
+      "MEGA",
+      "MIDA",
+      "MOSHI",
+      "MRDIYT",
+      "RS",
+      "RSP",
+      "SCM",
+      "SINGER",
+      "SPC",
+      "SPI",
+      "SVT",
+      "TAN"
+    ],
+    "HELTH": [
+      "AHC",
+      "BCH",
+      "BDMS",
+      "BH",
+      "BKGI",
+      "CHG",
+      "CMR",
+      "EKH",
+      "KLINIQ",
+      "LPH",
+      "M-CHAI",
+      "MASTER",
+      "MEDEZE",
+      "NKT",
+      "NTV",
+      "PHG",
+      "PR9",
+      "PRINC",
+      "RAM",
+      "RJH",
+      "RPH",
+      "SAFE",
+      "SKR",
+      "THG",
+      "VIBHA",
+      "VIH",
+      "WPH"
+    ],
+    "MEDIA": [
+      "AMARIN",
+      "AQUA",
+      "AS",
+      "BEC",
+      "GPI",
+      "GRAMMY",
+      "MAJOR",
+      "MCOT",
+      "MONO",
+      "NATION",
+      "ONEE",
+      "PLANB",
+      "PRAKIT",
+      "PTECH",
+      "SE-ED",
+      "TKS",
+      "VGI",
+      "WORK",
+      "ZAA"
+    ],
+    "PROF": [
+      "BWG",
+      "GENCO",
+      "PRTR",
+      "SISB",
+      "SO",
+      "WAVE"
+    ],
+    "TOURISM": [
+      "BEYOND",
+      "CENTEL",
+      "CSR",
+      "DUSIT",
+      "ERW",
+      "MANRIN",
+      "MINT",
+      "OHTL",
+      "ONSENS",
+      "SHANG",
+      "SHR",
+      "SPA",
+      "VRANDA"
+    ],
+    "TRANS": [
+      "AAV",
+      "ANI",
+      "AOT",
+      "ASIMAR",
+      "B",
+      "BA",
+      "BEM",
+      "BTS",
+      "BTSGIF",
+      "DMT",
+      "ETL",
+      "III",
+      "KIAT",
+      "MENA",
+      "NYT",
+      "PORT",
+      "PRM",
+      "PSL",
+      "RCL",
+      "SAV",
+      "SINO",
+      "SJWD",
+      "TFFIF",
+      "THAI",
+      "TSTE",
+      "TTA",
+      "WICE"
+    ],
+    "ETRON": [
+      "CCET",
+      "DELTA",
+      "HANA",
+      "KCE",
+      "METCO",
+      "SMT",
+      "SVI",
+      "TEAM"
+    ],
+    "ICT": [
+      "3BBIF",
+      "ADVANC",
+      "AIT",
+      "ALT",
+      "AMR",
+      "BBIK",
+      "DIF",
+      "DITTO",
+      "DTCENT",
+      "FORTH",
+      "GABLE",
+      "HUMAN",
+      "ICN",
+      "ILINK",
+      "INET",
+      "INSET",
+      "ITEL",
+      "JAS",
+      "JMART",
+      "JTS",
+      "MFEC",
+      "MSC",
+      "PT",
+      "ROCTEC",
+      "SAMART",
+      "SAMTEL",
+      "SDC",
+      "SIS",
+      "SKY",
+      "SPREME",
+      "SVOA",
+      "SYMC",
+      "SYNEX",
+      "THCOM",
+      "TKC",
+      "TRUE",
+      "TWZ",
+      "XYZ"
+    ],
+    "MAI_AGRO": [
+      "APO",
+      "AU",
+      "CFARM",
+      "KASET",
+      "MAGURO",
+      "MUD",
+      "NTF",
+      "NTSC",
+      "QDC",
+      "TACC",
+      "TMILL",
+      "WINNER",
+      "XO"
+    ],
+    "MAI_CONSUMP": [
+      "88TH",
+      "BGT",
+      "DOD",
+      "ECF",
+      "EFORL",
+      "EURO",
+      "HPT",
+      "ITTHI",
+      "JSP",
+      "JUBILE",
+      "LTS",
+      "MGI",
+      "MOONG",
+      "NPK",
+      "NUT",
+      "SEI",
+      "SKIN",
+      "SMD100",
+      "TM",
+      "WARRIX",
+      "WINMED"
+    ],
+    "MAI_FINCIAL": [
+      "ACAP",
+      "AF",
+      "AIRA",
+      "ASN",
+      "BTC",
+      "GCAP",
+      "KCC",
+      "LIT",
+      "MITSIB",
+      "SGF",
+      "TQR"
+    ],
+    "MAI_INDUS": [
+      "ADB",
+      "BM",
+      "BPS",
+      "CHO",
+      "CHOW",
+      "CIG",
+      "COLOR",
+      "CPR",
+      "FPI",
+      "GTB",
+      "HARN",
+      "KCM",
+      "KJL",
+      "KUMWEL",
+      "KWM",
+      "MBAX",
+      "MGT",
+      "MTW",
+      "NDR",
+      "PACO",
+      "PDG",
+      "PHOL",
+      "PIMO",
+      "PMC",
+      "PPM",
+      "PRAPAT",
+      "RWI",
+      "SAF",
+      "SALEE",
+      "SANKO",
+      "SCL",
+      "SFT",
+      "STP",
+      "SWC",
+      "TATG",
+      "TMC",
+      "TMI",
+      "TMW",
+      "TPLAS",
+      "TRT",
+      "TRV",
+      "UBIS",
+      "UEC",
+      "UKEM",
+      "UREKA",
+      "YUASA",
+      "ZIGA"
+    ],
+    "MAI_PROPCON": [
+      "ARIN",
+      "ARROW",
+      "BC",
+      "BKA",
+      "BLESS",
+      "BSM",
+      "BTW",
+      "CAZ",
+      "CHEWA",
+      "CPANEL",
+      "CRD",
+      "DHOUSE",
+      "DIMET",
+      "DPAINT",
+      "EMPIRE",
+      "FLOYD",
+      "HYDRO",
+      "IND",
+      "JAK",
+      "META",
+      "MMM",
+      "PANEL",
+      "PPS",
+      "PRI",
+      "PROS",
+      "PSGC",
+      "QTCG",
+      "SENX",
+      "SK",
+      "SMART",
+      "STC",
+      "STX",
+      "SVR",
+      "TAPAC",
+      "THANA",
+      "TIGER",
+      "WELL",
+      "YONG"
+    ],
+    "MAI_RESOURC": [
+      "ABM",
+      "ALPHAX",
+      "GTV",
+      "PSTC",
+      "PTC",
+      "SAAM",
+      "SR",
+      "STOWER",
+      "TAKUNI",
+      "TPCH",
+      "UMS"
+    ],
+    "MAI_SERVICE": [
+      "ADD",
+      "AKP",
+      "AMA",
+      "AMARC",
+      "ARIP",
+      "ATP30",
+      "AUCT",
+      "BIS",
+      "BOL",
+      "CEYE",
+      "CHIC",
+      "CMO",
+      "DEXON",
+      "DV8",
+      "ETE",
+      "FSMART",
+      "FVC",
+      "GFC",
+      "GLORY",
+      "HANN",
+      "HEALTH",
+      "HL",
+      "IMH",
+      "IROYAL",
+      "IVF",
+      "JPARK",
+      "KGEN",
+      "KK",
+      "KOOL",
+      "KTMS",
+      "LDC",
+      "LEO",
+      "LTMH",
+      "MCA",
+      "MEB",
+      "MORE",
+      "MOTHER",
+      "MPJ",
+      "MVP",
+      "NCL",
+      "NCP",
+      "PEER",
+      "PICO",
+      "PLT",
+      "QLT",
+      "RP",
+      "SONIC",
+      "SPTX",
+      "THMUI",
+      "TNDT",
+      "TNH",
+      "TNP",
+      "TPL",
+      "TRP",
+      "TURTLE",
+      "TVDH",
+      "TVT",
+      "UBA",
+      "VL",
+      "VS",
+      "WASH",
+      "YGG"
+    ],
+    "MAI_TECH": [
+      "APP",
+      "BE8",
+      "BVG",
+      "COMAN",
+      "I2",
+      "IDG",
+      "IIG",
+      "IRCP",
+      "ITNS",
+      "NAT",
+      "NETBAY",
+      "PIS",
+      "PLANET",
+      "PROEN",
+      "READY",
+      "SECURE",
+      "SICT",
+      "SIMAT",
+      "SPVI",
+      "SRS",
+      "TBN",
+      "TERA",
+      "TPS",
+      "VCOM"
+    ]
+  },
+  "meta": {
+    "AGRI": {
+      "group": "AGRO",
+      "name": "ธุรกิจการเกษตร"
+    },
+    "FOOD": {
+      "group": "AGRO",
+      "name": "อาหารและเครื่องดื่ม"
+    },
+    "FASHION": {
+      "group": "CONSUMP",
+      "name": "แฟชั่น"
+    },
+    "HOME": {
+      "group": "CONSUMP",
+      "name": "ของใช้ในครัวเรือนและสำนักงาน"
+    },
+    "PERSON": {
+      "group": "CONSUMP",
+      "name": "ของใช้ส่วนตัวและเวชภัณฑ์"
+    },
+    "BANK": {
+      "group": "FINCIAL",
+      "name": "ธนาคาร"
+    },
+    "FIN": {
+      "group": "FINCIAL",
+      "name": "เงินทุนและหลักทรัพย์"
+    },
+    "INSUR": {
+      "group": "FINCIAL",
+      "name": "ประกันภัยและประกันชีวิต"
+    },
+    "AUTO": {
+      "group": "INDUS",
+      "name": "ยานยนต์"
+    },
+    "IMM": {
+      "group": "INDUS",
+      "name": "วัสดุอุตสาหกรรมและเครื่องจักร"
+    },
+    "PAPER": {
+      "group": "INDUS",
+      "name": "กระดาษและวัสดุการพิมพ์"
+    },
+    "PETRO": {
+      "group": "INDUS",
+      "name": "ปิโตรเคมีและเคมีภัณฑ์"
+    },
+    "PKG": {
+      "group": "INDUS",
+      "name": "บรรจุภัณฑ์"
+    },
+    "STEEL": {
+      "group": "INDUS",
+      "name": "เหล็ก และ ผลิตภัณฑ์โลหะ"
+    },
+    "CONMAT": {
+      "group": "PROPCON",
+      "name": "วัสดุก่อสร้าง"
+    },
+    "PROP": {
+      "group": "PROPCON",
+      "name": "พัฒนาอสังหาริมทรัพย์"
+    },
+    "PF&REIT": {
+      "group": "PROPCON",
+      "name": "กองทุนรวมอสังหาริมทรัพย์และกองทรัสต์เพื่อการลงทุนในอสังหาริมทรัพย์"
+    },
+    "CONS": {
+      "group": "PROPCON",
+      "name": "บริการรับเหมาก่อสร้าง"
+    },
+    "ENERG": {
+      "group": "RESOURC",
+      "name": "พลังงานและสาธารณูปโภค"
+    },
+    "MINE": {
+      "group": "RESOURC",
+      "name": "เหมืองแร่"
+    },
+    "COMM": {
+      "group": "SERVICE",
+      "name": "พาณิชย์"
+    },
+    "HELTH": {
+      "group": "SERVICE",
+      "name": "การแพทย์"
+    },
+    "MEDIA": {
+      "group": "SERVICE",
+      "name": "สื่อและสิ่งพิมพ์"
+    },
+    "PROF": {
+      "group": "SERVICE",
+      "name": "บริการเฉพาะกิจ"
+    },
+    "TOURISM": {
+      "group": "SERVICE",
+      "name": "การท่องเที่ยวและสันทนาการ"
+    },
+    "TRANS": {
+      "group": "SERVICE",
+      "name": "ขนส่งและโลจิสติกส์"
+    },
+    "ETRON": {
+      "group": "TECH",
+      "name": "ชิ้นส่วนอิเล็กทรอนิกส์"
+    },
+    "ICT": {
+      "group": "TECH",
+      "name": "เทคโนโลยีสารสนเทศและการสื่อสาร"
+    },
+    "MAI_AGRO": {
+      "group": "MAI",
+      "name": "เกษตรและอุตสาหกรรมอาหาร"
+    },
+    "MAI_CONSUMP": {
+      "group": "MAI",
+      "name": "สินค้าอุปโภคบริโภค"
+    },
+    "MAI_FINCIAL": {
+      "group": "MAI",
+      "name": "ธุรกิจการเงิน"
+    },
+    "MAI_INDUS": {
+      "group": "MAI",
+      "name": "สินค้าอุตสาหกรรม"
+    },
+    "MAI_PROPCON": {
+      "group": "MAI",
+      "name": "อสังหาริมทรัพย์และก่อสร้าง"
+    },
+    "MAI_RESOURC": {
+      "group": "MAI",
+      "name": "ทรัพยากร"
+    },
+    "MAI_SERVICE": {
+      "group": "MAI",
+      "name": "บริการ"
+    },
+    "MAI_TECH": {
+      "group": "MAI",
+      "name": "เทคโนโลยี"
+    }
+  },
+  "tickers": {
+    "GFPT": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "LEE": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "NER": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "PCE": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "PPPM": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "SMO": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "STA": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "TEGH": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "TFM": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "TL": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "TRUBB": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "UPOIC": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "UVAN": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "VPO": {
+      "sector": "AGRI",
+      "group": "AGRO"
+    },
+    "AAI": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "APURE": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "ASIAN": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "BR": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "BRR": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "BTG": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "CBG": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "CFRESH": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "CH": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "CHAO": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "CM": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "COCOCO": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "CPF": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "CPI": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "FM": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "HTC": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "ICHI": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "ITC": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "JDF": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "KBS": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "KCG": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "KSL": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "KTIS": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "LST": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "M": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "MADAME": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "MALEE": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "NRF": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "NSL": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "OKJ": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "OSP": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "PB": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "PLUS": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "PM": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "PQS": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "PRG": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "RBF": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "SAPPE": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "SAUCE": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "SNNP": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "SNP": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "SORKON": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "SSF": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "SST": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "SUN": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "TC": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "TFG": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "TFMAMA": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "TIPCO": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "TKN": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "TU": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "TVO": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "TWPC": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "XBIO": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "ZEN": {
+      "sector": "FOOD",
+      "group": "AGRO"
+    },
+    "AFC": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "AURA": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "BTNC": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "CPH": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "CPL": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "NC": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "PAF": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "PDJ": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "PG": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "SABINA": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "SUC": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "TTT": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "UPF": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "WACOAL": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "WFX": {
+      "sector": "FASHION",
+      "group": "CONSUMP"
+    },
+    "AJA": {
+      "sector": "HOME",
+      "group": "CONSUMP"
+    },
+    "FANCY": {
+      "sector": "HOME",
+      "group": "CONSUMP"
+    },
+    "FTI": {
+      "sector": "HOME",
+      "group": "CONSUMP"
+    },
+    "KYE": {
+      "sector": "HOME",
+      "group": "CONSUMP"
+    },
+    "L&E": {
+      "sector": "HOME",
+      "group": "CONSUMP"
+    },
+    "MODERN": {
+      "sector": "HOME",
+      "group": "CONSUMP"
+    },
+    "OGC": {
+      "sector": "HOME",
+      "group": "CONSUMP"
+    },
+    "ROCK": {
+      "sector": "HOME",
+      "group": "CONSUMP"
+    },
+    "SIAM": {
+      "sector": "HOME",
+      "group": "CONSUMP"
+    },
+    "TCMC": {
+      "sector": "HOME",
+      "group": "CONSUMP"
+    },
+    "APCO": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "BIZ": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "BLC": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "DDD": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "IP": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "JCT": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "KISS": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "NAM": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "NEO": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "NV": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "S&J": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "SNPS": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "STGT": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "TMAN": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "TNR": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "TOG": {
+      "sector": "PERSON",
+      "group": "CONSUMP"
+    },
+    "BAY": {
+      "sector": "BANK",
+      "group": "FINCIAL"
+    },
+    "BBL": {
+      "sector": "BANK",
+      "group": "FINCIAL"
+    },
+    "CREDIT": {
+      "sector": "BANK",
+      "group": "FINCIAL"
+    },
+    "KBANK": {
+      "sector": "BANK",
+      "group": "FINCIAL"
+    },
+    "KKP": {
+      "sector": "BANK",
+      "group": "FINCIAL"
+    },
+    "KTB": {
+      "sector": "BANK",
+      "group": "FINCIAL"
+    },
+    "LHFG": {
+      "sector": "BANK",
+      "group": "FINCIAL"
+    },
+    "SCB": {
+      "sector": "BANK",
+      "group": "FINCIAL"
+    },
+    "TCAP": {
+      "sector": "BANK",
+      "group": "FINCIAL"
+    },
+    "TISCO": {
+      "sector": "BANK",
+      "group": "FINCIAL"
+    },
+    "TTB": {
+      "sector": "BANK",
+      "group": "FINCIAL"
+    },
+    "AEONTS": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "AMANAH": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "ASAP": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "ASK": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "ASP": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "BAM": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "BYD": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "CGH": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "CHASE": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "CHAYO": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "EAST": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "FNS": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "FSX": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "GBX": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "HENG": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "IFS": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "JMT": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "KCAR": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "KGI": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "KTC": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "MFC": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "MICRO": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "ML": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "MST": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "MTC": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "NCAP": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "PL": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "S11": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "SAK": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "SAWAD": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "SCAP": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "SGC": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "STARM": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "TH": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "THANI": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "TIDLOR": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "TK": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "TNITY": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "TURBO": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "XPG": {
+      "sector": "FIN",
+      "group": "FINCIAL"
+    },
+    "AYUD": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "BKIH": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "BLA": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "BUI": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "CHARAN": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "INSURE": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "MTI": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "NKI": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "TGH": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "THRE": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "THREL": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "TIPH": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "TLI": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "TQM": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "TSI": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "TVH": {
+      "sector": "INSUR",
+      "group": "FINCIAL"
+    },
+    "ACG": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "AH": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "CWT": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "EASON": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "HFT": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "IHL": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "INGRS": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "IRC": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "MGC": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "NEX": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "PCSGH": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "POLY": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "SAT": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "SPG": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "STANLY": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "TKT": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "TNPC": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "TRU": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "TSC": {
+      "sector": "AUTO",
+      "group": "INDUS"
+    },
+    "AKR": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "ALLA": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "ASEFA": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "CPT": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "CRANE": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "CTW": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "FMT": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "FTE": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "HTECH": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "MASTEC": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "PCC": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "PK": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "PSP": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "QTC": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "SCI": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "SE": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "SELIC": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "SNC": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "TCJ": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "TPCS": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "VARO": {
+      "sector": "IMM",
+      "group": "INDUS"
+    },
+    "UTP": {
+      "sector": "PAPER",
+      "group": "INDUS"
+    },
+    "BCT": {
+      "sector": "PETRO",
+      "group": "INDUS"
+    },
+    "CMAN": {
+      "sector": "PETRO",
+      "group": "INDUS"
+    },
+    "GC": {
+      "sector": "PETRO",
+      "group": "INDUS"
+    },
+    "GGC": {
+      "sector": "PETRO",
+      "group": "INDUS"
+    },
+    "IVL": {
+      "sector": "PETRO",
+      "group": "INDUS"
+    },
+    "PATO": {
+      "sector": "PETRO",
+      "group": "INDUS"
+    },
+    "PMTA": {
+      "sector": "PETRO",
+      "group": "INDUS"
+    },
+    "PTTGC": {
+      "sector": "PETRO",
+      "group": "INDUS"
+    },
+    "SUTHA": {
+      "sector": "PETRO",
+      "group": "INDUS"
+    },
+    "TPA": {
+      "sector": "PETRO",
+      "group": "INDUS"
+    },
+    "UAC": {
+      "sector": "PETRO",
+      "group": "INDUS"
+    },
+    "UP": {
+      "sector": "PETRO",
+      "group": "INDUS"
+    },
+    "AJ": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "ALUCON": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "BGC": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "CSC": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "NEP": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "PJW": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "PTL": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "SCGP": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "SFLEX": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "SITHAI": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "SLP": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "SMPC": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "SPACK": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "TFI": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "THIP": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "TMD": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "TPAC": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "TPBI": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "TPP": {
+      "sector": "PKG",
+      "group": "INDUS"
+    },
+    "2S": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "AMC": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "BSBM": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "CEN": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "CITY": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "CSP": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "GJS": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "INOX": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "LHK": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "MCS": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "PAP": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "PERM": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "SMIT": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "SSSC": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "TGPRO": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "THE": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "TMT": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "TSTH": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "TWP": {
+      "sector": "STEEL",
+      "group": "INDUS"
+    },
+    "CCP": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "DCC": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "DCON": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "DRT": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "EPG": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "GEL": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "PPP": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "Q-CON": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "SCC": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "SCCC": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "SCGD": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "SCP": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "SKN": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "STECH": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "TASCO": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "TOA": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "TPIPL": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "UMI": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "VNG": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "WIIK": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "WINDOW": {
+      "sector": "CONMAT",
+      "group": "PROPCON"
+    },
+    "A5": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "AMATA": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "AMATAV": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "ANAN": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "AP": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "ASW": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "AWC": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "BLAND": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "BRI": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "BROCK": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "CGD": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "CI": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "CMC": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "CPN": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "ESTAR": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "EVER": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "FPT": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "J": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "JCK": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "KC": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "KUN": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "LALIN": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "LH": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "LPN": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "MBK": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "MJD": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "MK": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "NCH": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "NNCL": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "NOBLE": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "NVD": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "ORI": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "ORN": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "PEACE": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "PIN": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "PLAT": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "PRECHA": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "PROUD": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "PSH": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "QH": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "RABBIT": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "RICHY": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "RML": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "ROJNA": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "S": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "SA": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "SAMCO": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "SC": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "SENA": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "SIRI": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "SPALI": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "STELLA": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "TITLE": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "UV": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "WHA": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "WIN": {
+      "sector": "PROP",
+      "group": "PROPCON"
+    },
+    "AIMCG": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "AIMIRT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "ALLY": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "AMATAR": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "AXTRART": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "B-WORK": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "BAREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "BOFFICE": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "CPNCG": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "CPNREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "CPTREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "CTARAF": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "DREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "FTREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "FUTURERT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "GAHREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "GROREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "GVREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "HPF": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "IMPACT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "INETREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "ISSARA": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "KPNREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "KTBSTMR": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "LHHOTEL": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "LHRREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "LHSC": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "LUXF": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "M-PAT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "M-STOR": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "MII": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "MJLF": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "MNIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "MNRF": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "POPF": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "PROSPECT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "QHBREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "QHHRREIT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "QHOP": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "SPRIME": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "SRIPANWA": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "SSTRT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "TIF1": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "TLHPF": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "TNPF": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "TPRIME": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "TTLPF": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "TU-PF": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "WHABT": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "WHAIR": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "WHART": {
+      "sector": "PF&REIT",
+      "group": "PROPCON"
+    },
+    "APCS": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "BJCHI": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "BKD": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "CIVIL": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "CK": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "CNT": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "DEMCO": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "EMC": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "ITD": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "JR": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "NL": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "PLE": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "PREB": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "PYLON": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "RT": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "SEAFCO": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "SOLAR": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "SQ": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "SRICHA": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "STECON": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "STI": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "STPI": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "SYNTEC": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "TEAMG": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "TEKA": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "TPOLY": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "TRC": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "TRITN": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "UNIQ": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "WGE": {
+      "sector": "CONS",
+      "group": "PROPCON"
+    },
+    "ACC": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "ACE": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "AE": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "AGE": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "AI": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "AIE": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "ATLAS": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "BAFS": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "BANPU": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "BBGI": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "BCP": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "BCPG": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "BGRIM": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "BIOTEC": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "BPP": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "BRRGIF": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "CKP": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "EA": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "EASTW": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "EGATIF": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "EGCO": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "EP": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "ETC": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "GPSC": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "GREEN": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "GULF": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "GUNKUL": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "IRPC": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "KBSPIF": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "LANNA": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "MDX": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "OR": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "PRIME": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "PTG": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "PTT": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "PTTEP": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "RATCH": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "RPC": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "SCG": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "SCN": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "SEAOIL": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "SGP": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "SKE": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "SPCG": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "SPRC": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "SSP": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "SUPER": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "SUPEREIF": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "SUSCO": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "TAE": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "TCC": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "TGE": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "TOP": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "TPIPP": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "TSE": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "TTW": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "UBE": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "WHAUP": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "WP": {
+      "sector": "ENERG",
+      "group": "RESOURC"
+    },
+    "ADVICE": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "B52": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "BEAUTY": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "BIG": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "BJC": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "COM7": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "CPALL": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "CPAXT": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "CPW": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "CRC": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "CSS": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "DOHOME": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "FN": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "GLOBAL": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "HMPRO": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "ILM": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "IT": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "KAMART": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "LOXLEY": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "MC": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "MEGA": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "MIDA": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "MOSHI": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "MRDIYT": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "RS": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "RSP": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "SCM": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "SINGER": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "SPC": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "SPI": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "SVT": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "TAN": {
+      "sector": "COMM",
+      "group": "SERVICE"
+    },
+    "AHC": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "BCH": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "BDMS": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "BH": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "BKGI": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "CHG": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "CMR": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "EKH": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "KLINIQ": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "LPH": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "M-CHAI": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "MASTER": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "MEDEZE": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "NKT": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "NTV": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "PHG": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "PR9": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "PRINC": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "RAM": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "RJH": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "RPH": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "SAFE": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "SKR": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "THG": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "VIBHA": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "VIH": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "WPH": {
+      "sector": "HELTH",
+      "group": "SERVICE"
+    },
+    "AMARIN": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "AQUA": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "AS": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "BEC": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "GPI": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "GRAMMY": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "MAJOR": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "MCOT": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "MONO": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "NATION": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "ONEE": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "PLANB": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "PRAKIT": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "PTECH": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "SE-ED": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "TKS": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "VGI": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "WORK": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "ZAA": {
+      "sector": "MEDIA",
+      "group": "SERVICE"
+    },
+    "BWG": {
+      "sector": "PROF",
+      "group": "SERVICE"
+    },
+    "GENCO": {
+      "sector": "PROF",
+      "group": "SERVICE"
+    },
+    "PRTR": {
+      "sector": "PROF",
+      "group": "SERVICE"
+    },
+    "SISB": {
+      "sector": "PROF",
+      "group": "SERVICE"
+    },
+    "SO": {
+      "sector": "PROF",
+      "group": "SERVICE"
+    },
+    "WAVE": {
+      "sector": "PROF",
+      "group": "SERVICE"
+    },
+    "BEYOND": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "CENTEL": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "CSR": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "DUSIT": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "ERW": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "MANRIN": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "MINT": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "OHTL": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "ONSENS": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "SHANG": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "SHR": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "SPA": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "VRANDA": {
+      "sector": "TOURISM",
+      "group": "SERVICE"
+    },
+    "AAV": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "ANI": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "AOT": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "ASIMAR": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "B": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "BA": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "BEM": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "BTS": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "BTSGIF": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "DMT": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "ETL": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "III": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "KIAT": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "MENA": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "NYT": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "PORT": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "PRM": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "PSL": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "RCL": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "SAV": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "SINO": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "SJWD": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "TFFIF": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "THAI": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "TSTE": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "TTA": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "WICE": {
+      "sector": "TRANS",
+      "group": "SERVICE"
+    },
+    "CCET": {
+      "sector": "ETRON",
+      "group": "TECH"
+    },
+    "DELTA": {
+      "sector": "ETRON",
+      "group": "TECH"
+    },
+    "HANA": {
+      "sector": "ETRON",
+      "group": "TECH"
+    },
+    "KCE": {
+      "sector": "ETRON",
+      "group": "TECH"
+    },
+    "METCO": {
+      "sector": "ETRON",
+      "group": "TECH"
+    },
+    "SMT": {
+      "sector": "ETRON",
+      "group": "TECH"
+    },
+    "SVI": {
+      "sector": "ETRON",
+      "group": "TECH"
+    },
+    "TEAM": {
+      "sector": "ETRON",
+      "group": "TECH"
+    },
+    "3BBIF": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "ADVANC": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "AIT": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "ALT": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "AMR": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "BBIK": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "DIF": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "DITTO": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "DTCENT": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "FORTH": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "GABLE": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "HUMAN": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "ICN": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "ILINK": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "INET": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "INSET": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "ITEL": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "JAS": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "JMART": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "JTS": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "MFEC": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "MSC": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "PT": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "ROCTEC": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "SAMART": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "SAMTEL": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "SDC": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "SIS": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "SKY": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "SPREME": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "SVOA": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "SYMC": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "SYNEX": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "THCOM": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "TKC": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "TRUE": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "TWZ": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "XYZ": {
+      "sector": "ICT",
+      "group": "TECH"
+    },
+    "APO": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "AU": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "CFARM": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "KASET": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "MAGURO": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "MUD": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "NTF": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "NTSC": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "QDC": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "TACC": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "TMILL": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "WINNER": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "XO": {
+      "sector": "MAI_AGRO",
+      "group": "AGRO"
+    },
+    "88TH": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "BGT": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "DOD": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "ECF": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "EFORL": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "EURO": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "HPT": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "ITTHI": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "JSP": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "JUBILE": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "LTS": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "MGI": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "MOONG": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "NPK": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "NUT": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "SEI": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "SKIN": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "SMD100": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "TM": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "WARRIX": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "WINMED": {
+      "sector": "MAI_CONSUMP",
+      "group": "CONSUMP"
+    },
+    "ACAP": {
+      "sector": "MAI_FINCIAL",
+      "group": "FINCIAL"
+    },
+    "AF": {
+      "sector": "MAI_FINCIAL",
+      "group": "FINCIAL"
+    },
+    "AIRA": {
+      "sector": "MAI_FINCIAL",
+      "group": "FINCIAL"
+    },
+    "ASN": {
+      "sector": "MAI_FINCIAL",
+      "group": "FINCIAL"
+    },
+    "BTC": {
+      "sector": "MAI_FINCIAL",
+      "group": "FINCIAL"
+    },
+    "GCAP": {
+      "sector": "MAI_FINCIAL",
+      "group": "FINCIAL"
+    },
+    "KCC": {
+      "sector": "MAI_FINCIAL",
+      "group": "FINCIAL"
+    },
+    "LIT": {
+      "sector": "MAI_FINCIAL",
+      "group": "FINCIAL"
+    },
+    "MITSIB": {
+      "sector": "MAI_FINCIAL",
+      "group": "FINCIAL"
+    },
+    "SGF": {
+      "sector": "MAI_FINCIAL",
+      "group": "FINCIAL"
+    },
+    "TQR": {
+      "sector": "MAI_FINCIAL",
+      "group": "FINCIAL"
+    },
+    "ADB": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "BM": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "BPS": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "CHO": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "CHOW": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "CIG": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "COLOR": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "CPR": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "FPI": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "GTB": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "HARN": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "KCM": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "KJL": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "KUMWEL": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "KWM": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "MBAX": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "MGT": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "MTW": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "NDR": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "PACO": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "PDG": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "PHOL": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "PIMO": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "PMC": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "PPM": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "PRAPAT": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "RWI": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "SAF": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "SALEE": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "SANKO": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "SCL": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "SFT": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "STP": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "SWC": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "TATG": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "TMC": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "TMI": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "TMW": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "TPLAS": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "TRT": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "TRV": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "UBIS": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "UEC": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "UKEM": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "UREKA": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "YUASA": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "ZIGA": {
+      "sector": "MAI_INDUS",
+      "group": "INDUS"
+    },
+    "ARIN": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "ARROW": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "BC": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "BKA": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "BLESS": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "BSM": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "BTW": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "CAZ": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "CHEWA": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "CPANEL": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "CRD": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "DHOUSE": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "DIMET": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "DPAINT": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "EMPIRE": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "FLOYD": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "HYDRO": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "IND": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "JAK": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "META": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "MMM": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "PANEL": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "PPS": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "PRI": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "PROS": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "PSGC": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "QTCG": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "SENX": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "SK": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "SMART": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "STC": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "STX": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "SVR": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "TAPAC": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "THANA": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "TIGER": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "WELL": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "YONG": {
+      "sector": "MAI_PROPCON",
+      "group": "PROPCON"
+    },
+    "ABM": {
+      "sector": "MAI_RESOURC",
+      "group": "RESOURC"
+    },
+    "ALPHAX": {
+      "sector": "MAI_RESOURC",
+      "group": "RESOURC"
+    },
+    "GTV": {
+      "sector": "MAI_RESOURC",
+      "group": "RESOURC"
+    },
+    "PSTC": {
+      "sector": "MAI_RESOURC",
+      "group": "RESOURC"
+    },
+    "PTC": {
+      "sector": "MAI_RESOURC",
+      "group": "RESOURC"
+    },
+    "SAAM": {
+      "sector": "MAI_RESOURC",
+      "group": "RESOURC"
+    },
+    "SR": {
+      "sector": "MAI_RESOURC",
+      "group": "RESOURC"
+    },
+    "STOWER": {
+      "sector": "MAI_RESOURC",
+      "group": "RESOURC"
+    },
+    "TAKUNI": {
+      "sector": "MAI_RESOURC",
+      "group": "RESOURC"
+    },
+    "TPCH": {
+      "sector": "MAI_RESOURC",
+      "group": "RESOURC"
+    },
+    "UMS": {
+      "sector": "MAI_RESOURC",
+      "group": "RESOURC"
+    },
+    "ADD": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "AKP": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "AMA": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "AMARC": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "ARIP": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "ATP30": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "AUCT": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "BIS": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "BOL": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "CEYE": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "CHIC": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "CMO": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "DEXON": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "DV8": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "ETE": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "FSMART": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "FVC": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "GFC": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "GLORY": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "HANN": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "HEALTH": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "HL": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "IMH": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "IROYAL": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "IVF": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "JPARK": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "KGEN": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "KK": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "KOOL": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "KTMS": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "LDC": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "LEO": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "LTMH": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "MCA": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "MEB": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "MORE": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "MOTHER": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "MPJ": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "MVP": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "NCL": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "NCP": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "PEER": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "PICO": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "PLT": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "QLT": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "RP": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "SONIC": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "SPTX": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "THMUI": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "TNDT": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "TNH": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "TNP": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "TPL": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "TRP": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "TURTLE": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "TVDH": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "TVT": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "UBA": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "VL": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "VS": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "WASH": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "YGG": {
+      "sector": "MAI_SERVICE",
+      "group": "SERVICE"
+    },
+    "APP": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "BE8": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "BVG": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "COMAN": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "I2": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "IDG": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "IIG": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "IRCP": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "ITNS": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "NAT": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "NETBAY": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "PIS": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "PLANET": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "PROEN": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "READY": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "SECURE": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "SICT": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "SIMAT": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "SPVI": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "SRS": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "TBN": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "TERA": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "TPS": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    },
+    "VCOM": {
+      "sector": "MAI_TECH",
+      "group": "TECH"
+    }
+  }
+}
