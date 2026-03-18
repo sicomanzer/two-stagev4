@@ -9,7 +9,7 @@ import type {
   TrendAnalysis, CAGRData, Scenario, ScenarioAnalysis,
   StockHistory, ScreeningResult, AllocationRatio,
   FScoreResult, FScoreCriteria,
-  ZScoreResult, ZScoreComponent
+  ZScoreResult, ZScoreComponent, InvestmentSignal
 } from '@/types/stock';
 
 // ===================================================================
@@ -910,6 +910,130 @@ export function calculateScenarioAnalysis(
   return { ticker, scenarios, weightedFairPrice, currentPrice };
 }
 
+export function calculateInvestmentSignal(params: {
+  result: DDMResult | null;
+  consensus: ValuationConsensus | null;
+  scorecard: StockScorecard | null;
+  fScore: FScoreResult | null;
+  zScore: ZScoreResult | null;
+  trendAnalysis: TrendAnalysis | null;
+  scenarioAnalysis: ScenarioAnalysis | null;
+}): InvestmentSignal {
+  const valuationCandidates: number[] = [];
+  const qualityCandidates: number[] = [];
+  const riskCandidates: number[] = [];
+  const momentumCandidates: number[] = [];
+  const scenarioCandidates: number[] = [];
+  const reasons: string[] = [];
+
+  if (params.result?.margin !== null && params.result?.margin !== undefined) {
+    valuationCandidates.push(scoreFromUpside(params.result.margin));
+    if (params.result.margin >= 15) reasons.push(`DDM margin +${params.result.margin.toFixed(1)}%`);
+    if (params.result.margin <= -15) reasons.push(`DDM margin ${params.result.margin.toFixed(1)}%`);
+  }
+
+  if (params.consensus?.upside !== null && params.consensus?.upside !== undefined) {
+    valuationCandidates.push(scoreFromUpside(params.consensus.upside));
+    if (params.consensus.upside >= 15) reasons.push(`Consensus upside +${params.consensus.upside.toFixed(1)}%`);
+    if (params.consensus.upside <= -10) reasons.push(`Consensus upside ${params.consensus.upside.toFixed(1)}%`);
+  }
+
+  if (params.scorecard) {
+    const score = (params.scorecard.totalScore / Math.max(params.scorecard.maxScore, 1)) * 100;
+    qualityCandidates.push(clamp(score, 0, 100));
+    reasons.push(`VI Score ${params.scorecard.totalScore}/${params.scorecard.maxScore}`);
+  }
+
+  if (params.fScore) {
+    const score = (params.fScore.score / 9) * 100;
+    qualityCandidates.push(clamp(score, 0, 100));
+    reasons.push(`F-Score ${params.fScore.score}/9 (${params.fScore.grade})`);
+  }
+
+  if (params.zScore) {
+    let base = 55;
+    if (params.zScore.status === 'Safe') base = 85;
+    if (params.zScore.status === 'Distress') base = 20;
+    const adjustment = clamp((params.zScore.score - 2) * 10, -15, 15);
+    riskCandidates.push(clamp(base + adjustment, 0, 100));
+    reasons.push(`Altman Z ${params.zScore.score.toFixed(2)} (${params.zScore.status})`);
+  }
+
+  if (params.trendAnalysis) {
+    const cagrScores = params.trendAnalysis.cagrs
+      .map((item) => scoreFromCagr(item.cagr5y))
+      .filter((v): v is number => v !== null);
+    if (cagrScores.length > 0) {
+      momentumCandidates.push(average(cagrScores));
+    }
+
+    const quality = params.trendAnalysis.earningsQuality;
+    if (quality.npmTrend === 'improving') momentumCandidates.push(70);
+    if (quality.npmTrend === 'declining') momentumCandidates.push(35);
+    if (quality.revenueVsProfit === 'healthy') momentumCandidates.push(70);
+    if (quality.revenueVsProfit === 'warning') momentumCandidates.push(50);
+    if (quality.revenueVsProfit === 'concern') momentumCandidates.push(30);
+
+    if (quality.deTrend === 'improving') riskCandidates.push(75);
+    if (quality.deTrend === 'stable') riskCandidates.push(55);
+    if (quality.deTrend === 'deteriorating') riskCandidates.push(30);
+  }
+
+  if (params.scenarioAnalysis?.currentPrice && params.scenarioAnalysis.currentPrice > 0) {
+    const weightedUpside =
+      ((params.scenarioAnalysis.weightedFairPrice - params.scenarioAnalysis.currentPrice) /
+        params.scenarioAnalysis.currentPrice) *
+      100;
+    scenarioCandidates.push(scoreFromUpside(weightedUpside));
+
+    const bear = params.scenarioAnalysis.scenarios.find((s) => s.name.toLowerCase().includes('bear'));
+    if (bear) {
+      const bearUpside = ((bear.fairPrice - params.scenarioAnalysis.currentPrice) / params.scenarioAnalysis.currentPrice) * 100;
+      scenarioCandidates.push(clamp(50 + bearUpside * 1.2, 10, 95));
+      reasons.push(`Bear case ${bearUpside > 0 ? '+' : ''}${bearUpside.toFixed(1)}%`);
+    }
+  }
+
+  const valuationScore = valuationCandidates.length ? average(valuationCandidates) : null;
+  const qualityScore = qualityCandidates.length ? average(qualityCandidates) : null;
+  const riskScore = riskCandidates.length ? average(riskCandidates) : null;
+  const momentumScore = momentumCandidates.length ? average(momentumCandidates) : null;
+  const scenarioScore = scenarioCandidates.length ? average(scenarioCandidates) : null;
+
+  const weighted = [
+    { value: valuationScore, weight: 0.35 },
+    { value: qualityScore, weight: 0.25 },
+    { value: riskScore, weight: 0.20 },
+    { value: momentumScore, weight: 0.10 },
+    { value: scenarioScore, weight: 0.10 },
+  ].filter((x): x is { value: number; weight: number } => x.value !== null);
+
+  const totalWeight = weighted.reduce((sum, item) => sum + item.weight, 0);
+  const score = totalWeight > 0 ? weighted.reduce((sum, item) => sum + item.value * item.weight, 0) / totalWeight : 50;
+
+  let action: 'BUY' | 'HOLD' | 'SELL' = 'HOLD';
+  if (score >= 72) action = 'BUY';
+  else if (score < 45) action = 'SELL';
+
+  const dimensionCount = weighted.length;
+  const distance = Math.abs(score - 58);
+  let confidence: 'High' | 'Medium' | 'Low' = 'Low';
+  if (dimensionCount >= 4 && distance >= 16) confidence = 'High';
+  else if (dimensionCount >= 3 && distance >= 8) confidence = 'Medium';
+
+  return {
+    action,
+    score: clamp(score, 0, 100),
+    confidence,
+    valuationScore,
+    qualityScore,
+    riskScore,
+    momentumScore,
+    scenarioScore,
+    reasons: reasons.slice(0, 5),
+  };
+}
+
 // ===================================================================
 // UTILITY FUNCTIONS
 // ===================================================================
@@ -958,4 +1082,32 @@ export function getRatingColor(rating: number): string {
     case 2: return 'text-amber-600 bg-amber-50 border-amber-200';
     default: return 'text-red-600 bg-red-50 border-red-200';
   }
+}
+
+function scoreFromUpside(upsidePct: number): number {
+  if (upsidePct >= 30) return 95;
+  if (upsidePct >= 15) return 82;
+  if (upsidePct >= 5) return 68;
+  if (upsidePct >= -5) return 52;
+  if (upsidePct >= -15) return 35;
+  return 20;
+}
+
+function scoreFromCagr(cagr: number | null): number | null {
+  if (cagr === null || Number.isNaN(cagr)) return null;
+  if (cagr >= 0.15) return 90;
+  if (cagr >= 0.10) return 78;
+  if (cagr >= 0.05) return 65;
+  if (cagr >= 0) return 50;
+  if (cagr >= -0.05) return 35;
+  return 20;
+}
+
+function average(values: number[]): number {
+  if (!values.length) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
 }

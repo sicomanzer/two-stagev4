@@ -4,13 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { 
   calculateDDM, calculateGrahamNumber, 
   calculateConsensus, calculateScorecard, calculateTrendAnalysis,
-  calculateScenarioAnalysis, getStatus as getStatusCalc, calculateShares as calcShares, calculateDCF
+  calculateScenarioAnalysis, getStatus as getStatusCalc, calculateShares as calcShares, calculateDCF,
+  calculateInvestmentSignal
 } from '@/lib/calculations';
 import SettingsModal from '@/components/layout/SettingsModal';
 import { 
   ValuationConsensus, StockScorecard, TrendAnalysis, ScenarioAnalysis as ScenarioAnalysisType,
   StockHistory, RatioBands, DDMResult, ScreeningResult, AppMode, BudgetMode, AllocationRatio, GrowthMethod,
-  FScoreResult, ZScoreResult
+  FScoreResult, ZScoreResult, InvestmentSignal
 } from '@/types/stock';
 import Header from '@/components/layout/Header';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -149,6 +150,7 @@ TTW`);
   const [zScore, setZScore] = useState<ZScoreResult | null>(null);
   const [trendAnalysis, setTrendAnalysis] = useState<TrendAnalysis | null>(null);
   const [scenarioAnalysis, setScenarioAnalysis] = useState<ScenarioAnalysisType | null>(null);
+  const [investmentSignal, setInvestmentSignal] = useState<InvestmentSignal | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [journalTicker, setJournalTicker] = useState<string | null>(null);
 
@@ -265,13 +267,14 @@ TTW`);
 
         validateInputs({ d0: d0Num, g: gNum, ks: ksNum, years: yearsNum });
         
-        // Replaced calculateStockValue with calculateDDM
         const res = calculateDDM(ticker || 'Unknown', d0Num, gNum, ksNum, yearsNum, currentPriceNum);
         setResult(res);
+        let consensusResult: ValuationConsensus | null = null;
+        let sc: StockScorecard | null = null;
+        let trend: TrendAnalysis | null = null;
+        let scenario: ScenarioAnalysisType | null = null;
 
-        // === Multi-Model Valuation ===
         if (stockHistory.length > 0) {
-          // Graham Number
           const latestHistory = stockHistory[stockHistory.length - 1];
           const grahamRes = calculateGrahamNumber(
             latestHistory?.eps || null,
@@ -279,22 +282,19 @@ TTW`);
             currentPriceNum
           );
 
-          // PE Band fair price (-1SD)
           let peBandFair: number | null = null;
           if (ratioBands?.pe?.stats && latestHistory?.eps && latestHistory.eps > 0) {
             const peAtMinus1SD = ratioBands.pe.stats.avg - ratioBands.pe.stats.sd;
             peBandFair = peAtMinus1SD * latestHistory.eps;
           }
 
-          // DCF Valuation 
           let dcfFair: number | null = null;
           if (fcf !== null && latestHistory?.shares) {
             const dcfRes = calculateDCF(fcf, latestHistory.shares);
             if (dcfRes) dcfFair = dcfRes.fairValue;
           }
 
-          // Consensus
-          const consensusResult = calculateConsensus(
+          consensusResult = calculateConsensus(
             res.fairPrice,
             grahamRes?.grahamNumber || null,
             peBandFair,
@@ -303,8 +303,7 @@ TTW`);
           );
           setConsensus(consensusResult);
 
-          // Scorecard
-          const sc = calculateScorecard(
+          sc = calculateScorecard(
             ticker,
             stockHistory,
             currentPriceNum,
@@ -316,14 +315,23 @@ TTW`);
           );
           setScorecard(sc);
 
-          // Trend Analysis
-          const trend = calculateTrendAnalysis(ticker, stockHistory);
+          trend = calculateTrendAnalysis(ticker, stockHistory);
           setTrendAnalysis(trend);
 
-          // Scenario Analysis
-          const scenario = calculateScenarioAnalysis(ticker, d0Num, currentPriceNum, yearsNum);
+          scenario = calculateScenarioAnalysis(ticker, d0Num, currentPriceNum, yearsNum);
           setScenarioAnalysis(scenario);
         }
+
+        const signal = calculateInvestmentSignal({
+          result: res,
+          consensus: consensusResult,
+          scorecard: sc,
+          fScore,
+          zScore,
+          trendAnalysis: trend,
+          scenarioAnalysis: scenario,
+        });
+        setInvestmentSignal(signal);
 
       } else {
         const tickersRaw = multiTickers.split(/[\n,]+/).map(t => t.trim()).filter(t => t !== '');
@@ -539,6 +547,7 @@ TTW`);
     setZScore(null);
     setTrendAnalysis(null);
     setScenarioAnalysis(null);
+    setInvestmentSignal(null);
     setError(null);
     setIsAssistantOpen(false);
   };
@@ -585,6 +594,7 @@ TTW`);
             zScore={zScore}
             trendAnalysis={trendAnalysis}
             scenarioAnalysis={scenarioAnalysis}
+            investmentSignal={investmentSignal}
             error={error}
           >
             {/* Pass InputForm as Children for Sidebar Layout */}

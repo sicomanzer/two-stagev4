@@ -131,6 +131,9 @@ export default function StockCharts({ history, ratioBands, ticker }: StockCharts
   const pbvLast = pbvChartData[pbvChartData.length - 1];
   const pbvStats = ratioBands?.pbv.stats;
   const pbvFooter = pbvStats ? `[ Last PBV = ${pbvLast?.pbv.toFixed(2)} ] (${(pbvStats.avg - 2 * pbvStats.sd).toFixed(2)}) (${(pbvStats.avg - pbvStats.sd).toFixed(2)}) [ AVG = ${pbvStats.avg.toFixed(2)} ] (${(pbvStats.avg + pbvStats.sd).toFixed(2)}) (${(pbvStats.avg + 2 * pbvStats.sd).toFixed(2)})` : '';
+  const peInsight = ratioBands?.pe.stats && peLast ? buildBandInsight(peLast.pe, ratioBands.pe.stats.avg, ratioBands.pe.stats.sd) : null;
+  const pbvInsight = ratioBands?.pbv.stats && pbvLast ? buildBandInsight(pbvLast.pbv, ratioBands.pbv.stats.avg, ratioBands.pbv.stats.sd) : null;
+  const valuationSignal = getValuationSignal(peInsight, pbvInsight);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -275,6 +278,116 @@ export default function StockCharts({ history, ratioBands, ticker }: StockCharts
         </ResponsiveContainer>
       </ChartContainer>
 
+      <div className="md:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold text-slate-800">{ticker} : Band Insight Summary</h3>
+            <p className="text-xs text-slate-500 mt-1">สรุปตำแหน่งราคาปัจจุบันเทียบโซนสถิติของ PE/PBV</p>
+          </div>
+          <span className={`text-xs md:text-sm font-bold px-3 py-1.5 rounded-full ${valuationSignal.badgeClass}`}>
+            {valuationSignal.label}
+          </span>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <InsightCard title="PE Zone" value={peInsight?.zone ?? '-'} subValue={peInsight ? `z=${peInsight.zScore.toFixed(2)}` : 'N/A'} tone={peInsight?.tone ?? 'neutral'} />
+          <InsightCard title="PBV Zone" value={pbvInsight?.zone ?? '-'} subValue={pbvInsight ? `z=${pbvInsight.zScore.toFixed(2)}` : 'N/A'} tone={pbvInsight?.tone ?? 'neutral'} />
+          <InsightCard title="PE vs AVG" value={peInsight ? `${peInsight.distancePct > 0 ? '+' : ''}${peInsight.distancePct.toFixed(1)}%` : '-'} subValue={peInsight ? `ล่าสุด ${peInsight.lastValue.toFixed(2)}` : 'N/A'} tone={peInsight?.tone ?? 'neutral'} />
+          <InsightCard title="PBV vs AVG" value={pbvInsight ? `${pbvInsight.distancePct > 0 ? '+' : ''}${pbvInsight.distancePct.toFixed(1)}%` : '-'} subValue={pbvInsight ? `ล่าสุด ${pbvInsight.lastValue.toFixed(2)}` : 'N/A'} tone={pbvInsight?.tone ?? 'neutral'} />
+        </div>
+
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <p className="text-xs font-semibold uppercase text-slate-500">Quick Decision</p>
+          <p className="text-sm md:text-base font-bold text-slate-800 mt-1">{valuationSignal.message}</p>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+type InsightTone = 'cheap' | 'neutral' | 'expensive';
+
+function buildBandInsight(lastValue: number, avg: number, sd: number) {
+  const safeSd = sd > 0 ? sd : 0.0001;
+  const zScore = (lastValue - avg) / safeSd;
+  const distancePct = avg !== 0 ? ((lastValue - avg) / avg) * 100 : 0;
+
+  if (zScore <= -1) {
+    return { zone: 'ต่ำกว่าค่าเฉลี่ย', tone: 'cheap' as InsightTone, zScore, distancePct, lastValue };
+  }
+  if (zScore >= 1) {
+    return { zone: 'สูงกว่าค่าเฉลี่ย', tone: 'expensive' as InsightTone, zScore, distancePct, lastValue };
+  }
+  return { zone: 'ใกล้ค่าเฉลี่ย', tone: 'neutral' as InsightTone, zScore, distancePct, lastValue };
+}
+
+function getValuationSignal(
+  peInsight: ReturnType<typeof buildBandInsight> | null,
+  pbvInsight: ReturnType<typeof buildBandInsight> | null
+) {
+  const tones = [peInsight?.tone, pbvInsight?.tone].filter((v): v is InsightTone => !!v);
+  const cheapCount = tones.filter((tone) => tone === 'cheap').length;
+  const expensiveCount = tones.filter((tone) => tone === 'expensive').length;
+
+  if (cheapCount >= 2) {
+    return {
+      label: 'Valuation: ค่อนข้างถูก',
+      message: 'PE และ PBV อยู่โซนต่ำกว่าค่าเฉลี่ยทั้งคู่ เหมาะสำหรับติดตามจังหวะสะสม',
+      badgeClass: 'bg-emerald-100 text-emerald-700',
+    };
+  }
+  if (expensiveCount >= 2) {
+    return {
+      label: 'Valuation: ค่อนข้างแพง',
+      message: 'PE และ PBV อยู่โซนสูงกว่าค่าเฉลี่ยทั้งคู่ ควรรอจังหวะราคาที่ปลอดภัยกว่า',
+      badgeClass: 'bg-red-100 text-red-700',
+    };
+  }
+  if (cheapCount > expensiveCount) {
+    return {
+      label: 'Valuation: เริ่มน่าสนใจ',
+      message: 'มีอย่างน้อยหนึ่งตัวชี้วัดอยู่โซนถูก มูลค่าเริ่มน่าสะสมแบบทยอย',
+      badgeClass: 'bg-teal-100 text-teal-700',
+    };
+  }
+  if (expensiveCount > cheapCount) {
+    return {
+      label: 'Valuation: กลางค่อนไปแพง',
+      message: 'มีอย่างน้อยหนึ่งตัวชี้วัดอยู่โซนแพง แนะนำถือหรือรอราคาย่อลง',
+      badgeClass: 'bg-amber-100 text-amber-700',
+    };
+  }
+  return {
+    label: 'Valuation: กลางโซน',
+    message: 'PE และ PBV อยู่ใกล้ค่าเฉลี่ยประวัติศาสตร์ ควรใช้ปัจจัยคุณภาพและแนวโน้มร่วมตัดสินใจ',
+    badgeClass: 'bg-blue-100 text-blue-700',
+  };
+}
+
+function InsightCard({
+  title,
+  value,
+  subValue,
+  tone
+}: {
+  title: string;
+  value: string;
+  subValue: string;
+  tone: InsightTone | 'neutral';
+}) {
+  const toneClass =
+    tone === 'cheap'
+      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+      : tone === 'expensive'
+        ? 'border-red-200 bg-red-50 text-red-700'
+        : 'border-slate-200 bg-slate-50 text-slate-700';
+
+  return (
+    <div className={`rounded-xl border px-3 py-2 ${toneClass}`}>
+      <p className="text-[10px] font-semibold uppercase">{title}</p>
+      <p className="text-sm font-extrabold mt-0.5">{value}</p>
+      <p className="text-[10px] mt-0.5 opacity-80">{subValue}</p>
     </div>
   );
 }

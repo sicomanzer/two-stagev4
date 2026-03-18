@@ -17,7 +17,8 @@ import {
   StockHistory, 
   RatioBands,
   FScoreResult,
-  ZScoreResult
+  ZScoreResult,
+  InvestmentSignal
 } from '@/types/stock';
 
 interface SingleStockViewProps {
@@ -32,6 +33,7 @@ interface SingleStockViewProps {
   zScore: ZScoreResult | null;
   trendAnalysis: TrendAnalysis | null;
   scenarioAnalysis: ScenarioAnalysis | null;
+  investmentSignal: InvestmentSignal | null;
   error: string | null;
 }
 
@@ -47,6 +49,7 @@ export default function SingleStockView({
   zScore,
   trendAnalysis,
   scenarioAnalysis,
+  investmentSignal,
   error
 }: SingleStockViewProps) {
   
@@ -137,6 +140,59 @@ export default function SingleStockView({
             </div>
            )}
 
+           {result && investmentSignal && (
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500 font-semibold">Signal</p>
+                  <h3 className="text-base font-bold text-slate-900 mt-0.5">คำแนะนำรวมทุกมิติ</h3>
+                </div>
+                <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                  investmentSignal.action === 'BUY'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : investmentSignal.action === 'HOLD'
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'bg-red-100 text-red-700'
+                }`}>
+                  {investmentSignal.action}
+                </span>
+              </div>
+
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase">Score</p>
+                  <p className="text-lg font-extrabold text-slate-800 mt-0.5">{investmentSignal.score.toFixed(0)}</p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase">Confidence</p>
+                  <p className="text-lg font-extrabold text-slate-800 mt-0.5">{investmentSignal.confidence}</p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase">DDM</p>
+                  <p className="text-lg font-extrabold text-slate-800 mt-0.5">{result.recommendation}</p>
+                </div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-5 gap-1.5">
+                <SignalPill label="Val" value={investmentSignal.valuationScore} />
+                <SignalPill label="Qlt" value={investmentSignal.qualityScore} />
+                <SignalPill label="Risk" value={investmentSignal.riskScore} />
+                <SignalPill label="Trend" value={investmentSignal.momentumScore} />
+                <SignalPill label="Scn" value={investmentSignal.scenarioScore} />
+              </div>
+
+              {investmentSignal.reasons.length > 0 && (
+                <div className="mt-3 space-y-1">
+                  {investmentSignal.reasons.map((reason, idx) => (
+                    <p key={`${reason}-${idx}`} className="text-[11px] text-slate-600 leading-relaxed">
+                      • {reason}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+           )}
+
            {/* 3. Assumption Table */}
            {result && (
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -218,6 +274,24 @@ export default function SingleStockView({
 
       {/* 5. Detailed Calculation Table - REMOVED per user request */}
 
+    </div>
+  );
+}
+
+function SignalPill({ label, value }: { label: string; value: number | null }) {
+  const score = value ?? 0;
+  const tone = value === null
+    ? 'bg-slate-100 text-slate-400'
+    : score >= 70
+      ? 'bg-emerald-100 text-emerald-700'
+      : score >= 50
+        ? 'bg-amber-100 text-amber-700'
+        : 'bg-red-100 text-red-700';
+
+  return (
+    <div className={`rounded-md px-1.5 py-1 text-center ${tone}`}>
+      <p className="text-[9px] font-semibold uppercase">{label}</p>
+      <p className="text-xs font-extrabold mt-0.5">{value === null ? '-' : value.toFixed(0)}</p>
     </div>
   );
 }

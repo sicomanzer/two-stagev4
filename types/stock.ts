@@ -160,6 +160,18 @@ export interface ValuationConsensus {
   upside: number | null;
 }
 
+export interface InvestmentSignal {
+  action: 'BUY' | 'HOLD' | 'SELL';
+  score: number;
+  confidence: 'High' | 'Medium' | 'Low';
+  valuationScore: number | null;
+  qualityScore: number | null;
+  riskScore: number | null;
+  momentumScore: number | null;
+  scenarioScore: number | null;
+  reasons: string[];
+}
+
 // ===== Stock Scorecard Types =====
 
 export interface ScoreCategory {
