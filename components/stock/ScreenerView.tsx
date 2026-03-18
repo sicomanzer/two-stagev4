@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Info, TrendingUp, AlertTriangle, ShieldCheck } from 'lucide-react';
 
-type ScreenerPreset = 'previous' | 'latest' | 'no_filter';
+type ScreenerPreset = 'previous' | 'latest' | 'no_filter' | 'dividend_value' | 'dividend_flexible';
 
 interface ScreenerViewProps {
   onSelectTicker: (ticker: string) => void;
@@ -31,6 +31,38 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
 
   const applyPreset = (nextPreset: ScreenerPreset) => {
     setPreset(nextPreset);
+
+    if (nextPreset === 'dividend_flexible') {
+      setEpsGrowthMin(0);
+      setDpsGrowthMin(0);
+      setPeBandMode('none');
+      setPbvBandMode('none');
+      setFScoreMin(5);
+      setZScoreMin(2.5);
+      setViScoreMin(11);
+      setYieldMin(3.5);
+      setDeMax(1.5);
+      setPeMax(20);
+      setPbvMax(4.5);
+      setRoeMin(10);
+      return;
+    }
+
+    if (nextPreset === 'dividend_value') {
+      setEpsGrowthMin(0);
+      setDpsGrowthMin(2);
+      setPeBandMode('below_avg');
+      setPbvBandMode('below_avg');
+      setFScoreMin(6);
+      setZScoreMin(3.0);
+      setViScoreMin(13);
+      setYieldMin(4.5);
+      setDeMax(1.2);
+      setPeMax(14);
+      setPbvMax(2);
+      setRoeMin(12);
+      return;
+    }
 
     if (nextPreset === 'no_filter') {
       setEpsGrowthMin('');
@@ -152,6 +184,20 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
               className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'no_filter' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
               ไม่ตั้งค่ากรอง
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('dividend_value')}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'dividend_value' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              ปันผลถูก (แนะนำ)
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('dividend_flexible')}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'dividend_flexible' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              ปันผลยืดหยุ่น
             </button>
           </div>
         </div>
