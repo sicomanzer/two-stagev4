@@ -49,7 +49,7 @@ export default function RealPortfolioView({
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header & Actions */}
-      <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
         <div className="flex items-center gap-3">
           <div className="bg-blue-100 p-2.5 rounded-xl text-blue-600">
             <Briefcase size={24} />
@@ -60,13 +60,13 @@ export default function RealPortfolioView({
           </div>
         </div>
         
-        <div className="flex gap-3">
+        <div className="flex w-full sm:w-auto flex-wrap items-center gap-2 sm:gap-3">
             {/* View Mode Toggle Removed per user request */}
 
             <select
                 value={currentPortfolioId || ''}
                 onChange={(e) => setCurrentPortfolioId(e.target.value)}
-                className="bg-slate-50 text-slate-700 text-sm font-medium rounded-xl px-4 py-2 border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 min-w-0 sm:min-w-[180px] bg-slate-50 text-slate-700 text-sm font-medium rounded-xl px-4 py-2 border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
             >
                 {portfolios.length === 0 && <option value="">No Portfolio</option>}
                 {portfolios.map(p => (
@@ -86,7 +86,7 @@ export default function RealPortfolioView({
             <button
             onClick={() => onOpenModal()}
             disabled={!currentPortfolioId}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="basis-full sm:basis-auto w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
             <Plus size={18} />
             เพิ่มรายการซื้อ/ขาย
