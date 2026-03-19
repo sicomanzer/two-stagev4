@@ -54,6 +54,12 @@ export default function Header({ mode, setMode, setError, setShowSettings }: Hea
           Real Portfolio
         </button>
         <button 
+          onClick={() => { setMode('dividend_events'); setError(null); }}
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${mode === 'dividend_events' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          สิทธิ์หุ้น
+        </button>
+        <button 
           onClick={() => setShowSettings(true)}
           className={`px-3 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-all ml-1`}
           title="ตั้งค่าการแจ้งเตือน"

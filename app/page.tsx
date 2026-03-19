@@ -21,6 +21,7 @@ import SingleStockView from '@/components/stock/SingleStockView';
 import MultiScreeningView from '@/components/stock/MultiScreeningView';
 import PortfolioView from '@/components/portfolio/PortfolioView';
 import RealPortfolioView from '@/components/portfolio/RealPortfolioView';
+import DividendEventsView from '@/components/portfolio/DividendEventsView';
 import TransactionModal from '@/components/portfolio/TransactionModal';
 import ScreenerView from '@/components/stock/ScreenerView';
 import InvestmentJournal from '@/components/InvestmentJournal';
@@ -712,7 +713,7 @@ TTW`);
             )}
 
             {/* Results Area */}
-            <div suppressHydrationWarning className={`${mode === 'portfolio' || mode === 'real_portfolio' || mode === 'screener' ? 'lg:col-span-3' : 'lg:col-span-2'} space-y-6 lg:order-first`}>
+            <div suppressHydrationWarning className={`${mode === 'portfolio' || mode === 'real_portfolio' || mode === 'screener' || mode === 'dividend_events' ? 'lg:col-span-3' : 'lg:col-span-2'} space-y-6 lg:order-first`}>
               {mode === 'screener' ? (
                 <ScreenerView onSelectTicker={handleSelectScreenerTicker} />
               ) : mode === 'multi' ? (
@@ -731,6 +732,12 @@ TTW`);
                   setCurrentPortfolioId={setCurrentPortfolioId}
                   onOpenModal={handleOpenTransactionModal}
                   refreshTrigger={refreshRealPortfolioTrigger}
+                />
+              ) : mode === 'dividend_events' ? (
+                <DividendEventsView
+                  currentPortfolioId={currentPortfolioId || ''}
+                  portfolios={portfolios}
+                  setCurrentPortfolioId={setCurrentPortfolioId}
                 />
               ) : (
                 <PortfolioView
