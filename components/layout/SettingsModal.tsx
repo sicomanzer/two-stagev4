@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, XCircle, Save, LogOut, Bell, Database, User, Key, Terminal } from 'lucide-react';
+import { Settings, XCircle, Save, LogOut, Bell, Database, User, Key, Terminal, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface SettingsModalProps {
@@ -23,12 +23,51 @@ export default function SettingsModal({
 }: SettingsModalProps) {
   const [isTestDbLoading, setIsTestDbLoading] = useState(false);
   const [isSyncLoading, setIsSyncLoading] = useState(false);
+  const [isClearCacheLoading, setIsClearCacheLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'notifications' | 'system' | 'account'>('notifications');
   
+  // Progress States
+  const [syncProgress, setSyncProgress] = useState(0);
+  const [syncStatusText, setSyncStatusText] = useState('');
+  const [clearProgress, setClearProgress] = useState(0);
+  const [syncMode, setSyncMode] = useState<'default' | 'all' | null>(null);
+
   // Change Password State
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isPasswordChanging, setIsPasswordChanging] = useState(false);
+
+  // Poll Sync Status
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    if (isSyncLoading) {
+      intervalId = setInterval(async () => {
+        try {
+          const res = await fetch('/api/system/sync-status');
+          const data = await res.json();
+          if (data && data.status !== 'error') {
+            setSyncProgress(data.percent || 0);
+            if (data.ticker) {
+              setSyncStatusText(`กำลังดึงข้อมูล: ${data.ticker} (${data.current}/${data.total})`);
+            } else {
+              setSyncStatusText('กำลังเตรียมการอัปเดต...');
+            }
+          }
+        } catch (e) {
+          console.error("Failed to poll sync status", e);
+        }
+      }, 1000);
+    } else {
+      setSyncProgress(0);
+      setSyncStatusText('');
+      setSyncMode(null);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isSyncLoading]);
 
   if (!isOpen) return null;
 
@@ -85,6 +124,9 @@ export default function SettingsModal({
 
   const runSync = async (mode: 'default' | 'all') => {
     setIsSyncLoading(true);
+    setSyncMode(mode);
+    setSyncProgress(0);
+    setSyncStatusText('กำลังเตรียมการอัปเดต...');
     try {
       const res = await fetch('/api/system/sync-thaifin', {
         method: 'POST',
@@ -92,15 +134,65 @@ export default function SettingsModal({
         body: JSON.stringify({ mode }),
       });
       const data = await res.json();
-      if (data.success) {
-        alert(`✅ อัปเดตข้อมูลสำเร็จ\nโหมด: ${mode === 'all' ? 'ทุกหุ้น' : 'หุ้นที่กำหนด'}\n\n${data.outputTail || ''}`);
-      } else {
-        alert(`❌ อัปเดตข้อมูลไม่สำเร็จ\n${data.error || data.outputTail || 'Unknown error'}`);
-      }
+      setSyncProgress(100);
+      setSyncStatusText('เสร็จสิ้น');
+      
+      // Delay alert slightly so user can see 100%
+      setTimeout(() => {
+        if (data.success) {
+          alert(`✅ อัปเดตข้อมูลสำเร็จ\nโหมด: ${mode === 'all' ? 'ทุกหุ้น' : 'หุ้นที่กำหนด'}\n\n${data.outputTail || ''}`);
+        } else {
+          alert(`❌ อัปเดตข้อมูลไม่สำเร็จ\n${data.error || data.outputTail || 'Unknown error'}`);
+        }
+      }, 500);
     } catch (err: any) {
       alert(`❌ เกิดข้อผิดพลาด: ${err.message}`);
     } finally {
-      setIsSyncLoading(false);
+      // Keep loading state true slightly longer for the animation to finish
+      setTimeout(() => setIsSyncLoading(false), 1000);
+    }
+  };
+
+  const handleClearCache = async () => {
+    if (!confirm('คุณต้องการเคลียร์แคชข้อมูลหุ้นใช่หรือไม่? ข้อมูลทั้งหมดในแคชจะถูกลบและต้องดึงใหม่')) {
+      return;
+    }
+    
+    setIsClearCacheLoading(true);
+    setClearProgress(0);
+    
+    // Simulate fast progress for clear cache
+    const interval = setInterval(() => {
+      setClearProgress(prev => {
+        if (prev >= 90) return 90;
+        return prev + 30;
+      });
+    }, 100);
+
+    try {
+      const res = await fetch('/api/system/clear-cache', {
+        method: 'POST',
+      });
+      const data = await res.json();
+      
+      clearInterval(interval);
+      setClearProgress(100);
+      
+      setTimeout(() => {
+        if (data.success) {
+          alert(`✅ ${data.message || 'เคลียร์แคชเรียบร้อยแล้ว'}`);
+        } else {
+          alert(`❌ เคลียร์แคชไม่สำเร็จ: ${data.error}`);
+        }
+      }, 300);
+    } catch (err: any) {
+      clearInterval(interval);
+      alert(`❌ เกิดข้อผิดพลาด: ${err.message}`);
+    } finally {
+      setTimeout(() => {
+        setIsClearCacheLoading(false);
+        setClearProgress(0);
+      }, 800);
     }
   };
 
@@ -248,18 +340,60 @@ export default function SettingsModal({
                     <button
                       type="button"
                       onClick={() => runSync('default')}
-                      disabled={isSyncLoading}
-                      className="w-full py-2 px-3 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isSyncLoading || isClearCacheLoading}
+                      className="w-full py-2 px-3 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
                     >
-                      {isSyncLoading ? 'กำลังอัปเดต...' : 'อัปเดตหุ้นที่กำหนด'}
+                      {isSyncLoading && syncMode === 'default' && (
+                        <div 
+                          className="absolute left-0 top-0 bottom-0 bg-white/20 transition-all duration-300"
+                          style={{ width: `${syncProgress}%` }}
+                        />
+                      )}
+                      <span className="relative z-10">
+                        {isSyncLoading && syncMode === 'default' ? `กำลังอัปเดต... ${syncProgress}%` : 'อัปเดตหุ้นที่กำหนด'}
+                      </span>
                     </button>
                     <button
                       type="button"
                       onClick={() => runSync('all')}
-                      disabled={isSyncLoading}
-                      className="w-full py-2 px-3 bg-slate-800 text-white rounded-xl text-xs font-semibold hover:bg-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isSyncLoading || isClearCacheLoading}
+                      className="w-full py-2 px-3 bg-slate-800 text-white rounded-xl text-xs font-semibold hover:bg-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
                     >
-                      {isSyncLoading ? 'กำลังอัปเดต...' : 'อัปเดตทุกหุ้น'}
+                      {isSyncLoading && syncMode === 'all' && (
+                        <div 
+                          className="absolute left-0 top-0 bottom-0 bg-white/20 transition-all duration-300"
+                          style={{ width: `${syncProgress}%` }}
+                        />
+                      )}
+                      <span className="relative z-10">
+                        {isSyncLoading && syncMode === 'all' ? `กำลังอัปเดต... ${syncProgress}%` : 'อัปเดตทุกหุ้น'}
+                      </span>
+                    </button>
+                  </div>
+
+                  {isSyncLoading && syncStatusText && (
+                    <div className="mt-2 text-center text-[10px] text-emerald-600 font-medium animate-pulse">
+                      {syncStatusText}
+                    </div>
+                  )}
+                  
+                  <div className="mt-3">
+                    <button
+                      type="button"
+                      onClick={handleClearCache}
+                      disabled={isClearCacheLoading || isSyncLoading}
+                      className="w-full py-2 px-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden"
+                    >
+                      {isClearCacheLoading && (
+                        <div 
+                          className="absolute left-0 top-0 bottom-0 bg-red-200/50 transition-all duration-100"
+                          style={{ width: `${clearProgress}%` }}
+                        />
+                      )}
+                      <span className="relative z-10 flex items-center gap-2">
+                        <Trash2 size={14} />
+                        {isClearCacheLoading ? `กำลังเคลียร์แคช... ${clearProgress}%` : 'เคลียร์แคชข้อมูลหุ้น (Clear Cache)'}
+                      </span>
                     </button>
                   </div>
                 </div>

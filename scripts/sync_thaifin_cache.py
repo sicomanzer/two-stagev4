@@ -1,15 +1,19 @@
 import json
 import os
+import sys
+import time
+import urllib.request
+import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
 
-import requests
-
+# Automatically add local .venv to sys.path if it exists
+venv_site_packages = Path(__file__).parent.parent / ".venv" / "Lib" / "site-packages"
+if venv_site_packages.exists() and str(venv_site_packages) not in sys.path:
+    sys.path.insert(0, str(venv_site_packages))
 
 def parse_tickers() -> list[str]:
     # Check for --all or THAIFIN_CACHE_ALL env var
-    import sys
-    
     use_all = "--all" in sys.argv or os.getenv("THAIFIN_CACHE_ALL", "").lower() == "true"
     
     if use_all:
@@ -39,10 +43,16 @@ def parse_tickers() -> list[str]:
 
 
 def fetch_history(base_url: str, ticker: str, timeout_sec: int) -> list[dict]:
-    url = f"{base_url}/api/fundamentals"
-    response = requests.get(url, params={"ticker": ticker}, timeout=timeout_sec)
-    response.raise_for_status()
-    data = response.json()
+    url = f"{base_url}/api/fundamentals?{urllib.parse.urlencode({'ticker': ticker})}"
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout_sec) as response:
+            if response.status >= 400:
+                raise Exception(f"HTTP Error {response.status}: {response.reason}")
+            data = json.loads(response.read().decode('utf-8'))
+    except Exception as e:
+        raise Exception(f"Failed to fetch {ticker}: {e}")
+
     history = data.get("history", [])
     if not isinstance(history, list):
         return []
@@ -103,6 +113,22 @@ def safe_float(value):
         return None
 
 
+def update_progress(current: int, total: int, ticker: str, status: str = "running"):
+    try:
+        status_file = Path(__file__).parent.parent / "data" / "sync-status.json"
+        status_file.parent.mkdir(exist_ok=True, parents=True)
+        percent = int((current / total) * 100) if total > 0 else 0
+        with open(status_file, "w", encoding="utf-8") as f:
+            json.dump({
+                "current": current,
+                "total": total,
+                "percent": percent,
+                "ticker": ticker,
+                "status": status
+            }, f)
+    except Exception:
+        pass
+
 def main() -> int:
     mode = os.getenv("THAIFIN_CACHE_MODE", "auto").strip().lower()
     base_url = os.getenv("THAIFIN_BASE_URL", "http://localhost:5001").rstrip("/")
@@ -122,10 +148,14 @@ def main() -> int:
         except Exception as e:
             print(f"[warn] Failed to load existing cache: {e}")
 
+    total_tickers = len(tickers)
+    update_progress(0, total_tickers, "Starting...", "running")
+
     success = 0
     failed: list[str] = []
 
-    for ticker in tickers:
+    for idx, ticker in enumerate(tickers):
+        update_progress(idx, total_tickers, ticker, "running")
         try:
             history: list[dict] = []
             source_mode = mode
@@ -133,15 +163,23 @@ def main() -> int:
                 try:
                     history = fetch_history(base_url, ticker, timeout_sec)
                     source_mode = "api"
-                except Exception:
+                except Exception as e:
                     if mode == "api":
-                        raise
+                        raise e
+                    print(f"[warn] API fetch failed for {ticker}: {e}")
             if not history and mode in ("library", "auto"):
-                history = fetch_history_from_library(ticker)
-                source_mode = "library"
+                try:
+                    history = fetch_history_from_library(ticker)
+                    source_mode = "library"
+                except ImportError:
+                    if not history: # Only log if we also don't have history from API
+                        print(f"[warn] {ticker} thaifin library not installed and API failed.")
+                except Exception as e:
+                     print(f"[warn] Library fetch failed for {ticker}: {e}")
+            
             if not history:
                 failed.append(ticker)
-                print(f"[skip] {ticker} no history")
+                print(f"[skip] {ticker} no history (API and Library both failed)")
                 continue
             cache[ticker] = {
                 "history": history,
@@ -166,6 +204,8 @@ def main() -> int:
         except Exception as exc:
             failed.append(ticker)
             print(f"[error] {ticker} {exc}")
+            # Ensure it continues despite failure
+            continue
 
     payload = {
         "updatedAt": datetime.now(timezone.utc).isoformat(),
@@ -177,6 +217,10 @@ def main() -> int:
     print(f"[done] success={success} failed={len(failed)} output={output_path}")
     if failed:
         print("[failed] " + ",".join(failed))
+
+    # Update final progress
+    update_progress(total_tickers, total_tickers, "Done", "idle")
+
     return 0 if success > 0 else 1
 
 

@@ -7,3 +7,11 @@ coverage/
 !.env.example
 portfolio.db
 portfolio.db-journal
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# App data
+data/sync-status.json
