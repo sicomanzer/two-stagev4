@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Calendar, ChevronDown, Loader2 } from 'lucide-react';
+import { Calendar, ChevronDown, Loader2, XCircle } from 'lucide-react';
 import { PortfolioGroup } from '@/types/portfolio';
 
 type EventCode = 'XD' | 'XM' | 'XN' | 'XR' | 'XW';
@@ -57,6 +57,7 @@ export default function DividendEventsView({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rows, setRows] = useState<DividendEventRow[]>([]);
+  const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
   const [summary, setSummary] = useState<{ totalRows: number; totalExpectedCash: number; tickerCount: number }>({
     totalRows: 0,
     totalExpectedCash: 0,
@@ -136,6 +137,24 @@ export default function DividendEventsView({
   const toggleAllTypes = () => {
     setSelectedTypes((prev) => (prev.length === EVENT_TYPES.length ? ['XD'] : [...EVENT_TYPES]));
   };
+
+  const yearlyDividendByTicker = useMemo(() => {
+    const map = new Map<string, { ticker: string; totalCash: number; eventCount: number }>();
+    rows.forEach((row) => {
+      const current = map.get(row.ticker);
+      if (current) {
+        current.totalCash += row.expectedCash;
+        current.eventCount += 1;
+      } else {
+        map.set(row.ticker, {
+          ticker: row.ticker,
+          totalCash: row.expectedCash,
+          eventCount: 1
+        });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => b.totalCash - a.totalCash);
+  }, [rows]);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -225,7 +244,12 @@ export default function DividendEventsView({
         </div>
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">จำนวนหุ้นที่มีรายการ</p>
-          <p className="text-2xl font-bold text-slate-800">{summary.tickerCount.toLocaleString()}</p>
+          <p
+            className="text-2xl font-bold text-slate-800 cursor-pointer hover:text-emerald-600 transition-colors"
+            onClick={() => setIsBreakdownOpen(true)}
+          >
+            {summary.tickerCount.toLocaleString()}
+          </p>
         </div>
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-2xl text-white shadow-sm">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">ยอดรับรวมโดยประมาณ</p>
@@ -294,6 +318,65 @@ export default function DividendEventsView({
           </table>
         </div>
       </div>
+
+      {isBreakdownOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
+          onClick={() => setIsBreakdownOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-2xl shadow-xl border border-slate-200 flex flex-col max-h-[85vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-slate-800">สรุปปันผลรวมทั้งปีแยกรายหุ้น</h3>
+                <p className="text-xs text-slate-500">ปี {selectedYearBE} • {yearlyDividendByTicker.length.toLocaleString()} หุ้น</p>
+              </div>
+              <button onClick={() => setIsBreakdownOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <XCircle size={22} />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto px-6 py-4">
+              {yearlyDividendByTicker.length === 0 ? (
+                <div className="text-center text-slate-400 py-10">ไม่พบข้อมูลปันผลสำหรับเงื่อนไขที่เลือก</div>
+              ) : (
+                <table className="w-full text-sm text-left">
+                  <thead className="text-slate-500 border-b border-slate-200 text-xs uppercase font-bold">
+                    <tr>
+                      <th className="py-2">Ticker</th>
+                      <th className="py-2 text-right">จำนวนครั้ง</th>
+                      <th className="py-2 text-right">ปันผลรวมทั้งปี</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {yearlyDividendByTicker.map((item) => (
+                      <tr key={item.ticker}>
+                        <td className="py-2 font-bold text-slate-900">{item.ticker}</td>
+                        <td className="py-2 text-right text-slate-700">{item.eventCount.toLocaleString()}</td>
+                        <td className="py-2 text-right font-bold text-emerald-600">
+                          ฿{item.totalCash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            <div className="px-6 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-sm">
+              <span className="text-slate-600">ยอดรวมทุกหุ้น</span>
+              <span className="font-bold text-slate-900">
+                ฿{yearlyDividendByTicker.reduce((sum, item) => sum + item.totalCash, 0).toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
