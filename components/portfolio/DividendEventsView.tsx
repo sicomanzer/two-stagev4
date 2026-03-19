@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Calendar, ChevronDown, Loader2, XCircle } from 'lucide-react';
 import { PortfolioGroup } from '@/types/portfolio';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 type EventCode = 'XD' | 'XM' | 'XN' | 'XR' | 'XW';
 
@@ -35,6 +36,11 @@ interface DividendEventsViewProps {
 
 const EVENT_TYPES: EventCode[] = ['XD', 'XM', 'XN', 'XR', 'XW'];
 
+interface YearlySummaryItem {
+  yearBE: number;
+  totalExpectedCash: number;
+}
+
 function formatThaiDate(isoDate: string) {
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) return '-';
@@ -58,12 +64,15 @@ export default function DividendEventsView({
   const [error, setError] = useState<string | null>(null);
   const [rows, setRows] = useState<DividendEventRow[]>([]);
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
+  const [yearlySummary, setYearlySummary] = useState<YearlySummaryItem[]>([]);
+  const [isYearlyLoading, setIsYearlyLoading] = useState(false);
   const [summary, setSummary] = useState<{ totalRows: number; totalExpectedCash: number; tickerCount: number }>({
     totalRows: 0,
     totalExpectedCash: 0,
     tickerCount: 0
   });
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const yearOptions = useMemo(() => getYearOptions(), []);
 
   useEffect(() => {
     const onClickOutside = (event: MouseEvent) => {
@@ -123,6 +132,40 @@ export default function DividendEventsView({
     };
     run();
   }, [currentPortfolioId, selectedYearBE, selectedTypes]);
+
+  useEffect(() => {
+    const runYearly = async () => {
+      if (!currentPortfolioId) {
+        setYearlySummary([]);
+        return;
+      }
+      setIsYearlyLoading(true);
+      try {
+        const typeParam = selectedTypes.join(',');
+        const responses = await Promise.all(
+          yearOptions.map(async (yearBE) => {
+            const res = await fetch(
+              `/api/dividend-events?portfolio_id=${currentPortfolioId}&year=${yearBE}&types=${encodeURIComponent(typeParam)}`
+            );
+            const data: DividendEventsResponse = await res.json();
+            if (!res.ok) {
+              throw new Error((data as any)?.error || 'โหลดข้อมูลไม่สำเร็จ');
+            }
+            return {
+              yearBE,
+              totalExpectedCash: data?.summary?.totalExpectedCash || 0
+            };
+          })
+        );
+        setYearlySummary(responses.sort((a, b) => a.yearBE - b.yearBE));
+      } catch {
+        setYearlySummary([]);
+      } finally {
+        setIsYearlyLoading(false);
+      }
+    };
+    runYearly();
+  }, [currentPortfolioId, selectedTypes, yearOptions]);
 
   const toggleType = (type: EventCode) => {
     setSelectedTypes((prev) => {
@@ -193,7 +236,7 @@ export default function DividendEventsView({
               onChange={(e) => setSelectedYearBE(Number(e.target.value))}
               className="w-full bg-slate-50 text-slate-800 text-sm font-medium rounded-xl px-4 py-2.5 border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500"
             >
-              {getYearOptions().map((year) => (
+              {yearOptions.map((year) => (
                 <option key={year} value={year}>
                   {year}
                 </option>
@@ -259,24 +302,63 @@ export default function DividendEventsView({
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="text-slate-500 bg-slate-50 border-b border-slate-200 text-xs uppercase font-bold">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 h-full min-w-0">
+          <div className="mb-4">
+            <h3 className="text-base font-bold text-slate-800">กราฟยอดรับรวมโดยประมาณรายปี</h3>
+            <p className="text-xs text-slate-500">เปรียบเทียบยอดปันผลรวมในพอร์ตตามปี (พ.ศ.)</p>
+          </div>
+          <div className="h-[230px] sm:h-[260px] md:h-[280px] xl:h-[320px]">
+            {isYearlyLoading ? (
+              <div className="h-full flex items-center justify-center text-slate-400 gap-2">
+                <Loader2 size={16} className="animate-spin" />
+                <span>กำลังโหลดข้อมูลกราฟ...</span>
+              </div>
+            ) : yearlySummary.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-slate-400">ไม่มีข้อมูลรายปีสำหรับเงื่อนไขที่เลือก</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={yearlySummary} margin={{ top: 8, right: 12, left: 4, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="yearBE" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(value: number) => `฿${Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(16, 185, 129, 0.08)' }}
+                    formatter={(value) => [
+                      `฿${Number(value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                      'ยอดรับรวมโดยประมาณ'
+                    ]}
+                    labelFormatter={(label) => `ปี ${label}`}
+                  />
+                  <Bar dataKey="totalExpectedCash" fill="#10b981" radius={[8, 8, 0, 0]} maxBarSize={46} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-full min-w-0">
+          <div className="overflow-hidden">
+            <table className="w-full table-fixed text-[11px] sm:text-xs lg:text-sm text-left">
+            <thead className="text-slate-500 bg-slate-50 border-b border-slate-200 text-[11px] sm:text-xs font-bold">
               <tr>
-                <th className="px-6 py-2">Ticker</th>
-                <th className="px-6 py-2">ประเภท</th>
-                <th className="px-6 py-2">วันที่</th>
-                <th className="px-6 py-2 text-right">เงินปันผล/หน่วย</th>
-                <th className="px-6 py-2 text-right">จำนวนหุ้นที่ถือ</th>
-                <th className="px-6 py-2 text-right">ยอดรับโดยประมาณ</th>
-                <th className="px-6 py-2 text-center">แหล่งข้อมูล</th>
+                <th className="w-[24%] px-2 sm:px-3 md:px-4 py-2.5 whitespace-nowrap">Ticker</th>
+                <th className="w-[10%] px-2 sm:px-3 md:px-4 py-2.5 whitespace-nowrap hidden 2xl:table-cell">ประเภท</th>
+                <th className="w-[18%] px-2 sm:px-3 md:px-4 py-2.5 whitespace-nowrap">วันที่</th>
+                <th className="w-[16%] pl-2 sm:pl-3 md:pl-4 pr-2 sm:pr-3 md:pr-4 py-2.5 text-right whitespace-nowrap">เงิน/หน่วย</th>
+                <th className="w-[16%] pl-2 sm:pl-3 md:pl-4 pr-2 sm:pr-3 md:pr-4 py-2.5 text-right whitespace-nowrap">หุ้นถือ</th>
+                <th className="w-[26%] pl-2 sm:pl-3 md:pl-4 pr-2 sm:pr-3 md:pr-4 py-2.5 text-right whitespace-nowrap">ยอดรับโดยประมาณ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-slate-400">
+                  <td colSpan={6} className="px-6 py-10 text-center text-slate-400">
                     <div className="inline-flex items-center gap-2">
                       <Loader2 size={16} className="animate-spin" />
                       <span>กำลังโหลดข้อมูล...</span>
@@ -285,37 +367,37 @@ export default function DividendEventsView({
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-red-500">
+                  <td colSpan={6} className="px-6 py-10 text-center text-red-500">
                     {error}
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-slate-400">
+                  <td colSpan={6} className="px-6 py-10 text-center text-slate-400">
                     ไม่พบรายการสำหรับเงื่อนไขที่เลือก
                   </td>
                 </tr>
               ) : (
                 rows.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-2 font-bold text-slate-900">{row.ticker}</td>
-                    <td className="px-6 py-2">
+                    <td className="px-2 sm:px-3 md:px-4 py-2.5 font-bold text-slate-900 whitespace-nowrap">{row.ticker}</td>
+                    <td className="px-2 sm:px-3 md:px-4 py-2.5 hidden 2xl:table-cell">
                       <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-700 font-bold text-xs">{row.eventType}</span>
                     </td>
-                    <td className="px-6 py-2 text-slate-700">{formatThaiDate(row.exDate)}</td>
-                    <td className="px-6 py-2 text-right text-slate-700">
+                    <td className="px-2 sm:px-3 md:px-4 py-2.5 text-slate-700 whitespace-nowrap">{formatThaiDate(row.exDate)}</td>
+                    <td className="pl-2 sm:pl-3 md:pl-4 pr-3 sm:pr-4 md:pr-5 py-2.5 text-right text-slate-700 whitespace-nowrap">
                       {row.amountPerShare.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                     </td>
-                    <td className="px-6 py-2 text-right font-medium text-slate-800">{row.sharesHeld.toLocaleString()}</td>
-                    <td className="px-6 py-2 text-right font-bold text-emerald-600">
+                    <td className="pl-2 sm:pl-3 md:pl-4 pr-3 sm:pr-4 md:pr-5 py-2.5 text-right font-medium text-slate-800 whitespace-nowrap">{row.sharesHeld.toLocaleString()}</td>
+                    <td className="pl-2 sm:pl-3 md:pl-4 pr-2 sm:pr-3 md:pr-4 py-2.5 text-right font-bold text-emerald-600 whitespace-nowrap tabular-nums">
                       {row.expectedCash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
-                    <td className="px-6 py-2 text-center text-xs text-slate-500 uppercase">{row.source}</td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 
