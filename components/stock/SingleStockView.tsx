@@ -35,6 +35,7 @@ interface SingleStockViewProps {
   scenarioAnalysis: ScenarioAnalysis | null;
   investmentSignal: InvestmentSignal | null;
   error: string | null;
+  onSelectPeerTicker: (ticker: string) => void;
 }
 
 export default function SingleStockView({
@@ -50,7 +51,8 @@ export default function SingleStockView({
   trendAnalysis,
   scenarioAnalysis,
   investmentSignal,
-  error
+  error,
+  onSelectPeerTicker
 }: SingleStockViewProps) {
   
   if (error) {
@@ -240,7 +242,7 @@ export default function SingleStockView({
 
            {/* 4. Peer Comparison */}
            {result && ticker && (
-             <PeerComparison mainTicker={ticker} />
+             <PeerComparison mainTicker={ticker} onSelectTicker={onSelectPeerTicker} />
            )}
         </div>
 

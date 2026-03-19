@@ -58,9 +58,10 @@ interface PeerData {
 
 interface PeerComparisonProps {
   mainTicker: string;
+  onSelectTicker: (ticker: string) => void;
 }
 
-export default function PeerComparison({ mainTicker }: PeerComparisonProps) {
+export default function PeerComparison({ mainTicker, onSelectTicker }: PeerComparisonProps) {
   const [sector, setSector] = useState<string | null>(null);
   const [sectorName, setSectorName] = useState<string | null>(null);
   const [customPeers, setCustomPeers] = useState<string>('');
@@ -225,6 +226,14 @@ export default function PeerComparison({ mainTicker }: PeerComparisonProps) {
   const avgROE = calculateAvg('roe');
   const avgDE = calculateAvg('de');
   const avgYield = calculateAvg('yield');
+  const sortedPeersData = [...peersData].sort((a, b) => {
+    if (a.isLoading !== b.isLoading) return a.isLoading ? 1 : -1;
+    if (!!a.error !== !!b.error) return a.error ? 1 : -1;
+    if (a.score === null && b.score === null) return a.ticker.localeCompare(b.ticker);
+    if (a.score === null) return 1;
+    if (b.score === null) return -1;
+    return b.score - a.score;
+  });
 
   return (
     <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 flex flex-col gap-6 relative overflow-hidden">
@@ -270,17 +279,20 @@ export default function PeerComparison({ mainTicker }: PeerComparisonProps) {
               <th className="px-2 py-2 text-right font-bold whitespace-nowrap">ROE%</th>
               <th className="px-2 py-2 text-right font-bold whitespace-nowrap">D/E</th>
               <th className="px-2 py-2 text-right font-bold whitespace-nowrap">Yld%</th>
-              <th className="px-2 py-2 text-center font-bold whitespace-nowrap">Score</th>
+              <th className="px-2 py-2 text-center font-bold whitespace-nowrap">Score ↓</th>
             </tr>
           </thead>
           <tbody>
-            {peersData.map((peer, i) => {
+            {sortedPeersData.map((peer, i) => {
               const isMain = peer.ticker === mainTicker.toUpperCase();
               return (
                 <tr key={peer.ticker} className={`border-b border-slate-50 transition-colors ${isMain ? 'bg-indigo-50/50' : 'hover:bg-slate-50'}`}>
                   <td className="px-2 py-2">
                     <div className="flex items-center gap-1">
-                      <span className={`font-black ${isMain ? 'text-indigo-700' : 'text-slate-800'}`}>
+                      <span
+                        onClick={() => onSelectTicker(peer.ticker)}
+                        className={`font-black cursor-pointer hover:underline ${isMain ? 'text-indigo-700' : 'text-slate-800'}`}
+                      >
                         {peer.ticker}
                       </span>
                       {isMain && <span className="px-1 py-0.5 bg-indigo-100 text-indigo-700 text-[8px] rounded-full font-bold">Target</span>}

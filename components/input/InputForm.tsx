@@ -1,4 +1,5 @@
 import { Calculator, TrendingUp, Trash2, RotateCcw } from 'lucide-react';
+import type { RefObject } from 'react';
 import { AppMode, BudgetMode, AllocationRatio, GrowthMethod } from '@/types/stock';
 
 interface InputFormProps {
@@ -52,6 +53,7 @@ interface InputFormProps {
   calculateAssistantG: () => string;
   applyAssistantG: () => void;
   onClearSearch?: () => void;
+  tickerInputRef?: RefObject<HTMLInputElement | null>;
 }
 
 export default function InputForm({
@@ -96,7 +98,8 @@ export default function InputForm({
   setYearsCount,
   calculateAssistantG,
   applyAssistantG,
-  onClearSearch
+  onClearSearch,
+  tickerInputRef
 }: InputFormProps) {
   
   return (
@@ -197,6 +200,7 @@ export default function InputForm({
             <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อหุ้น (Ticker)</label>
             <div className="flex flex-col sm:flex-row gap-2">
               <input
+                ref={tickerInputRef}
                 type="text"
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value.toUpperCase())}

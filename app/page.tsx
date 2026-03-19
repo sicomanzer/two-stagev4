@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   calculateDDM, calculateGrahamNumber, 
   calculateConsensus, calculateScorecard, calculateTrendAnalysis,
@@ -32,6 +32,7 @@ export default function Home() {
   const [isLoadingSession, setIsLoadingSession] = useState(true);
 
   const [ticker, setTicker] = useState('ADVANC');
+  const tickerInputRef = useRef<HTMLInputElement | null>(null);
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const [ratioBands, setRatioBands] = useState<RatioBands | null>(null);
   const [currentPrice, setCurrentPrice] = useState('');
@@ -236,6 +237,17 @@ TTW`);
     setTicker(nextTicker);
     setMode('single');
     await fetchStockData(nextTicker);
+  };
+
+  const handleSelectPeerTicker = (selectedTicker: string) => {
+    const nextTicker = selectedTicker.toUpperCase();
+    setTicker(nextTicker);
+    requestAnimationFrame(() => {
+      if (!tickerInputRef.current) return;
+      tickerInputRef.current.focus();
+      tickerInputRef.current.select();
+      tickerInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   };
 
   const validateInputs = (data: any) => {
@@ -596,6 +608,7 @@ TTW`);
             scenarioAnalysis={scenarioAnalysis}
             investmentSignal={investmentSignal}
             error={error}
+            onSelectPeerTicker={handleSelectPeerTicker}
           >
             {/* Pass InputForm as Children for Sidebar Layout */}
             <InputForm
@@ -641,6 +654,7 @@ TTW`);
                 calculateAssistantG={calculateAssistantG}
                 applyAssistantG={applyAssistantG}
                 onClearSearch={handleClearSearch}
+                tickerInputRef={tickerInputRef}
               />
           </SingleStockView>
         ) : (
