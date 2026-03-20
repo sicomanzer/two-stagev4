@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { calculateFScore, calculateZScore, calculateCAGR, calculateScorecard } from '@/lib/calculations';
+import YahooFinance from 'yahoo-finance2';
+
 // We use dynamic import for the cache so it doesn't break the build if it's too large
 // and we only load it on demand.
 export const maxDuration = 60; // Allow more time for large computations
@@ -49,6 +51,27 @@ export async function POST(request: Request) {
     }
 
     const tickers = Object.keys(cache.tickers);
+    
+    // Fetch live quotes from Yahoo Finance for all tickers (Section 1)
+    let liveQuotes: Record<string, any> = {};
+    try {
+      const yf = new YahooFinance();
+      const yfSymbols = tickers.map(t => `${t}.BK`);
+      // YahooFinance.quote can handle large arrays
+      const quotes = await yf.quote(yfSymbols);
+      quotes.forEach((q: any) => {
+        const symbol = q.symbol.replace('.BK', '');
+        liveQuotes[symbol] = {
+          price: q.regularMarketPrice,
+          pe: q.trailingPE,
+          pbv: q.priceToBook,
+          yield: q.dividendYield // This is a percentage e.g. 4.47 for 4.47%
+        };
+      });
+    } catch (e) {
+      console.warn('Failed to fetch live quotes from Yahoo Finance, falling back to cache:', e);
+    }
+
     const results = [];
 
     for (const ticker of tickers) {
@@ -105,20 +128,20 @@ export async function POST(request: Request) {
       const peStats = calculateStats(peValues);
       const pbvStats = calculateStats(pbvValues);
       
-      const latestPE = lastHistory.pe || peValues[peValues.length - 1];
-      const latestPBV = lastHistory.pbv || pbvValues[pbvValues.length - 1];
+      const latestPE = liveQuotes[ticker]?.pe ?? (lastHistory.pe || peValues[peValues.length - 1]);
+      const latestPBV = liveQuotes[ticker]?.pbv ?? (lastHistory.pbv || pbvValues[pbvValues.length - 1]);
 
       let peMinus1SD = peStats.avg - peStats.sd;
       let pbvMinus1SD = pbvStats.avg - pbvStats.sd;
 
       const latestROE = lastHistory.roe ? lastHistory.roe : 0;
       const latestDE = lastHistory.de !== null && lastHistory.de !== undefined ? lastHistory.de : 0;
-      const latestYield = lastHistory.dividendYield !== null && lastHistory.dividendYield !== undefined 
+      const latestYield = liveQuotes[ticker]?.yield ?? (lastHistory.dividendYield !== null && lastHistory.dividendYield !== undefined 
           ? lastHistory.dividendYield 
-          : (lastHistory.dps && lastHistory.close ? (lastHistory.dps / lastHistory.close) * 100 : 0);
+          : (lastHistory.dps && lastHistory.close ? (lastHistory.dps / lastHistory.close) * 100 : 0));
 
       // Calculate VI Scorecard (without Fair Price, passing null)
-      const currentPrice = lastHistory.close || lastHistory.price || null;
+      const currentPrice = liveQuotes[ticker]?.price ?? (lastHistory.close || lastHistory.price || null);
       const scorecard = calculateScorecard(
         ticker,
         history,
