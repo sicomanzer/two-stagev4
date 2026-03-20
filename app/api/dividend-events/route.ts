@@ -20,6 +20,7 @@ interface DividendEventRow {
   amountPerShare: number;
   sharesHeld: number;
   expectedCash: number;
+  avgCost: number;
   source: 'yfinance';
 }
 
@@ -152,6 +153,7 @@ export async function GET(request: Request) {
                 amountPerShare,
                 sharesHeld: holding.actualVol,
                 expectedCash,
+                avgCost: holding.avgCost,
                 source: 'yfinance' as const
               };
             })

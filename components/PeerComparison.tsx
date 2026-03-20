@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { calculateScorecard } from '@/lib/calculations';
 import type { StockScorecard } from '@/types/stock';
 
@@ -17,8 +17,8 @@ const loadSectorData = async (): Promise<SectorData> => {
   if (sectorDataCache) {
     return sectorDataCache;
   }
-  const module = await import('@/data/stock_sectors.json');
-  sectorDataCache = module.default as unknown as SectorData;
+  const sectorModule = await import('@/data/stock_sectors.json');
+  sectorDataCache = sectorModule.default as unknown as SectorData;
   return sectorDataCache;
 };
 
@@ -68,6 +68,77 @@ export default function PeerComparison({ mainTicker, onSelectTicker }: PeerCompa
   const [peersData, setPeersData] = useState<PeerData[]>([]);
   const [isFetching, setIsFetching] = useState(false);
 
+  const fetchPeersData = useCallback(async (tickers: string[]) => {
+    setIsFetching(true);
+    const initialData: PeerData[] = tickers.map(t => ({
+      ticker: t,
+      price: null, pe: null, pbv: null, roe: null, de: null, yield: null,
+      score: null, scorecard: null, isLoading: true, error: null
+    }));
+    setPeersData(initialData);
+
+    const fetchPromises = tickers.map(async (ticker) => {
+      try {
+        const res = await fetch(`/api/stock?ticker=${ticker}`);
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Failed');
+
+        let score = null;
+        let sc: StockScorecard | null = null;
+        if (data.history && data.history.length > 0) {
+          try {
+            sc = calculateScorecard(
+              ticker,
+              data.history,
+              data.currentPrice || null,
+              null,
+              data.pe || null,
+              data.pbv || null,
+              data.ratioBands?.pe?.stats?.avg || null,
+              data.ratioBands?.pbv?.stats?.avg || null
+            );
+            score = sc.totalScore;
+          } catch {}
+        }
+
+        return {
+          ticker,
+          price: data.currentPrice || null,
+          pe: data.pe || null,
+          pbv: data.pbv || null,
+          roe: data.roe || null,
+          de: data.debtToEquity || null,
+          yield: data.dividendYield || null,
+          score,
+          scorecard: sc,
+          sector: data.sector,
+          industry: data.industry,
+          isLoading: false,
+          error: null
+        };
+      } catch (err: any) {
+        return {
+          ticker,
+          price: null, pe: null, pbv: null, roe: null, de: null, yield: null,
+          score: null, scorecard: null,
+          isLoading: false,
+          error: err.message
+        };
+      }
+    });
+
+    const results = await Promise.all(fetchPromises);
+    setPeersData(results);
+
+    const mainPeer = results.find(p => p.ticker === mainTicker.toUpperCase());
+    if (mainPeer && !sector && (mainPeer.sector || mainPeer.industry)) {
+      setSectorName(`${mainPeer.sector || ''} > ${mainPeer.industry || ''} (Yahoo)`);
+    }
+
+    setIsFetching(false);
+  }, [mainTicker, sector]);
+
   // Initialize peer list
   useEffect(() => {
     let active = true;
@@ -114,96 +185,7 @@ export default function PeerComparison({ mainTicker, onSelectTicker }: PeerCompa
     return () => {
       active = false;
     };
-  }, [mainTicker]);
-
-  const fetchPeersData = async (tickers: string[]) => {
-    setIsFetching(true);
-    // Setup initial state
-    const initialData: PeerData[] = tickers.map(t => ({
-      ticker: t,
-      price: null, pe: null, pbv: null, roe: null, de: null, yield: null,
-      score: null, scorecard: null, isLoading: true, error: null
-    }));
-    setPeersData(initialData);
-
-    // Fetch parallelly
-    const fetchPromises = tickers.map(async (ticker) => {
-      try {
-        const res = await fetch(`/api/stock?ticker=${ticker}`);
-        const data = await res.json();
-        
-        if (!res.ok) throw new Error(data.error || 'Failed');
-        
-        // If this is the main ticker and we don't have a sector yet, try to use Yahoo sector
-        if (ticker === mainTicker.toUpperCase() && !sector) {
-            if (data.sector || data.industry) {
-                // Update sector state (side effect in render loop - careful, but okay for async)
-                // Better to do this after all promises resolve or use a callback, but let's try direct state update via effect or here
-                // We'll update it via a separate check later or just display it
-            }
-        }
-
-        // Calculate Score if possible
-        let score = null;
-        let sc: StockScorecard | null = null;
-        if (data.history && data.history.length > 0) {
-            // Very simplified scorecard generation just to get a score
-            // In reality, we need full data, but we can do our best.
-            try {
-                // Mock historical data structure for calculateScorecard
-                sc = calculateScorecard(
-                    ticker,
-                    data.history,
-                    data.currentPrice || null,
-                    null, // fairPrice is omitted to keep simple
-                    data.pe || null,
-                    data.pbv || null,
-                    data.ratioBands?.pe?.stats?.avg || null,
-                    data.ratioBands?.pbv?.stats?.avg || null
-                );
-                score = sc.totalScore;
-            } catch (e) {
-                // Ignore score calc error
-            }
-        }
-
-        return {
-          ticker,
-          price: data.currentPrice || null,
-          pe: data.pe || null,
-          pbv: data.pbv || null,
-          roe: data.roe || null,
-          de: data.debtToEquity || null,
-          yield: data.dividendYield || null,
-          score,
-          scorecard: sc,
-          sector: data.sector,
-          industry: data.industry,
-          isLoading: false,
-          error: null
-        };
-      } catch (err: any) {
-        return {
-          ticker,
-          price: null, pe: null, pbv: null, roe: null, de: null, yield: null,
-          score: null, scorecard: null,
-          isLoading: false,
-          error: err.message
-        };
-      }
-    });
-
-    const results = await Promise.all(fetchPromises);
-    setPeersData(results);
-    
-    // Check if main ticker has sector info from Yahoo (fallback)
-    const mainPeer = results.find(p => p.ticker === mainTicker.toUpperCase());
-    if (mainPeer && !sector && (mainPeer.sector || mainPeer.industry)) {
-        setSectorName(`${mainPeer.sector || ''} > ${mainPeer.industry || ''} (Yahoo)`);
-    }
-    
-    setIsFetching(false);
-  };
+  }, [mainTicker, fetchPeersData]);
 
   const handleCustomPeersSubmit = (e: React.FormEvent) => {
      e.preventDefault();

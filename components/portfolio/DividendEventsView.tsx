@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Calendar, ChevronDown, Loader2, XCircle } from 'lucide-react';
+import { Calendar, ChevronDown, Loader2, XCircle, Target, TrendingUp, TrendingDown, Edit3, Check, X } from 'lucide-react';
 import { PortfolioGroup } from '@/types/portfolio';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+  Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  PieChart, Pie, Cell
+} from 'recharts';
 
 type EventCode = 'XD' | 'XM' | 'XN' | 'XR' | 'XW';
 
@@ -13,6 +16,7 @@ interface DividendEventRow {
   amountPerShare: number;
   sharesHeld: number;
   expectedCash: number;
+  avgCost: number;
   source: string;
 }
 
@@ -36,11 +40,28 @@ interface DividendEventsViewProps {
 
 const EVENT_TYPES: EventCode[] = ['XD', 'XM', 'XN', 'XR', 'XW'];
 
+const MONTHS_TH = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+const PIE_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'];
+
 interface YearlySummaryItem {
   yearBE: number;
   totalExpectedCash: number;
 }
 
+/* ── Goal storage helpers ── */
+function getStoredGoal(portfolioId: string): number {
+  if (typeof window === 'undefined') return 0;
+  try {
+    return Number(localStorage.getItem(`div-goal-${portfolioId}`)) || 0;
+  } catch { return 0; }
+}
+function storeGoal(portfolioId: string, goal: number) {
+  if (typeof window === 'undefined') return;
+  try { localStorage.setItem(`div-goal-${portfolioId}`, String(goal)); } catch { /* noop */ }
+}
+
+/* ── Helpers ── */
 function formatThaiDate(isoDate: string) {
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) return '-';
@@ -52,11 +73,24 @@ function getYearOptions(): number[] {
   return Array.from({ length: 7 }, (_, idx) => currentBE - idx);
 }
 
+function getYocColor(yoc: number) {
+  if (yoc >= 5) return 'text-emerald-500';
+  if (yoc >= 3) return 'text-amber-500';
+  return 'text-red-400';
+}
+function getYocBg(yoc: number) {
+  if (yoc >= 5) return 'bg-emerald-50 border-emerald-200';
+  if (yoc >= 3) return 'bg-amber-50 border-amber-200';
+  return 'bg-red-50 border-red-200';
+}
+
+/* ══════════════════════════════════════════════════════════════ */
 export default function DividendEventsView({
   currentPortfolioId,
   portfolios,
   setCurrentPortfolioId
 }: DividendEventsViewProps) {
+  /* ── State ── */
   const [selectedYearBE, setSelectedYearBE] = useState<number>(new Date().getFullYear() + 543);
   const [selectedTypes, setSelectedTypes] = useState<EventCode[]>(['XD']);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -67,13 +101,17 @@ export default function DividendEventsView({
   const [yearlySummary, setYearlySummary] = useState<YearlySummaryItem[]>([]);
   const [isYearlyLoading, setIsYearlyLoading] = useState(false);
   const [summary, setSummary] = useState<{ totalRows: number; totalExpectedCash: number; tickerCount: number }>({
-    totalRows: 0,
-    totalExpectedCash: 0,
-    tickerCount: 0
+    totalRows: 0, totalExpectedCash: 0, tickerCount: 0
   });
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const yearOptions = useMemo(() => getYearOptions(), []);
 
+  // Goal state (Feature 5)
+  const [dividendGoal, setDividendGoal] = useState(0);
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [goalInput, setGoalInput] = useState('');
+
+  /* ── Effects ── */
   useEffect(() => {
     const onClickOutside = (event: MouseEvent) => {
       if (!dropdownRef.current) return;
@@ -91,11 +129,19 @@ export default function DividendEventsView({
     }
   }, [currentPortfolioId, portfolios, setCurrentPortfolioId]);
 
+  // Load goal from localStorage
+  useEffect(() => {
+    if (currentPortfolioId) {
+      setDividendGoal(getStoredGoal(currentPortfolioId));
+    }
+  }, [currentPortfolioId]);
+
   const selectedTypeLabel = useMemo(() => {
     if (selectedTypes.length === EVENT_TYPES.length) return 'เลือกทั้งหมด';
     return selectedTypes.join(', ');
   }, [selectedTypes]);
 
+  // Fetch dividend events for selected year
   useEffect(() => {
     const run = async () => {
       if (!currentPortfolioId) {
@@ -116,11 +162,7 @@ export default function DividendEventsView({
         }
         setRows(Array.isArray(data.rows) ? data.rows : []);
         setSummary(
-          data.summary || {
-            totalRows: 0,
-            totalExpectedCash: 0,
-            tickerCount: 0
-          }
+          data.summary || { totalRows: 0, totalExpectedCash: 0, tickerCount: 0 }
         );
       } catch (err: any) {
         setError(err?.message || 'โหลดข้อมูลไม่สำเร็จ');
@@ -133,6 +175,7 @@ export default function DividendEventsView({
     run();
   }, [currentPortfolioId, selectedYearBE, selectedTypes]);
 
+  // Fetch yearly summary for chart
   useEffect(() => {
     const runYearly = async () => {
       if (!currentPortfolioId) {
@@ -167,6 +210,7 @@ export default function DividendEventsView({
     runYearly();
   }, [currentPortfolioId, selectedTypes, yearOptions]);
 
+  /* ── Handlers ── */
   const toggleType = (type: EventCode) => {
     setSelectedTypes((prev) => {
       if (prev.includes(type)) {
@@ -181,26 +225,102 @@ export default function DividendEventsView({
     setSelectedTypes((prev) => (prev.length === EVENT_TYPES.length ? ['XD'] : [...EVENT_TYPES]));
   };
 
-  const yearlyDividendByTicker = useMemo(() => {
-    const map = new Map<string, { ticker: string; totalCash: number; eventCount: number }>();
+  const handleStartEditGoal = () => {
+    setGoalInput(dividendGoal > 0 ? String(dividendGoal) : '');
+    setIsEditingGoal(true);
+  };
+  const handleSaveGoal = () => {
+    const val = Number(goalInput);
+    if (val > 0) {
+      storeGoal(currentPortfolioId, val);
+      setDividendGoal(val);
+    }
+    setIsEditingGoal(false);
+  };
+  const handleCancelEditGoal = () => {
+    setIsEditingGoal(false);
+  };
+
+  /* ── Computed (useMemo) ── */
+
+  // Feature 1: YoY Growth
+  const yoyGrowth = useMemo(() => {
+    if (yearlySummary.length < 2) return null;
+    const sorted = [...yearlySummary].sort((a, b) => a.yearBE - b.yearBE);
+    const currentIdx = sorted.findIndex((y) => y.yearBE === selectedYearBE);
+    if (currentIdx <= 0) return null;
+    const current = sorted[currentIdx];
+    const prev = sorted[currentIdx - 1];
+    if (prev.totalExpectedCash === 0) return null;
+    return ((current.totalExpectedCash - prev.totalExpectedCash) / prev.totalExpectedCash) * 100;
+  }, [yearlySummary, selectedYearBE]);
+
+  // Feature 2: Monthly data
+  const monthlyData = useMemo(() => {
+    const monthMap = new Array(12).fill(0);
+    rows.forEach((row) => {
+      const date = new Date(row.exDate);
+      if (!isNaN(date.getTime())) {
+        monthMap[date.getMonth()] += row.expectedCash;
+      }
+    });
+    return monthMap.map((total, i) => ({ month: MONTHS_TH[i], total }));
+  }, [rows]);
+
+  const hasMonthlyData = monthlyData.some((d) => d.total > 0);
+
+  // Feature 3 + 4: Dividend by ticker (for pie chart + YOC)
+  const dividendByTicker = useMemo(() => {
+    const map = new Map<string, {
+      ticker: string; totalDivPerShare: number; avgCost: number;
+      sharesHeld: number; totalCash: number; eventCount: number;
+    }>();
     rows.forEach((row) => {
       const current = map.get(row.ticker);
       if (current) {
+        current.totalDivPerShare += row.amountPerShare;
         current.totalCash += row.expectedCash;
         current.eventCount += 1;
       } else {
         map.set(row.ticker, {
           ticker: row.ticker,
+          totalDivPerShare: row.amountPerShare,
+          avgCost: row.avgCost || 0,
+          sharesHeld: row.sharesHeld,
           totalCash: row.expectedCash,
-          eventCount: 1
+          eventCount: 1,
         });
       }
     });
-    return Array.from(map.values()).sort((a, b) => b.totalCash - a.totalCash);
+    return Array.from(map.values())
+      .map((item) => ({
+        ...item,
+        yoc: item.avgCost > 0 ? (item.totalDivPerShare / item.avgCost) * 100 : 0,
+      }))
+      .sort((a, b) => b.totalCash - a.totalCash);
   }, [rows]);
 
+  // Pie chart data
+  const pieData = useMemo(() => {
+    return dividendByTicker.map((item, i) => ({
+      name: item.ticker,
+      value: item.totalCash,
+      color: PIE_COLORS[i % PIE_COLORS.length],
+    }));
+  }, [dividendByTicker]);
+
+  const pieTotalCash = pieData.reduce((s, d) => s + d.value, 0);
+
+  // Feature 5: Goal progress
+  const goalProgress = dividendGoal > 0 ? Math.min((summary.totalExpectedCash / dividendGoal) * 100, 100) : 0;
+  const goalRemaining = dividendGoal > 0 ? Math.max(dividendGoal - summary.totalExpectedCash, 0) : 0;
+
+  /* ══════════════════════════════════════════ */
+  /*                 RENDER                    */
+  /* ══════════════════════════════════════════ */
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* ── FILTER SECTION ── */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
         <div className="flex items-center gap-3 mb-5">
           <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-600">
@@ -280,7 +400,8 @@ export default function DividendEventsView({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* ── SUMMARY CARDS (Enhanced with YoY Growth - Feature 1) ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">จำนวนรายการ</p>
           <p className="text-2xl font-bold text-slate-800">{summary.totalRows.toLocaleString()}</p>
@@ -294,6 +415,31 @@ export default function DividendEventsView({
             {summary.tickerCount.toLocaleString()}
           </p>
         </div>
+
+        {/* Feature 1: YoY Growth Card */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">เทียบกับปีก่อน</p>
+          {yoyGrowth === null ? (
+            <p className="text-2xl font-bold text-slate-300">—</p>
+          ) : (
+            <div className="flex items-center gap-2">
+              {yoyGrowth >= 0 ? (
+                <TrendingUp size={22} className="text-emerald-500" />
+              ) : (
+                <TrendingDown size={22} className="text-red-400" />
+              )}
+              <p className={`text-2xl font-bold ${yoyGrowth >= 0 ? 'text-emerald-500' : 'text-red-400'}`}>
+                {yoyGrowth >= 0 ? '+' : ''}{yoyGrowth.toFixed(1)}%
+              </p>
+            </div>
+          )}
+          {yoyGrowth !== null && (
+            <p className="text-[10px] text-slate-400 mt-1">
+              Dividend Growth YoY
+            </p>
+          )}
+        </div>
+
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-2xl text-white shadow-sm">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">ยอดรับรวมโดยประมาณ</p>
           <p className="text-2xl font-bold text-emerald-400">
@@ -302,6 +448,208 @@ export default function DividendEventsView({
         </div>
       </div>
 
+      {/* ── Feature 5: DIVIDEND GOAL TRACKER ── */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="bg-amber-100 p-2 rounded-xl text-amber-600">
+              <Target size={18} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-800">เป้าหมายปันผลปี {selectedYearBE}</h3>
+              <p className="text-[10px] text-slate-400">ตั้งเป้ารายได้ปันผลที่ต้องการต่อปี</p>
+            </div>
+          </div>
+          {!isEditingGoal ? (
+            <button
+              onClick={handleStartEditGoal}
+              className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-amber-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-amber-50"
+            >
+              <Edit3 size={13} />
+              {dividendGoal > 0 ? 'แก้ไขเป้า' : 'ตั้งเป้า'}
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={goalInput}
+                onChange={(e) => setGoalInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveGoal(); if (e.key === 'Escape') handleCancelEditGoal(); }}
+                placeholder="เช่น 50000"
+                className="w-32 text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-amber-400"
+                autoFocus
+              />
+              <button onClick={handleSaveGoal} className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors">
+                <Check size={14} />
+              </button>
+              <button onClick={handleCancelEditGoal} className="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:bg-slate-100 transition-colors">
+                <X size={14} />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {dividendGoal > 0 ? (
+          <div>
+            <div className="flex items-end justify-between mb-2">
+              <div>
+                <span className="text-xl font-bold text-slate-800">
+                  ฿{summary.totalExpectedCash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                <span className="text-sm text-slate-400 ml-1.5">
+                  / ฿{dividendGoal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <span className={`text-lg font-bold ${goalProgress >= 100 ? 'text-emerald-500' : goalProgress >= 50 ? 'text-amber-500' : 'text-slate-500'}`}>
+                {goalProgress.toFixed(1)}%
+              </span>
+            </div>
+            <div className="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ease-out ${
+                  goalProgress >= 100
+                    ? 'bg-gradient-to-r from-emerald-400 to-emerald-500'
+                    : goalProgress >= 50
+                      ? 'bg-gradient-to-r from-amber-400 to-amber-500'
+                      : 'bg-gradient-to-r from-slate-300 to-slate-400'
+                }`}
+                style={{ width: `${goalProgress}%` }}
+              />
+            </div>
+            <p className="text-[11px] text-slate-400 mt-2">
+              {goalProgress >= 100 ? (
+                <span className="text-emerald-500 font-bold">🎉 ยินดีด้วย! คุณทำเป้าหมายสำเร็จแล้ว!</span>
+              ) : (
+                <>เหลืออีก <span className="font-bold text-slate-600">฿{goalRemaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> เพื่อถึงเป้าหมาย</>
+              )}
+            </p>
+          </div>
+        ) : (
+          <div className="text-center py-4 text-slate-400 text-sm">
+            <p>ยังไม่ได้ตั้งเป้าหมาย — กดปุ่ม &quot;ตั้งเป้า&quot; เพื่อเริ่มต้น</p>
+            <p className="text-[10px] mt-1">การตั้งเป้าหมายช่วยให้คุณมีแรงจูงใจในการสะสมหุ้นปันผล 💪</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Feature 2 + 4: Monthly Chart + Pie Chart ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
+
+        {/* Feature 2: Monthly Income Chart */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 h-full min-w-0">
+          <div className="mb-4">
+            <h3 className="text-base font-bold text-slate-800">📅 รายได้ปันผลรายเดือน</h3>
+            <p className="text-xs text-slate-500">แสดงเงินปันผลที่ได้รับแยกตามเดือน (ปี {selectedYearBE})</p>
+          </div>
+          <div className="h-[260px]">
+            {isLoading ? (
+              <div className="h-full flex items-center justify-center text-slate-400 gap-2">
+                <Loader2 size={16} className="animate-spin" />
+                <span>กำลังโหลดข้อมูล...</span>
+              </div>
+            ) : !hasMonthlyData ? (
+              <div className="h-full flex items-center justify-center text-slate-400">ไม่มีข้อมูลรายเดือนสำหรับเงื่อนไขที่เลือก</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyData} margin={{ top: 8, right: 12, left: 4, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    tick={{ fill: '#64748b', fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(value: number) => `฿${Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }}
+                    formatter={(value) => [
+                      `฿${Number(value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                      'ปันผลรับ'
+                    ]}
+                    labelFormatter={(label) => `เดือน ${label}`}
+                    contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+                  />
+                  <Bar dataKey="total" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* Feature 4: Dividend Proportion Pie Chart */}
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 shadow-sm border border-slate-700 h-full min-w-0">
+          <div className="mb-4">
+            <h3 className="text-base font-bold text-white">🥧 สัดส่วนปันผลแยกรายหุ้น</h3>
+            <p className="text-xs text-slate-400">ดูว่าปันผลกระจุกตัวอยู่ที่หุ้นตัวไหน (Concentration Risk)</p>
+          </div>
+          {isLoading ? (
+            <div className="h-[260px] flex items-center justify-center text-slate-400 gap-2">
+              <Loader2 size={16} className="animate-spin" />
+              <span>กำลังโหลดข้อมูล...</span>
+            </div>
+          ) : pieData.length === 0 ? (
+            <div className="h-[260px] flex items-center justify-center text-slate-500">ไม่มีข้อมูล</div>
+          ) : (
+            <div className="flex flex-col md:flex-row items-center gap-4">
+              <div className="w-full md:w-1/2 h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={80}
+                      paddingAngle={4}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '12px', color: '#fff', fontSize: '12px' }}
+                      itemStyle={{ color: '#fff' }}
+                      formatter={(value) => {
+                        const pct = pieTotalCash > 0 ? ((Number(value) / pieTotalCash) * 100).toFixed(1) : '0';
+                        return [`฿${Number(value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${pct}%)`, 'ปันผลรับ'];
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="w-full md:w-1/2 space-y-2 max-h-[240px] overflow-y-auto pr-1">
+                {pieData.map((entry, i) => {
+                  const pct = pieTotalCash > 0 ? ((entry.value / pieTotalCash) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={i} className="flex items-center gap-2.5 group">
+                      <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-200 truncate">{entry.name}</span>
+                          <span className="text-[10px] font-medium text-slate-400 ml-2">{pct}%</span>
+                        </div>
+                        <div className="w-full bg-slate-700 rounded-full h-1.5 mt-0.5">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${pct}%`, backgroundColor: entry.color }}
+                          />
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-emerald-400 font-bold whitespace-nowrap">
+                        ฿{entry.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── EXISTING: Yearly Chart + Event Table ── */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 h-full min-w-0">
           <div className="mb-4">
@@ -401,19 +749,81 @@ export default function DividendEventsView({
         </div>
       </div>
 
+      {/* ── Feature 3: YOC TABLE SECTION ── */}
+      {dividendByTicker.length > 0 && (
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+          <div className="mb-4">
+            <h3 className="text-base font-bold text-slate-800">📊 Yield on Cost (YOC) แยกรายหุ้น</h3>
+            <p className="text-xs text-slate-500">
+              เปรียบเทียบปันผลที่ได้รับกับต้นทุนเฉลี่ยของแต่ละตัว —
+              <span className="text-emerald-500 font-bold ml-1">≥5% ดีมาก</span>
+              <span className="text-amber-500 font-bold ml-2">3-5% ปานกลาง</span>
+              <span className="text-red-400 font-bold ml-2">&lt;3% ต่ำ</span>
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {dividendByTicker.map((item) => (
+              <div
+                key={item.ticker}
+                className={`rounded-xl p-4 border ${getYocBg(item.yoc)} transition-all hover:shadow-md`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-bold text-slate-800">{item.ticker}</span>
+                  <span className={`text-lg font-black ${getYocColor(item.yoc)}`}>
+                    {item.avgCost > 0 ? `${item.yoc.toFixed(2)}%` : 'N/A'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ปันผลรวม/หุ้น</span>
+                    <span className="font-bold text-slate-700">{item.totalDivPerShare.toFixed(4)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ต้นทุนเฉลี่ย</span>
+                    <span className="font-bold text-slate-700">{item.avgCost > 0 ? item.avgCost.toFixed(2) : '—'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">หุ้นถือ</span>
+                    <span className="font-bold text-slate-700">{item.sharesHeld.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ปันผลรวม</span>
+                    <span className="font-bold text-emerald-600">฿{item.totalCash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+                {/* YOC visual bar */}
+                {item.avgCost > 0 && (
+                  <div className="mt-2.5">
+                    <div className="w-full bg-white/50 rounded-full h-1.5">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          item.yoc >= 5 ? 'bg-emerald-400' : item.yoc >= 3 ? 'bg-amber-400' : 'bg-red-300'
+                        }`}
+                        style={{ width: `${Math.min(item.yoc * 10, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── BREAKDOWN MODAL (Enhanced with YOC - Feature 3) ── */}
       {isBreakdownOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
           onClick={() => setIsBreakdownOpen(false)}
         >
           <div
-            className="bg-white rounded-2xl w-full max-w-2xl shadow-xl border border-slate-200 flex flex-col max-h-[85vh]"
+            className="bg-white rounded-2xl w-full max-w-3xl shadow-xl border border-slate-200 flex flex-col max-h-[85vh]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-slate-800">สรุปปันผลรวมทั้งปีแยกรายหุ้น</h3>
-                <p className="text-xs text-slate-500">ปี {selectedYearBE} • {yearlyDividendByTicker.length.toLocaleString()} หุ้น</p>
+                <p className="text-xs text-slate-500">ปี {selectedYearBE} • {dividendByTicker.length.toLocaleString()} หุ้น</p>
               </div>
               <button onClick={() => setIsBreakdownOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                 <XCircle size={22} />
@@ -421,7 +831,7 @@ export default function DividendEventsView({
             </div>
 
             <div className="overflow-y-auto px-6 py-4">
-              {yearlyDividendByTicker.length === 0 ? (
+              {dividendByTicker.length === 0 ? (
                 <div className="text-center text-slate-400 py-10">ไม่พบข้อมูลปันผลสำหรับเงื่อนไขที่เลือก</div>
               ) : (
                 <table className="w-full text-sm text-left">
@@ -429,15 +839,23 @@ export default function DividendEventsView({
                     <tr>
                       <th className="py-2">Ticker</th>
                       <th className="py-2 text-right">จำนวนครั้ง</th>
+                      <th className="py-2 text-right">ปันผลรวม/หุ้น</th>
+                      <th className="py-2 text-right">ต้นทุนเฉลี่ย</th>
+                      <th className="py-2 text-right">YOC%</th>
                       <th className="py-2 text-right">ปันผลรวมทั้งปี</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {yearlyDividendByTicker.map((item) => (
-                      <tr key={item.ticker}>
-                        <td className="py-2 font-bold text-slate-900">{item.ticker}</td>
-                        <td className="py-2 text-right text-slate-700">{item.eventCount.toLocaleString()}</td>
-                        <td className="py-2 text-right font-bold text-emerald-600">
+                    {dividendByTicker.map((item) => (
+                      <tr key={item.ticker} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-2.5 font-bold text-slate-900">{item.ticker}</td>
+                        <td className="py-2.5 text-right text-slate-700">{item.eventCount.toLocaleString()}</td>
+                        <td className="py-2.5 text-right text-slate-700">{item.totalDivPerShare.toFixed(4)}</td>
+                        <td className="py-2.5 text-right text-slate-700">{item.avgCost > 0 ? item.avgCost.toFixed(2) : '—'}</td>
+                        <td className={`py-2.5 text-right font-bold ${getYocColor(item.yoc)}`}>
+                          {item.avgCost > 0 ? `${item.yoc.toFixed(2)}%` : '—'}
+                        </td>
+                        <td className="py-2.5 text-right font-bold text-emerald-600">
                           ฿{item.totalCash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                       </tr>
@@ -450,7 +868,7 @@ export default function DividendEventsView({
             <div className="px-6 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-sm">
               <span className="text-slate-600">ยอดรวมทุกหุ้น</span>
               <span className="font-bold text-slate-900">
-                ฿{yearlyDividendByTicker.reduce((sum, item) => sum + item.totalCash, 0).toLocaleString(undefined, {
+                ฿{dividendByTicker.reduce((sum, item) => sum + item.totalCash, 0).toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}

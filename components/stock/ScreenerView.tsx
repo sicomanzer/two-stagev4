@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Search, Info, TrendingUp, AlertTriangle, ShieldCheck } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Search, Info, TrendingUp, AlertTriangle, ShieldCheck, Download, ChevronUp, ChevronDown, ChevronsUpDown, ExternalLink } from 'lucide-react';
 
-type ScreenerPreset = 'previous' | 'latest' | 'no_filter' | 'dividend_value' | 'dividend_flexible';
+type ScreenerPreset = 'previous' | 'latest' | 'no_filter' | 'vi' | 'high_dividend' | 'safe_haven';
 
 interface ScreenerViewProps {
   onSelectTicker: (ticker: string) => void;
@@ -28,38 +28,56 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
   const [results, setResults] = useState<any[]>([]);
   const [stats, setStats] = useState<{ total: number; matched: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'viScore', direction: 'desc' });
 
   const applyPreset = (nextPreset: ScreenerPreset) => {
     setPreset(nextPreset);
 
-    if (nextPreset === 'dividend_flexible') {
+    if (nextPreset === 'high_dividend') {
       setEpsGrowthMin(0);
-      setDpsGrowthMin(0);
+      setDpsGrowthMin(5);
       setPeBandMode('none');
       setPbvBandMode('none');
       setFScoreMin(5);
-      setZScoreMin(2.5);
-      setViScoreMin(11);
-      setYieldMin(3.5);
+      setZScoreMin(1.8);
+      setViScoreMin(10);
+      setYieldMin(6);
       setDeMax(1.5);
       setPeMax(20);
-      setPbvMax(4.5);
+      setPbvMax(3);
       setRoeMin(10);
       return;
     }
 
-    if (nextPreset === 'dividend_value') {
-      setEpsGrowthMin(0);
-      setDpsGrowthMin(2);
+    if (nextPreset === 'vi') {
+      setEpsGrowthMin(5);
+      setDpsGrowthMin(0);
       setPeBandMode('below_avg');
       setPbvBandMode('below_avg');
       setFScoreMin(6);
-      setZScoreMin(3.0);
-      setViScoreMin(13);
-      setYieldMin(4.5);
-      setDeMax(1.2);
-      setPeMax(14);
+      setZScoreMin(2.99);
+      setViScoreMin(14);
+      setYieldMin(3);
+      setDeMax(1.0);
+      setPeMax(15);
       setPbvMax(2);
+      setRoeMin(15);
+      return;
+    }
+
+    if (nextPreset === 'safe_haven') {
+      setEpsGrowthMin(0);
+      setDpsGrowthMin(0);
+      setPeBandMode('none');
+      setPbvBandMode('none');
+      setFScoreMin(7);
+      setZScoreMin(3.5);
+      setViScoreMin(12);
+      setYieldMin(2);
+      setDeMax(0.5);
+      setPeMax(25);
+      setPbvMax(4);
       setRoeMin(12);
       return;
     }
@@ -150,6 +168,65 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
     }
   };
 
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'desc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'desc') {
+      direction = 'asc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedResults = useMemo(() => {
+    let sortableItems = [...results];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        let aVal = a[sortConfig.key];
+        let bVal = b[sortConfig.key];
+        
+        if (aVal === null || aVal === undefined) aVal = -Infinity;
+        if (bVal === null || bVal === undefined) bVal = -Infinity;
+
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [results, sortConfig]);
+
+  const renderSortIcon = (key: string) => {
+    if (!sortConfig || sortConfig.key !== key) return <ChevronsUpDown size={14} className="inline ml-1 text-slate-300 group-hover:text-slate-400" />;
+    return sortConfig.direction === 'asc' ? <ChevronUp size={14} className="inline ml-1 text-indigo-600" /> : <ChevronDown size={14} className="inline ml-1 text-indigo-600" />;
+  };
+
+  const exportToCSV = () => {
+    if (results.length === 0) return;
+    const headers = ['Ticker', 'Price', 'EPS CAGR', 'DPS CAGR', 'Yield', 'ROE', 'P/E', 'P/BV', 'PE -1SD', 'PBV -1SD', 'D/E', 'F-Score', 'Z-Score', 'VI Score'];
+    const csvData = sortedResults.map(r => [
+      r.ticker,
+      r.currentPrice,
+      r.epsCAGR?.toFixed(2),
+      r.dpsCAGR?.toFixed(2),
+      r.latestYield?.toFixed(2),
+      r.latestROE?.toFixed(2),
+      r.latestPE?.toFixed(2),
+      r.latestPBV?.toFixed(2),
+      r.peMinus1SD?.toFixed(2),
+      r.pbvMinus1SD?.toFixed(2),
+      r.latestDE?.toFixed(2),
+      r.fScore,
+      r.zScore?.toFixed(2),
+      r.viScore
+    ].join(','));
+    
+    const csvContent = [headers.join(','), ...csvData].join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `screener_results_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
@@ -163,41 +240,48 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
               <p className="text-sm text-slate-500">กรองหุ้นจากฐานข้อมูลด้วยเกณฑ์คุณภาพและความถูกของราคา</p>
             </div>
           </div>
-          <div className="bg-slate-100 p-1 rounded-lg flex items-center gap-1 self-start md:self-auto">
+          <div className="bg-slate-100 p-1 rounded-lg flex items-center gap-1 self-start md:self-auto flex-wrap">
             <button
               type="button"
               onClick={() => applyPreset('previous')}
               className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'previous' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
-              สูตรสมดุล (คลาสสิก)
+              สูตรสมดุล
             </button>
             <button
               type="button"
               onClick={() => applyPreset('latest')}
               className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'latest' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
-              สูตรเข้มข้น (ล่าสุด)
+              สูตรเข้มข้น
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('vi')}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'vi' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              🎯 Value Investing (VI)
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('high_dividend')}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'high_dividend' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              💰 High Dividend
+            </button>
+            <button
+              type="button"
+              onClick={() => applyPreset('safe_haven')}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'safe_haven' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              🛡️ Safe Haven
             </button>
             <button
               type="button"
               onClick={() => applyPreset('no_filter')}
               className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'no_filter' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
-              ไม่ตั้งค่ากรอง
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('dividend_value')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'dividend_value' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              ปันผลถูก (แนะนำ)
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('dividend_flexible')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'dividend_flexible' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              ปันผลยืดหยุ่น
+              ไม่กรอง
             </button>
           </div>
         </div>
@@ -441,103 +525,106 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
                 พบหุ้นที่ผ่านเกณฑ์ <strong className="text-indigo-600 text-lg">{stats.matched}</strong> ตัว จากทั้งหมด {stats.total} ตัว
               </p>
             </div>
-            {stats.matched > 0 && (
-              <div className="text-xs text-slate-500 flex items-center gap-1 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                <Info size={14} />
-                เรียงตามคะแนน VI Scorecard จากมากไปน้อย
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {stats.matched > 0 && (
+                <button
+                  onClick={exportToCSV}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg text-sm font-medium transition-colors"
+                >
+                  <Download size={16} />
+                  Export CSV
+                </button>
+              )}
+            </div>
           </div>
 
           {results.length > 0 ? (
-            <div className="overflow-x-auto rounded-xl border border-slate-200">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 align-top">
+            <div className="overflow-x-auto rounded-xl border border-slate-200 max-h-[600px]">
+              <table className="w-full text-sm text-left relative">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 align-top sticky top-0 z-20 shadow-sm">
                   <tr>
-                    <th className="p-4 font-semibold">Ticker</th>
-                    <th className="p-4 font-semibold text-right">Price</th>
-                    <th className="p-4 font-semibold text-center bg-blue-50/50" colSpan={4}>Growth & Returns</th>
-                    <th className="p-4 font-semibold text-center bg-orange-50/50" colSpan={4}>Valuation</th>
-                    <th className="p-4 font-semibold text-center bg-emerald-50/50" colSpan={4}>Quality</th>
+                    <th className="p-4 font-semibold sticky left-0 bg-slate-50 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] border-b border-slate-200 border-r border-white">Ticker</th>
+                    <th className="p-4 font-semibold text-right border-b border-slate-200 border-r border-white">Price</th>
+                    <th className="p-4 font-semibold text-center bg-blue-50/90 border-b border-slate-200 border-r border-white" colSpan={4}>Growth & Returns</th>
+                    <th className="p-4 font-semibold text-center bg-orange-50/90 border-b border-slate-200 border-r border-white" colSpan={4}>Valuation</th>
+                    <th className="p-4 font-semibold text-center bg-emerald-50/90 border-b border-slate-200" colSpan={4}>Quality</th>
                   </tr>
-                  <tr className="text-xs text-slate-500 border-t border-slate-100">
-                    <th className="p-2 px-4 shadow-sm border-r border-white"></th>
-                    <th className="p-2 px-4 shadow-sm border-r border-white"></th>
-                    <th className="p-2 text-center border-r border-white" title="EPS CAGR 5Y">EPS%</th>
-                    <th className="p-2 text-center border-r border-white" title="DPS CAGR 5Y">DPS%</th>
-                    <th className="p-2 text-center border-r border-white" title="Dividend Yield">Yield%</th>
-                    <th className="p-2 text-center border-r border-white" title="Return on Equity">ROE%</th>
-                    <th className="p-2 text-center border-r border-white">P/E</th>
-                    <th className="p-2 text-center border-r border-white">P/BV</th>
-                    <th className="p-2 text-center border-r border-white">PE Band (-1SD)</th>
-                    <th className="p-2 text-center border-r border-white">PBV Band (-1SD)</th>
-                    <th className="p-2 text-center border-r border-white" title="Debt to Equity">D/E</th>
-                    <th className="p-2 text-center border-r border-white">F-Score</th>
-                    <th className="p-2 text-center border-r border-white">Z-Score</th>
-                    <th className="p-2 text-center">VI Score</th>
+                  <tr className="text-xs text-slate-500 bg-white/95 backdrop-blur shadow-sm border-b border-slate-200">
+                    <th className="p-2 px-4 border-r border-slate-100 sticky left-0 bg-white/95 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"></th>
+                    <th className="p-2 px-4 border-r border-slate-100"></th>
+                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="EPS CAGR 5Y" onClick={() => handleSort('epsCAGR')}>EPS% {renderSortIcon('epsCAGR')}</th>
+                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="DPS CAGR 5Y" onClick={() => handleSort('dpsCAGR')}>DPS% {renderSortIcon('dpsCAGR')}</th>
+                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Dividend Yield" onClick={() => handleSort('latestYield')}>Yield% {renderSortIcon('latestYield')}</th>
+                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Return on Equity" onClick={() => handleSort('latestROE')}>ROE% {renderSortIcon('latestROE')}</th>
+                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Price to Earnings" onClick={() => handleSort('latestPE')}>P/E {renderSortIcon('latestPE')}</th>
+                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Price to Book Value" onClick={() => handleSort('latestPBV')}>P/BV {renderSortIcon('latestPBV')}</th>
+                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="PE ที่ -1 Standard Deviation" onClick={() => handleSort('peMinus1SD')}>PE (-1SD) {renderSortIcon('peMinus1SD')}</th>
+                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="PBV ที่ -1 Standard Deviation" onClick={() => handleSort('pbvMinus1SD')}>PBV (-1SD) {renderSortIcon('pbvMinus1SD')}</th>
+                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Debt to Equity Ratio" onClick={() => handleSort('latestDE')}>D/E {renderSortIcon('latestDE')}</th>
+                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Piotroski F-Score (0-9)" onClick={() => handleSort('fScore')}>F-Score {renderSortIcon('fScore')}</th>
+                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Altman Z-Score" onClick={() => handleSort('zScore')}>Z-Score {renderSortIcon('zScore')}</th>
+                    <th className="p-2 text-center cursor-pointer hover:bg-slate-50 group" title="คะแนนรวม Value Investing (0-20)" onClick={() => handleSort('viScore')}>VI Score {renderSortIcon('viScore')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-600">
-                  {results.map((r, i) => (
-                    <tr key={r.ticker} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-4 font-bold text-indigo-700">
+                  {sortedResults.map((r, i) => (
+                    <tr key={r.ticker} className="hover:bg-slate-50/80 transition-colors bg-white">
+                      <td className="p-4 font-bold text-indigo-700 sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10 group">
                         <button
                           type="button"
                           onClick={() => onSelectTicker(r.ticker)}
-                          className="hover:underline"
+                          className="hover:underline flex items-center gap-1.5"
+                          title="คลิกเพื่อประเมินมูลค่า (DDM)"
                         >
                           {r.ticker}
+                          <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                       </td>
-                      <td className="p-4 text-right font-medium">{r.currentPrice?.toFixed(2) || '-'}</td>
+                      <td className="p-4 text-right font-medium bg-slate-50/30">{r.currentPrice?.toFixed(2) || '-'}</td>
                       
-                      <td className={`p-4 text-center ${r.epsCAGR > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                        {r.epsCAGR.toFixed(1)}%
+                      <td className={`p-4 text-center ${r.epsCAGR >= 10 ? 'text-emerald-600 font-medium' : r.epsCAGR > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                        {r.epsCAGR !== null && r.epsCAGR !== undefined ? `${r.epsCAGR.toFixed(1)}%` : '-'}
                       </td>
-                      <td className={`p-4 text-center ${r.dpsCAGR > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                        {r.dpsCAGR.toFixed(1)}%
+                      <td className={`p-4 text-center ${r.dpsCAGR >= 10 ? 'text-emerald-600 font-medium' : r.dpsCAGR > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                        {r.dpsCAGR !== null && r.dpsCAGR !== undefined ? `${r.dpsCAGR.toFixed(1)}%` : '-'}
                       </td>
 
-                      <td className={`p-4 text-center font-bold ${r.latestYield >= 5 ? 'text-emerald-600' : 'text-slate-600'}`}>
+                      <td className={`p-4 text-center font-bold ${r.latestYield >= 5 ? 'text-emerald-700 bg-emerald-50/80' : r.latestYield >= 3 ? 'text-emerald-600' : 'text-slate-600'}`}>
                         {r.latestYield?.toFixed(2) || '0.00'}%
                       </td>
-                      <td className={`p-4 text-center font-bold ${r.latestROE >= 12 ? 'text-emerald-600' : 'text-slate-600'}`}>
+                      <td className={`p-4 text-center font-bold ${r.latestROE >= 15 ? 'text-emerald-700 bg-emerald-50/80' : r.latestROE >= 10 ? 'text-emerald-600' : 'text-slate-600'}`}>
                         {r.latestROE?.toFixed(2) || '0.00'}%
                       </td>
 
-                      <td className="p-4 text-center font-medium">
+                      <td className={`p-4 text-center font-medium ${r.latestPE && r.peMinus1SD && r.latestPE <= r.peMinus1SD ? 'text-emerald-700 bg-emerald-50/80' : ''}`}>
                         {r.latestPE?.toFixed(2) || '-'}
                       </td>
-                      <td className="p-4 text-center font-medium">
+                      <td className={`p-4 text-center font-medium ${r.latestPBV && r.pbvMinus1SD && r.latestPBV <= r.pbvMinus1SD ? 'text-emerald-700 bg-emerald-50/80' : ''}`}>
                         {r.latestPBV?.toFixed(2) || '-'}
                       </td>
 
-                      <td className="p-4 text-center">
-                        <div title={`AVG: ${r.peAvg?.toFixed(1)}, -1SD: ${r.peMinus1SD?.toFixed(1)}`}>
-                          <span className={r.latestPE && r.latestPE <= r.peMinus1SD ? 'text-emerald-600 font-bold' : 'text-slate-400'}>
-                            {r.peMinus1SD?.toFixed(1) || '-'}
-                          </span>
+                      <td className="p-4 text-center text-slate-500 text-xs">
+                        <div title={`AVG: ${r.peAvg?.toFixed(1)}`}>
+                          {r.peMinus1SD?.toFixed(1) || '-'}
                         </div>
                       </td>
-                      <td className="p-4 text-center">
-                        <div title={`AVG: ${r.pbvAvg?.toFixed(2)}, -1SD: ${r.pbvMinus1SD?.toFixed(2)}`}>
-                          <span className={r.latestPBV && r.latestPBV <= r.pbvMinus1SD ? 'text-emerald-600 font-bold' : 'text-slate-400'}>
-                            {r.pbvMinus1SD?.toFixed(2) || '-'}
-                          </span>
+                      <td className="p-4 text-center text-slate-500 text-xs">
+                        <div title={`AVG: ${r.pbvAvg?.toFixed(2)}`}>
+                          {r.pbvMinus1SD?.toFixed(2) || '-'}
                         </div>
                       </td>
 
-                      <td className={`p-4 text-center font-medium ${r.latestDE < 1 ? 'text-emerald-600' : 'text-red-500'}`}>
-                        {r.latestDE !== null ? r.latestDE.toFixed(2) : '-'}
+                      <td className={`p-4 text-center font-medium ${r.latestDE < 0.5 ? 'text-emerald-600 font-bold' : r.latestDE < 1 ? 'text-emerald-500' : r.latestDE > 2 ? 'text-red-500 font-bold' : 'text-amber-500'}`}>
+                        {r.latestDE !== null && r.latestDE !== undefined ? r.latestDE.toFixed(2) : '-'}
                       </td>
 
-                      <td className={`p-4 text-center font-bold ${r.fScore >= 6 ? 'text-emerald-600' : 'text-amber-500'}`}>
+                      <td className={`p-4 text-center font-bold ${r.fScore >= 7 ? 'text-emerald-700 bg-emerald-50/80' : r.fScore >= 5 ? 'text-emerald-600' : r.fScore <= 3 ? 'text-red-500 bg-red-50/80' : 'text-amber-500'}`}>
                         {r.fScore}/9
                       </td>
-                      <td className={`p-4 text-center font-bold ${r.zScore > 2.99 ? 'text-emerald-600' : 'text-amber-500'}`}>
-                        {r.zScore.toFixed(2)}
+                      <td className={`p-4 text-center font-bold ${r.zScore >= 2.99 ? 'text-emerald-700 bg-emerald-50/80' : r.zScore >= 1.8 ? 'text-emerald-600' : 'text-red-500 bg-red-50/80'}`}>
+                        {r.zScore?.toFixed(2) || '-'}
                       </td>
-                      <td className="p-4 text-center font-bold text-indigo-600 bg-indigo-50/30">
+                      <td className={`p-4 text-center font-bold ${r.viScore >= 15 ? 'text-indigo-700 bg-indigo-100/50' : r.viScore >= 12 ? 'text-indigo-600 bg-indigo-50/30' : 'text-slate-600'}`}>
                         {r.viScore}/20
                       </td>
                     </tr>
