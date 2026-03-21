@@ -40,11 +40,11 @@ export default function StockLogo({ ticker, size = 'md' }: { ticker: string, siz
   }
 
   return (
-    <div className={`${sizeClasses[size]} bg-white border border-slate-200 rounded-full shadow-sm flex items-center justify-center flex-shrink-0 overflow-hidden p-[8%]`}>
+    <div className={`${sizeClasses[size]} bg-white border border-slate-100 rounded-full shadow-sm flex items-center justify-center flex-shrink-0 overflow-hidden`}>
       <img
         src={logoUrls[errorIndex]}
         alt={cleanTicker}
-        className="w-full h-full object-contain"
+        className="w-full h-full object-contain scale-[1.35] transition-transform duration-300 hover:scale-[1.5]"
         onError={() => setErrorIndex(prev => prev + 1)}
       />
     </div>
