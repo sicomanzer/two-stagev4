@@ -8,6 +8,7 @@ import ScenarioAnalysisPanel from '@/components/ScenarioAnalysis';
 import PeerComparison from '@/components/PeerComparison';
 import FScore from '@/components/stock/FScore';
 import ZScore from '@/components/stock/ZScore';
+import StockLogo from '@/components/ui/StockLogo';
 import { 
   ValuationConsensus, 
   StockScorecard, 
@@ -25,6 +26,7 @@ interface SingleStockViewProps {
   children?: ReactNode;
   result: DDMResult | null;
   ticker: string;
+  currentPrice: number | null;
   stockHistory: StockHistory[];
   ratioBands: RatioBands | null;
   consensus: ValuationConsensus | null;
@@ -42,6 +44,7 @@ export default function SingleStockView({
   children,
   result,
   ticker,
+  currentPrice,
   stockHistory,
   ratioBands,
   consensus,
@@ -78,11 +81,69 @@ export default function SingleStockView({
   //   );
   // }
 
+  const latestData = stockHistory[stockHistory.length - 1];
+  
+  // Find the latest valid values by checking in reverse (so we don't get N/A if the current year hasn't reported yet)
+  const latestPe = stockHistory.slice().reverse().find(d => d.pe !== null && d.pe !== undefined)?.pe;
+  const latestPbv = stockHistory.slice().reverse().find(d => d.pbv !== null && d.pbv !== undefined)?.pbv;
+  const latestRoe = stockHistory.slice().reverse().find(d => d.roe !== null && d.roe !== undefined)?.roe;
+  const latestEps = stockHistory.slice().reverse().find(d => d.eps !== null && d.eps !== undefined)?.eps;
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
       
+      {/* 1. EXECUTIVE HEADER: Stock Profile & Quick Stats  */}
+      {(stockHistory.length > 0) && (
+        <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 flex flex-col xl:flex-row xl:items-center justify-between gap-6 relative overflow-hidden">
+          {/* subtle background decor */}
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-slate-50 rounded-full blur-3xl opacity-50 z-0"></div>
+          
+          <div className="flex items-center gap-5 z-10">
+            <StockLogo ticker={ticker} size="xl" />
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-black text-slate-900 tracking-tight">{ticker}</h1>
+                <span className="px-2.5 py-1 bg-slate-100 text-slate-600 font-bold text-[10px] rounded-md tracking-wider border border-slate-200">
+                  {ticker.includes('-') ? 'CRYPTO/FX' : 'STOCK'}
+                </span>
+              </div>
+              <p className="text-slate-500 font-medium text-sm mt-0.5">Stock Analysis & Valuation Cockpit</p>
+            </div>
+          </div>
+
+          {currentPrice && (
+             <div className="flex flex-col xl:items-end z-10">
+               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Current Price</span>
+               <div className="flex items-baseline gap-2">
+                 <span className="text-4xl font-black text-slate-800 tracking-tighter">{currentPrice.toFixed(2)}</span>
+                 <span className="text-sm font-bold text-slate-500">THB</span>
+               </div>
+             </div>
+          )}
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 z-10">
+            <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 text-center min-w-[90px]">
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">P/E</p>
+              <p className="text-sm font-black text-slate-700">{latestPe !== undefined && latestPe !== null ? latestPe.toFixed(2) : 'N/A'}</p>
+            </div>
+            <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 text-center min-w-[90px]">
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">P/BV</p>
+              <p className="text-sm font-black text-slate-700">{latestPbv !== undefined && latestPbv !== null ? latestPbv.toFixed(2) : 'N/A'}</p>
+            </div>
+            <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 text-center min-w-[90px]">
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">ROE</p>
+              <p className="text-sm font-black text-emerald-600">{latestRoe !== undefined && latestRoe !== null ? (latestRoe * 100).toFixed(1) + '%' : 'N/A'}</p>
+            </div>
+            <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 text-center min-w-[90px]">
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">EPS</p>
+              <p className="text-sm font-black text-blue-600">{latestEps !== undefined && latestEps !== null ? latestEps.toFixed(2) : 'N/A'}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MAIN LAYOUT: Split Top Section (Charts vs Sidebar) */}
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-12 gap-6 items-start">
         
 
 
@@ -261,17 +322,34 @@ export default function SingleStockView({
         </div>
       </div>
 
-      {/* BOTTOM SECTION: Deep Dive Analysis (3 Columns) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {fScore && <FScore fScore={fScore} />}
-        {zScore && <ZScore zScore={zScore} />}
-        {scorecard && <Scorecard scorecard={scorecard} />}
+      {/* --- LEVEL 3: Deep Dive Quality Dashboard --- */}
+      <div className="space-y-4 pt-6 mt-4">
+        <div className="flex items-center gap-2 mb-2 pl-2 border-l-4 border-indigo-500">
+          <h2 className="text-xl font-black text-slate-800 tracking-tight">Quality & Safety Dashboard</h2>
+          <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-indigo-100 shadow-sm">Deep Dive</span>
+        </div>
         
-        {scenarioAnalysis && <ScenarioAnalysisPanel analysis={scenarioAnalysis} />}
-        {result && consensus && (
-          <ConsensusDashboard consensus={consensus} ticker={ticker} />
-        )}
-        {trendAnalysis && <TrendAnalysisPanel analysis={trendAnalysis} />}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {fScore && <FScore fScore={fScore} />}
+          {zScore && <ZScore zScore={zScore} />}
+          {scorecard && <Scorecard scorecard={scorecard} />}
+        </div>
+      </div>
+
+      {/* --- LEVEL 4: Advanced Analytics --- */}
+      <div className="space-y-4 pt-6 mt-4">
+        <div className="flex items-center gap-2 mb-2 pl-2 border-l-4 border-blue-500">
+          <h2 className="text-xl font-black text-slate-800 tracking-tight">Advanced Analytics</h2>
+          <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-blue-100 shadow-sm">Pro Tools</span>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {scenarioAnalysis && <ScenarioAnalysisPanel analysis={scenarioAnalysis} />}
+          {result && consensus && (
+            <ConsensusDashboard consensus={consensus} ticker={ticker} />
+          )}
+          {trendAnalysis && <TrendAnalysisPanel analysis={trendAnalysis} />}
+        </div>
       </div>
 
       {/* 5. Detailed Calculation Table - REMOVED per user request */}

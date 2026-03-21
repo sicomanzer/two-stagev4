@@ -24,38 +24,8 @@ interface PortfolioViewProps {
   fetchPortfolioData: () => void;
   onAddTransaction: (ticker: string) => void;
 }
-const StockLogo = ({ ticker }: { ticker: string }) => {
-  const [errorIndex, setErrorIndex] = useState(0);
-  const cleanTicker = ticker.replace('.BK', '').trim();
 
-  // Try multiple known public sources for Thai stock logos gracefully
-  const logoUrls = [
-    `/api/logo?ticker=${cleanTicker}`,
-    `https://jitta.com/images/stock/TH/${cleanTicker}.png`,
-    `https://s3-symbol-logo.tradingview.com/${cleanTicker.toLowerCase()}--big.svg`,
-    `https://logo.clearbit.com/${cleanTicker.toLowerCase()}.co.th`,
-    `https://logo.clearbit.com/${cleanTicker.toLowerCase()}.com`
-  ];
-
-  if (errorIndex >= logoUrls.length) {
-     return (
-       <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-xs shadow-sm shadow-slate-300 flex-shrink-0">
-         {cleanTicker.charAt(0)}
-       </div>
-     );
-  }
-
-  return (
-    <div className="w-8 h-8 bg-white border border-slate-200 rounded-full shadow-sm flex items-center justify-center flex-shrink-0 overflow-hidden p-0.5">
-      <img
-        src={logoUrls[errorIndex]}
-        alt={cleanTicker}
-        className="w-full h-full object-contain"
-        onError={() => setErrorIndex(prev => prev + 1)}
-      />
-    </div>
-  );
-};
+import StockLogo from '@/components/ui/StockLogo';
 
 export default function PortfolioView({
   portfolios,

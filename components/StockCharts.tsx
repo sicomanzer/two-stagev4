@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   BarChart,
   Bar,
@@ -135,173 +135,179 @@ export default function StockCharts({ history, ratioBands, ticker }: StockCharts
   const pbvInsight = ratioBands?.pbv.stats && pbvLast ? buildBandInsight(pbvLast.pbv, ratioBands.pbv.stats.avg, ratioBands.pbv.stats.sd) : null;
   const valuationSignal = getValuationSignal(peInsight, pbvInsight);
 
+  // Removed activeTab state
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
       
-      {/* EPS Chart */}
-      <ChartContainer title={`${ticker} : กำไรต่อหุ้น (EPS)`}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={history}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-            <Tooltip content={<CustomTooltip unit="THB" />} cursor={{fill: '#f8fafc'}} />
-            <Bar dataKey="eps" name="EPS" radius={[4, 4, 0, 0]} barSize={40}>
-              {history.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={(entry.eps || 0) < 0 ? '#ef4444' : '#0ea5e9'} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartContainer>
-
-      {/* DPS Chart */}
-      <ChartContainer title={`${ticker} : เงินปันผลต่อหุ้น (DPS)`}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={history}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-            <Tooltip content={<CustomTooltip unit="THB" />} cursor={{fill: '#f8fafc'}} />
-            <Bar dataKey="dps" name="DPS" radius={[4, 4, 0, 0]} barSize={40}>
-              {history.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={(entry.dps || 0) < 0 ? '#ef4444' : '#10b981'} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartContainer>
-
-      {/* D/E Ratio Chart */}
-      <ChartContainer title={`${ticker} : อัตราส่วนหนี้สินต่อทุน (D/E)`}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={history}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-            <Tooltip content={<CustomTooltip unit="x" />} cursor={{fill: '#f8fafc'}} />
-            <Bar dataKey="de" name="D/E" radius={[4, 4, 0, 0]} barSize={40}>
-              {history.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={(entry.de || 0) < 0 ? '#ef4444' : '#f59e0b'} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartContainer>
-
-      {/* Net Profit Chart */}
-      <ChartContainer title={`${ticker} : กำไรสุทธิ (Net Profit)`}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={history}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => (val/1e6).toFixed(0) + 'M'} />
-            <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
-            <Bar dataKey="netProfit" name="Net Profit" radius={[4, 4, 0, 0]} barSize={40}>
-              {history.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={(entry.netProfit || 0) < 0 ? '#ef4444' : '#8b5cf6'} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartContainer>
-
-      {/* Revenue Chart */}
-      <ChartContainer title={`${ticker} : รายได้รวม (Revenue)`}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={history}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => (val/1e6).toFixed(0) + 'M'} />
-            <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
-            <Bar dataKey="revenue" name="Revenue" radius={[4, 4, 0, 0]} barSize={40}>
-              {history.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={(entry.revenue || 0) < 0 ? '#ef4444' : '#3b82f6'} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartContainer>
-
-      {/* Net Profit Margin Chart */}
-      <ChartContainer title={`${ticker} : อัตรากำไรสุทธิ (NPM %)`}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={history}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} unit="%" />
-            <Tooltip content={<CustomTooltip unit="%" />} cursor={{fill: '#f8fafc'}} />
-            <Bar dataKey="npm" name="NPM" radius={[4, 4, 0, 0]} barSize={40}>
-              {history.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={(entry.npm || 0) < 0 ? '#ef4444' : '#ec4899'} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartContainer>
-
-      {/* P/E Band Chart */}
-      <ChartContainer title={`${ticker} : PE Band (P/E Ratio Band)`} footer={peFooter}>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={peChartData}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} interval={Math.floor(peChartData.length / 10)} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} domain={['auto', 'auto']} />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend verticalAlign="bottom" height={36}/>
-            <Line type="monotone" dataKey="pe" name="PE" stroke="#003399" strokeWidth={3} dot={false} />
-            <Line type="monotone" dataKey="sd2m" name="-2SD" stroke="#22c55e" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-            <Line type="monotone" dataKey="sd1m" name="-1SD" stroke="#22c55e" strokeWidth={1} strokeDasharray="3 3" dot={false} />
-            <Line type="monotone" dataKey="avg" name="AVG" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-            <Line type="monotone" dataKey="sd1p" name="+1SD" stroke="#ef4444" strokeWidth={1} strokeDasharray="3 3" dot={false} />
-            <Line type="monotone" dataKey="sd2p" name="+2SD" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
-      </ChartContainer>
-
-      {/* P/BV Band Chart */}
-      <ChartContainer title={`${ticker} : PBV Band (P/BV Ratio Band)`} footer={pbvFooter}>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={pbvChartData}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} interval={Math.floor(pbvChartData.length / 10)} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} domain={['auto', 'auto']} />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend verticalAlign="bottom" height={36}/>
-            <Line type="monotone" dataKey="pbv" name="PBV" stroke="#7e22ce" strokeWidth={3} dot={false} />
-            <Line type="monotone" dataKey="sd2m" name="-2SD" stroke="#22c55e" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-            <Line type="monotone" dataKey="sd1m" name="-1SD" stroke="#22c55e" strokeWidth={1} strokeDasharray="3 3" dot={false} />
-            <Line type="monotone" dataKey="avg" name="AVG" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-            <Line type="monotone" dataKey="sd1p" name="+1SD" stroke="#ef4444" strokeWidth={1} strokeDasharray="3 3" dot={false} />
-            <Line type="monotone" dataKey="sd2p" name="+2SD" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
-      </ChartContainer>
-
-      <div className="md:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-bold text-slate-800">{ticker} : Band Insight Summary</h3>
-            <p className="text-xs text-slate-500 mt-1">สรุปตำแหน่งราคาปัจจุบันเทียบโซนสถิติของ PE/PBV</p>
-          </div>
-          <span className={`text-xs md:text-sm font-bold px-3 py-1.5 rounded-full ${valuationSignal.badgeClass}`}>
-            {valuationSignal.label}
-          </span>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <InsightCard title="PE Zone" value={peInsight?.zone ?? '-'} subValue={peInsight ? `z=${peInsight.zScore.toFixed(2)}` : 'N/A'} tone={peInsight?.tone ?? 'neutral'} />
-          <InsightCard title="PBV Zone" value={pbvInsight?.zone ?? '-'} subValue={pbvInsight ? `z=${pbvInsight.zScore.toFixed(2)}` : 'N/A'} tone={pbvInsight?.tone ?? 'neutral'} />
-          <InsightCard title="PE vs AVG" value={peInsight ? `${peInsight.distancePct > 0 ? '+' : ''}${peInsight.distancePct.toFixed(1)}%` : '-'} subValue={peInsight ? `ล่าสุด ${peInsight.lastValue.toFixed(2)}` : 'N/A'} tone={peInsight?.tone ?? 'neutral'} />
-          <InsightCard title="PBV vs AVG" value={pbvInsight ? `${pbvInsight.distancePct > 0 ? '+' : ''}${pbvInsight.distancePct.toFixed(1)}%` : '-'} subValue={pbvInsight ? `ล่าสุด ${pbvInsight.lastValue.toFixed(2)}` : 'N/A'} tone={pbvInsight?.tone ?? 'neutral'} />
-        </div>
-
-        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-          <p className="text-xs font-semibold uppercase text-slate-500">Quick Decision</p>
-          <p className="text-sm md:text-base font-bold text-slate-800 mt-1">{valuationSignal.message}</p>
-        </div>
+      {/* Header */}
+      <div className="flex flex-wrap border-b border-slate-200 bg-slate-50/50 p-4 gap-2">
+        <h2 className="font-black text-lg text-slate-800 flex items-center gap-2">
+          📊 Performance, Health & Valuation
+        </h2>
       </div>
 
+      <div className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in zoom-in-95 duration-300">
+          <ChartContainer title={`กำไรสุทธิ (Net Profit)`}> 
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={history}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => (val/1e6).toFixed(0) + 'M'} />
+                  <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
+                  <Bar dataKey="netProfit" name="Net Profit" radius={[4, 4, 0, 0]} barSize={40}>
+                    {history.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={(entry.netProfit || 0) < 0 ? '#ef4444' : '#8b5cf6'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+
+            <ChartContainer title={`รายได้รวม (Revenue)`}> 
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={history}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(val) => (val/1e6).toFixed(0) + 'M'} />
+                  <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
+                  <Bar dataKey="revenue" name="Revenue" radius={[4, 4, 0, 0]} barSize={40}>
+                    {history.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={(entry.revenue || 0) < 0 ? '#ef4444' : '#3b82f6'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+
+            <ChartContainer title={`กำไรต่อหุ้น (EPS)`}> 
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={history}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                  <Tooltip content={<CustomTooltip unit="THB" />} cursor={{fill: '#f8fafc'}} />
+                  <Bar dataKey="eps" name="EPS" radius={[4, 4, 0, 0]} barSize={40}>
+                    {history.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={(entry.eps || 0) < 0 ? '#ef4444' : '#0ea5e9'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+
+            <ChartContainer title={`อัตรากำไรสุทธิ (NPM %)`}> 
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={history}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} unit="%" />
+                  <Tooltip content={<CustomTooltip unit="%" />} cursor={{fill: '#f8fafc'}} />
+                  <Bar dataKey="npm" name="NPM" radius={[4, 4, 0, 0]} barSize={40}>
+                    {history.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={(entry.npm || 0) < 0 ? '#ef4444' : '#ec4899'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+
+          {/* Health & Divs Charts */}
+          <ChartContainer title={`เงินปันผลต่อหุ้น (DPS)`}> 
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={history}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                <Tooltip content={<CustomTooltip unit="THB" />} cursor={{fill: '#f8fafc'}} />
+                <Bar dataKey="dps" name="DPS" radius={[4, 4, 0, 0]} barSize={40}>
+                  {history.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={(entry.dps || 0) < 0 ? '#ef4444' : '#10b981'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+
+          <ChartContainer title={`อัตราส่วนหนี้สินต่อทุน (D/E)`}> 
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={history}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                <Tooltip content={<CustomTooltip unit="x" />} cursor={{fill: '#f8fafc'}} />
+                <Bar dataKey="de" name="D/E" radius={[4, 4, 0, 0]} barSize={40}>
+                  {history.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={(entry.de || 0) < 0 ? '#ef4444' : '#f59e0b'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+
+          {/* Valuation Bands Charts */}
+          <ChartContainer title={`PE Band (P/E Ratio Band)`} footer={peFooter}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={peChartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} interval={Math.floor(peChartData.length / 10)} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} domain={['auto', 'auto']} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend verticalAlign="bottom" height={36}/>
+                <Line type="monotone" dataKey="pe" name="PE" stroke="#003399" strokeWidth={3} dot={false} />
+                <Line type="monotone" dataKey="sd2m" name="-2SD" stroke="#22c55e" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                <Line type="monotone" dataKey="sd1m" name="-1SD" stroke="#22c55e" strokeWidth={1} strokeDasharray="3 3" dot={false} />
+                <Line type="monotone" dataKey="avg" name="AVG" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                <Line type="monotone" dataKey="sd1p" name="+1SD" stroke="#ef4444" strokeWidth={1} strokeDasharray="3 3" dot={false} />
+                <Line type="monotone" dataKey="sd2p" name="+2SD" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+
+          <ChartContainer title={`PBV Band (P/BV Ratio Band)`} footer={pbvFooter}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={pbvChartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} interval={Math.floor(pbvChartData.length / 10)} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} domain={['auto', 'auto']} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend verticalAlign="bottom" height={36}/>
+                <Line type="monotone" dataKey="pbv" name="PBV" stroke="#7e22ce" strokeWidth={3} dot={false} />
+                <Line type="monotone" dataKey="sd2m" name="-2SD" stroke="#22c55e" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                <Line type="monotone" dataKey="sd1m" name="-1SD" stroke="#22c55e" strokeWidth={1} strokeDasharray="3 3" dot={false} />
+                <Line type="monotone" dataKey="avg" name="AVG" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                <Line type="monotone" dataKey="sd1p" name="+1SD" stroke="#ef4444" strokeWidth={1} strokeDasharray="3 3" dot={false} />
+                <Line type="monotone" dataKey="sd2p" name="+2SD" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+
+          <div className="md:col-span-2 bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-4">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-bold text-slate-800">Valuation Band Insight</h3>
+                <p className="text-xs text-slate-500 mt-1">สรุปตำแหน่งราคาปัจจุบันเทียบโซนสถิติของ PE/PBV ย้อนหลัง</p>
+              </div>
+              <span className={`text-xs md:text-sm font-bold px-3 py-1.5 rounded-full ${valuationSignal.badgeClass}`}>
+                {valuationSignal.label}
+              </span>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <InsightCard title="PE Zone" value={peInsight?.zone ?? '-'} subValue={peInsight ? `z=${peInsight.zScore.toFixed(2)}` : 'N/A'} tone={peInsight?.tone ?? 'neutral'} />
+              <InsightCard title="PBV Zone" value={pbvInsight?.zone ?? '-'} subValue={pbvInsight ? `z=${pbvInsight.zScore.toFixed(2)}` : 'N/A'} tone={pbvInsight?.tone ?? 'neutral'} />
+              <InsightCard title="PE vs AVG" value={peInsight ? `${peInsight.distancePct > 0 ? '+' : ''}${peInsight.distancePct.toFixed(1)}%` : '-'} subValue={peInsight ? `ล่าสุด ${peInsight.lastValue.toFixed(2)}` : 'N/A'} tone={peInsight?.tone ?? 'neutral'} />
+              <InsightCard title="PBV vs AVG" value={pbvInsight ? `${pbvInsight.distancePct > 0 ? '+' : ''}${pbvInsight.distancePct.toFixed(1)}%` : '-'} subValue={pbvInsight ? `ล่าสุด ${pbvInsight.lastValue.toFixed(2)}` : 'N/A'} tone={pbvInsight?.tone ?? 'neutral'} />
+            </div>
+
+            <div className="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+              <p className="text-xs font-semibold uppercase text-slate-500">Quick Decision Insight</p>
+              <p className="text-sm md:text-base font-bold text-slate-800 mt-1">{valuationSignal.message}</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

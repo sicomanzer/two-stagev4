@@ -599,6 +599,7 @@ TTW`);
           <SingleStockView
             result={result}
             ticker={ticker}
+            currentPrice={currentPrice ? parseFloat(currentPrice) : null}
             stockHistory={stockHistory}
             ratioBands={ratioBands}
             consensus={consensus}

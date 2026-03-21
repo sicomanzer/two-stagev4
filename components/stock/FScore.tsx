@@ -8,77 +8,86 @@ interface FScoreProps {
 
 export default function FScore({ fScore }: FScoreProps) {
   // Color coding based on score (0-9)
-  // 7-9: Strong (Green)
-  // 4-6: Stable (Yellow/Amber)
-  // 0-3: Weak (Red)
-  
-  let colorClass = 'bg-slate-100 text-slate-800';
-  let headerColor = 'from-slate-500 to-slate-600';
-  let icon = <MinusCircle size={24} />;
+  let statusColor = 'from-slate-400 to-slate-500 text-slate-700 bg-slate-50 border-slate-200';
+  let badgeColor = 'bg-slate-100 text-slate-600';
+  let icon = <MinusCircle size={20} className="text-slate-400" />;
   
   if (fScore.score >= 7) {
-    colorClass = 'bg-emerald-50 text-emerald-800 border-emerald-200';
-    headerColor = 'from-emerald-600 to-teal-600';
-    icon = <CheckCircle2 size={24} className="text-emerald-100" />;
+    statusColor = 'from-emerald-400 to-emerald-600 text-emerald-900 bg-emerald-50/50 border-emerald-100';
+    badgeColor = 'bg-emerald-100 text-emerald-700';
+    icon = <CheckCircle2 size={20} className="text-emerald-500" />;
   } else if (fScore.score >= 4) {
-    colorClass = 'bg-amber-50 text-amber-800 border-amber-200';
-    headerColor = 'from-amber-500 to-orange-500';
-    icon = <MinusCircle size={24} className="text-amber-100" />;
+    statusColor = 'from-amber-400 to-orange-500 text-amber-900 bg-amber-50/50 border-amber-100';
+    badgeColor = 'bg-amber-100 text-amber-700';
+    icon = <MinusCircle size={20} className="text-amber-500" />;
   } else {
-    colorClass = 'bg-red-50 text-red-800 border-red-200';
-    headerColor = 'from-red-500 to-rose-600';
-    icon = <XCircle size={24} className="text-red-100" />;
+    statusColor = 'from-red-400 to-rose-600 text-red-900 bg-red-50/50 border-red-100';
+    badgeColor = 'bg-red-100 text-red-700';
+    icon = <XCircle size={20} className="text-red-500" />;
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-full">
+    <div className={`rounded-3xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border ${statusColor} overflow-hidden flex flex-col h-full backdrop-blur-xl relative`}>
+      
+      {/* Background Decor */}
+      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${statusColor.split(' ')[0]} ${statusColor.split(' ')[1]} opacity-10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3 z-0`}></div>
+
       {/* Header */}
-      <div className={`bg-gradient-to-r ${headerColor} px-6 py-4 text-white flex justify-between items-center`}>
-        <div>
-          <h3 className="font-bold text-lg flex items-center gap-2">
-            💎 Piotroski F-Score
-          </h3>
-          <p className="text-xs opacity-80 mt-0.5">วัดความแข็งแกร่งทางการเงิน (Quality & Health) {fScore.year ? `(${fScore.year})` : ''}</p>
-        </div>
-        <div className="flex flex-col items-end">
-          <span className="text-3xl font-black">{fScore.score}/9</span>
-          <span className="text-xs font-medium uppercase tracking-wider opacity-90">{fScore.grade}</span>
+      <div className="p-6 relative z-10 border-b border-white/20">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="p-1.5 bg-white/50 rounded-lg shadow-sm border border-white/40 backdrop-blur-md">
+                {icon}
+              </span>
+              <h3 className="font-black text-lg tracking-tight">Piotroski F-Score</h3>
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">Financial Health {fScore.year ? `(${fScore.year})` : ''}</p>
+          </div>
+          <div className="text-right flex flex-col items-end">
+            <span className="text-4xl font-black tracking-tighter mix-blend-multiply opacity-80">{fScore.score}<span className="text-xl opacity-50">/9</span></span>
+            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full mt-1 ${badgeColor} shadow-sm border border-white/50 backdrop-blur-md`}>
+              {fScore.grade}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Criteria List */}
-      <div className="p-0 divide-y divide-slate-100 flex-grow">
-        <div className="grid grid-cols-12 gap-2 bg-slate-50 px-4 py-2 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-          <div className="col-span-6">Criteria</div>
-          <div className="col-span-4 text-right">Value</div>
+      <div className="p-2 flex-grow relative z-10 bg-white/40 backdrop-blur-sm">
+        <div className="grid grid-cols-12 gap-2 px-4 py-2 text-[9px] uppercase font-black text-slate-400 tracking-widest">
+          <div className="col-span-7">Criteria</div>
+          <div className="col-span-3 text-right">Value</div>
           <div className="col-span-2 text-center">Pass</div>
         </div>
         
-        {fScore.criteria.map((item, idx) => (
-          <div key={idx} className="grid grid-cols-12 gap-2 px-4 py-3 items-center hover:bg-slate-50 transition-colors">
-            <div className="col-span-6">
-              <div className="text-xs font-medium text-slate-700">{item.name}</div>
-              <div className="text-[10px] text-slate-400">{item.condition}</div>
-            </div>
-            <div className="col-span-4 text-right">
-              <div className="text-xs font-mono text-slate-600 truncate" title={String(item.value)}>
-                {item.value}
+        <div className="space-y-1">
+          {fScore.criteria.map((item, idx) => (
+            <div key={idx} className="grid grid-cols-12 gap-2 px-4 py-2.5 items-center bg-white/60 hover:bg-white/90 rounded-xl transition-all border border-white/40 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)]">
+              <div className="col-span-7 pr-2">
+                <div className="text-xs font-bold text-slate-700 leading-tight mb-0.5">{item.name}</div>
+                <div className="text-[9px] font-medium text-slate-400 truncate w-full" title={item.condition}>{item.condition}</div>
+              </div>
+              <div className="col-span-3 text-right">
+                <div className="text-[11px] font-black text-slate-600 truncate" title={String(item.value)}>
+                  {item.value !== null ? item.value : '-'}
+                </div>
+              </div>
+              <div className="col-span-2 flex justify-center border-l border-slate-100 pl-2">
+                {item.passed ? (
+                  <CheckCircle2 size={16} className="text-emerald-500" strokeWidth={3} />
+                ) : (
+                  <XCircle size={16} className="text-rose-400" strokeWidth={3} />
+                )}
               </div>
             </div>
-            <div className="col-span-2 flex justify-center">
-              {item.passed ? (
-                <CheckCircle2 size={16} className="text-emerald-500" />
-              ) : (
-                <XCircle size={16} className="text-slate-300" />
-              )}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
       
-      {/* Footer / Summary */}
-      <div className="bg-slate-50 px-4 py-3 border-t border-slate-100 text-xs text-center text-slate-500">
-        คะแนนสูง (7-9) บ่งบอกถึงสุขภาพทางการเงินที่แข็งแกร่งและโอกาสชนะสูง
+      {/* Footer */}
+      <div className="bg-white/40 backdrop-blur-md px-4 py-3 border-t border-white/20 text-[10px] font-bold text-center text-slate-500 uppercase tracking-widest relative z-10">
+        Score ≥ 7 means Strong Financial Health
       </div>
     </div>
   );

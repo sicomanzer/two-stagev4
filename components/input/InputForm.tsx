@@ -1,4 +1,4 @@
-import { Calculator, TrendingUp, Trash2, RotateCcw } from 'lucide-react';
+import { Calculator, TrendingUp, Trash2, RotateCcw, AlertCircle } from 'lucide-react';
 import type { RefObject } from 'react';
 import { AppMode, BudgetMode, AllocationRatio, GrowthMethod } from '@/types/stock';
 
@@ -253,196 +253,231 @@ export default function InputForm({
           </div>
         )}
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">เงินปันผลปีล่าสุด (D0)</label>
-          <input
-            type="number"
-            step="0.0001"
-            value={d0}
-            onChange={(e) => setD0(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-            required
-          />
-        </div>
-
-        <div>
-          <div className="flex justify-between items-center mb-1">
-            <label className="block text-sm font-medium text-slate-700">อัตราการเติบโต g (%)</label>
-            <button 
-              type="button"
-              onClick={() => setIsAssistantOpen(!isAssistantOpen)}
-              className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
-            >
-              <TrendingUp size={12} />
-              ช่วยคำนวณค่า g
-            </button>
+        <div className="space-y-4 pt-2">
+          {/* D0 Input */}
+          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 shadow-inner">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">เงินปันผลปีล่าสุด (D0)</label>
+            <div className="flex items-center gap-3">
+              <span className="text-xl">💰</span>
+              <input
+                type="number"
+                step="0.0001"
+                value={d0}
+                onChange={(e) => {
+                  setD0(e.target.value);
+                  setTimeout(() => handleCalculate({ preventDefault: () => {} } as any), 50);
+                }}
+                className="w-full px-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 font-black text-slate-800 text-lg outline-none transition-all shadow-sm"
+                required
+              />
+              <span className="text-sm font-bold text-slate-400">THB</span>
+            </div>
           </div>
-          <input
-            type="number"
-            step="0.01"
-            value={g}
-            onChange={(e) => setG(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-            required
-          />
-          {(() => {
-            const gNum = parseFloat(g);
-            const ksNum = parseFloat(ks);
-            if (!isNaN(gNum) && !isNaN(ksNum) && gNum >= ksNum) {
-              return (
-                <p className="text-[10px] mt-1 text-red-600">
-                  อัตราการเติบโต (g) ต้องน้อยกว่า ks เพื่อให้แบบจำลองทำงานได้
-                </p>
-              );
-            }
-            return null;
-          })()}
-        </div>
 
-        {/* Growth Assistant Panel */}
-        {isAssistantOpen && (
-          <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex gap-2">
-              <button
+          {/* Growth Input with Slider */}
+          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 shadow-inner">
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">อัตราเติบโต - g (%)</label>
+              <button 
                 type="button"
-                onClick={() => setAssistantMethod('sustainable')}
-                className={`flex-1 py-1 px-2 text-[10px] font-bold rounded-lg border transition-all ${
-                  assistantMethod === 'sustainable' 
-                  ? 'bg-emerald-600 border-emerald-600 text-white' 
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
+                onClick={() => setIsAssistantOpen(!isAssistantOpen)}
+                className="text-[10px] font-black text-emerald-600 hover:bg-emerald-100 bg-emerald-50 px-2 py-1 rounded-md transition-colors flex items-center gap-1 border border-emerald-200"
               >
-                Sustainable
-              </button>
-              <button
-                type="button"
-                onClick={() => setAssistantMethod('historical')}
-                className={`flex-1 py-1 px-2 text-[10px] font-bold rounded-lg border transition-all ${
-                  assistantMethod === 'historical' 
-                  ? 'bg-emerald-600 border-emerald-600 text-white' 
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                Historical
-              </button>
-              <button
-                type="button"
-                onClick={() => setAssistantMethod('preset')}
-                className={`flex-1 py-1 px-2 text-[10px] font-bold rounded-lg border transition-all ${
-                  assistantMethod === 'preset' 
-                  ? 'bg-emerald-600 border-emerald-600 text-white' 
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                GDP/Preset
+                <TrendingUp size={12} />
+                ASSISTANT
               </button>
             </div>
-
-            {assistantMethod === 'sustainable' && (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">ROE (%)</label>
-                  <input
-                    type="number"
-                    value={roe}
-                    onChange={(e) => setRoe(e.target.value)}
-                    className="w-full px-2 py-1 text-sm rounded-lg border border-slate-200 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Payout (%)</label>
-                  <input
-                    type="number"
-                    value={payoutRatio}
-                    onChange={(e) => setPayoutRatio(e.target.value)}
-                    className="w-full px-2 py-1 text-sm rounded-lg border border-slate-200 outline-none"
-                  />
-                </div>
+            
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-4">
+                <input
+                  type="range" min="-5" max="7" step="0.1"
+                  value={g}
+                  onChange={(e) => {
+                    setG(e.target.value);
+                    setTimeout(() => handleCalculate({ preventDefault: () => {} } as any), 50);
+                  }}
+                  className="flex-1 accent-emerald-500 cursor-pointer"
+                />
+                <input
+                  type="number" step="0.01"
+                  value={g}
+                  onChange={(e) => {
+                    setG(e.target.value);
+                    setTimeout(() => handleCalculate({ preventDefault: () => {} } as any), 50);
+                  }}
+                  className="w-24 px-2 py-1.5 rounded-lg border border-slate-300 font-black text-emerald-700 text-center outline-none shadow-sm text-lg"
+                  required
+                />
               </div>
-            )}
+            </div>
 
-            {assistantMethod === 'historical' && (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">ปันผลปีแรก</label>
-                    <input
-                      type="number"
-                      value={divStart}
-                      onChange={(e) => setDivStart(e.target.value)}
-                      placeholder="เช่น 5.00"
-                      className="w-full px-2 py-1 text-sm rounded-lg border border-slate-200 outline-none"
-                    />
+            {(() => {
+              const gNum = parseFloat(g);
+              const ksNum = parseFloat(ks);
+              if (!isNaN(gNum) && !isNaN(ksNum) && gNum >= ksNum) {
+                return (
+                  <div className="mt-2 text-[10px] font-bold text-red-600 bg-red-50 p-2 rounded-md border border-red-100 flex items-center gap-1">
+                    <AlertCircle size={12} /> g ต้องน้อยกว่า ks
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">ปันผลล่าสุด</label>
-                    <input
-                      type="number"
-                      value={divEnd}
-                      onChange={(e) => setDivEnd(e.target.value)}
-                      placeholder="เช่น 8.50"
-                      className="w-full px-2 py-1 text-sm rounded-lg border border-slate-200 outline-none"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">จำนวนปีที่ผ่านไป</label>
-                  <input
-                    type="number"
-                    value={yearsCount}
-                    onChange={(e) => setYearsCount(e.target.value)}
-                    className="w-full px-2 py-1 text-sm rounded-lg border border-slate-200 outline-none"
-                  />
-                </div>
-              </div>
-            )}
+                );
+              }
+              return null;
+            })()}
+          </div>
 
-            {assistantMethod === 'preset' && (
-              <div className="flex gap-2">
-                <button type="button" onClick={() => setG('2')} className="flex-1 py-2 bg-white border border-slate-200 rounded-lg text-xs hover:bg-slate-50">2% (Conservative)</button>
-                <button type="button" onClick={() => setG('3')} className="flex-1 py-2 bg-white border border-slate-200 rounded-lg text-xs hover:bg-slate-50">3% (GDP Growth)</button>
-              </div>
-            )}
-
-            {assistantMethod !== 'preset' && (
-              <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
-                <div className="text-xs">
-                  <span className="text-slate-500">ผลลัพธ์: </span>
-                  <span className="font-bold text-emerald-600">{calculateAssistantG()}%</span>
-                </div>
+          {/* Assistant Panel Rendered Here */}
+          {isAssistantOpen && (
+            <div className="bg-emerald-50/50 rounded-xl p-4 border border-emerald-100 shadow-sm animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex gap-2 mb-4">
                 <button
                   type="button"
-                  onClick={applyAssistantG}
-                  className="px-3 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700 transition-colors"
+                  onClick={() => setAssistantMethod('sustainable')}
+                  className={`flex-1 py-1.5 px-2 text-[10px] font-black tracking-wide rounded-lg border transition-all ${
+                    assistantMethod === 'sustainable' 
+                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' 
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
                 >
-                  ใช้ค่านี้
+                  SUSTAINABLE
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAssistantMethod('historical')}
+                  className={`flex-1 py-1.5 px-2 text-[10px] font-black tracking-wide rounded-lg border transition-all ${
+                    assistantMethod === 'historical' 
+                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' 
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  HISTORICAL
                 </button>
               </div>
-            )}
+
+              {assistantMethod === 'sustainable' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">ROE (%)</label>
+                    <input
+                      type="number"
+                      value={roe}
+                      onChange={(e) => setRoe(e.target.value)}
+                      className="w-full px-3 py-1.5 text-sm font-bold rounded-lg border border-slate-200 outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Payout (%)</label>
+                    <input
+                      type="number"
+                      value={payoutRatio}
+                      onChange={(e) => setPayoutRatio(e.target.value)}
+                      className="w-full px-3 py-1.5 text-sm font-bold rounded-lg border border-slate-200 outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {assistantMethod === 'historical' && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">ปันผลปีแรก</label>
+                      <input
+                        type="number"
+                        value={divStart}
+                        onChange={(e) => setDivStart(e.target.value)}
+                        className="w-full px-3 py-1.5 text-sm font-bold rounded-lg border border-slate-200 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">ปันผลล่าสุด</label>
+                      <input
+                        type="number"
+                        value={divEnd}
+                        onChange={(e) => setDivEnd(e.target.value)}
+                        className="w-full px-3 py-1.5 text-sm font-bold rounded-lg border border-slate-200 outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase">ช่วงเวลา (ปี)</label>
+                    <input
+                      type="number"
+                      value={yearsCount}
+                      onChange={(e) => setYearsCount(e.target.value)}
+                      className="w-full px-3 py-1.5 text-sm font-bold rounded-lg border border-slate-200 outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {assistantMethod === 'preset' && (
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => { setG('2'); setTimeout(() => handleCalculate({ preventDefault: () => {} } as any), 50); }} className="flex-1 py-2 font-bold bg-white border border-slate-200 rounded-lg text-xs hover:bg-emerald-50">2% (Conz)</button>
+                  <button type="button" onClick={() => { setG('3'); setTimeout(() => handleCalculate({ preventDefault: () => {} } as any), 50); }} className="flex-1 py-2 font-bold bg-white border border-slate-200 rounded-lg text-xs hover:bg-emerald-50">3% (GDP)</button>
+                </div>
+              )}
+
+              {assistantMethod !== 'preset' && (
+                <div className="pt-3 mt-3 border-t border-emerald-200/50 flex items-center justify-between">
+                  <div className="text-xs">
+                    <span className="text-slate-500 font-medium">ผลลัพธ์: </span>
+                    <span className="font-black text-emerald-600 text-lg">{calculateAssistantG()}%</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { applyAssistantG(); setTimeout(() => handleCalculate({ preventDefault: () => {} } as any), 50); }}
+                    className="px-4 py-1.5 bg-emerald-600 text-white text-[10px] font-black rounded-lg hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-600/20"
+                  >
+                    APPLY
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* KS Input with Slider */}
+          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 shadow-inner">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">ผลตอบแทนคาดหวัง - ks (%)</label>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-4">
+                <input
+                  type="range" min="5" max="25" step="0.1"
+                  value={ks}
+                  onChange={(e) => {
+                    setKs(e.target.value);
+                    setTimeout(() => handleCalculate({ preventDefault: () => {} } as any), 50);
+                  }}
+                  className="flex-1 accent-blue-500 cursor-pointer"
+                />
+                <input
+                  type="number" step="0.01"
+                  value={ks}
+                  onChange={(e) => {
+                    setKs(e.target.value);
+                    setTimeout(() => handleCalculate({ preventDefault: () => {} } as any), 50);
+                  }}
+                  className="w-24 px-2 py-1.5 rounded-lg border border-slate-300 font-black text-blue-700 text-center outline-none shadow-sm text-lg"
+                  required
+                />
+              </div>
+            </div>
           </div>
-        )}
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">ผลตอบแทนที่คาดหวัง ks (%)</label>
-          <input
-            type="number"
-            step="0.01"
-            value={ks}
-            onChange={(e) => setKs(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">จำนวนปี Explicit (ปี)</label>
-          <input
-            type="number"
-            value={explicitYears}
-            onChange={(e) => setExplicitYears(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-            required
-          />
+          {/* Explicit Years */}
+          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex items-center justify-between shadow-inner">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">ระยะเวลา Explicit (ปี)</label>
+            <input
+              type="number"
+              value={explicitYears}
+              onChange={(e) => {
+                setExplicitYears(e.target.value);
+                setTimeout(() => handleCalculate({ preventDefault: () => {} } as any), 50);
+              }}
+              className="w-20 px-3 py-1.5 rounded-lg border border-slate-300 font-black text-slate-800 text-center outline-none shadow-sm"
+              required
+            />
+          </div>
         </div>
 
         {mode === 'single' && (
