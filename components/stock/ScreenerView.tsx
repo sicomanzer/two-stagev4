@@ -1,10 +1,58 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Info, TrendingUp, AlertTriangle, ShieldCheck, Download, ChevronUp, ChevronDown, ChevronsUpDown, ExternalLink } from 'lucide-react';
+import { Search, Info, TrendingUp, AlertTriangle, ShieldCheck, Download, ChevronUp, ChevronDown, ChevronsUpDown, ExternalLink, Zap, Target } from 'lucide-react';
 
 type ScreenerPreset = 'previous' | 'latest' | 'no_filter' | 'vi' | 'high_dividend' | 'safe_haven';
 
 interface ScreenerViewProps {
   onSelectTicker: (ticker: string) => void;
+}
+
+const ModernMetricInput = ({ 
+  label, subtitle, value, onChange, min, max, step, unit, highlightColor 
+}: any) => {
+  const isUnset = value === '';
+  const percent = isUnset ? 0 : Math.min(Math.max(((value - min) / (max - min)) * 100, 0), 100);
+  
+  return (
+    <div className="group relative bg-white/70 backdrop-blur-md border border-slate-200/60 p-3.5 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.1)] transition-all">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <label className="text-xs font-black text-slate-800 tracking-wide uppercase">{label}</label>
+          {subtitle && <p className="text-[10px] font-bold text-slate-400 mt-0.5">{subtitle}</p>}
+        </div>
+        <div className="flex flex-col items-end">
+          <div className="flex items-baseline gap-1 bg-white px-2 py-1.5 rounded-lg border border-slate-200 shadow-sm focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+             <input 
+               type="number" 
+               value={value} 
+               onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))} 
+               className="w-12 text-right text-sm font-black text-slate-800 outline-none bg-transparent"
+               placeholder="All"
+             />
+             {unit && <span className="text-[10px] font-black text-slate-400 uppercase">{unit}</span>}
+          </div>
+          {!isUnset && (
+            <button onClick={() => onChange('')} className="text-[9px] font-bold text-rose-500 hover:text-rose-600 mt-1.5 uppercase tracking-widest transition-colors">
+              Reset
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="relative h-3 bg-slate-100/80 rounded-full overflow-hidden border border-slate-200/50 shadow-inner">
+        <div 
+          className={`absolute top-0 left-0 h-full transition-all duration-300 ${isUnset ? 'bg-slate-300' : highlightColor}`} 
+          style={{ width: `${isUnset ? 100 : percent}%`, opacity: isUnset ? 0.3 : 1 }}
+        />
+        <input 
+          type="range" 
+          min={min} max={max} step={step} 
+          value={isUnset ? min : value} 
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        />
+      </div>
+    </div>
+  )
 }
 
 export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
@@ -36,33 +84,33 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
 
     if (nextPreset === 'high_dividend') {
       setEpsGrowthMin(0);
-      setDpsGrowthMin(5);
+      setDpsGrowthMin(0);  // High dividend doesn't always grow DPS wildly, yield is key
       setPeBandMode('none');
       setPbvBandMode('none');
-      setFScoreMin(5);
-      setZScoreMin(1.8);
+      setFScoreMin(4);     // Relaxed
+      setZScoreMin(1.2);   // Relaxed (dividend stocks often have debt)
       setViScoreMin(10);
-      setYieldMin(6);
-      setDeMax(1.5);
+      setYieldMin(6);      // Aggressive yield
+      setDeMax(2.0);
       setPeMax(20);
-      setPbvMax(3);
-      setRoeMin(10);
+      setPbvMax(3.0);
+      setRoeMin(8);
       return;
     }
 
     if (nextPreset === 'vi') {
-      setEpsGrowthMin(5);
+      setEpsGrowthMin(0);  // Just positive growth is fine
       setDpsGrowthMin(0);
-      setPeBandMode('below_avg');
-      setPbvBandMode('below_avg');
-      setFScoreMin(6);
-      setZScoreMin(2.99);
-      setViScoreMin(14);
+      setPeBandMode('below_avg'); // Only require PE to be cheap relative to history
+      setPbvBandMode('none');     // Demanding both PE & PBV below average is too strict
+      setFScoreMin(5);            // Solid baseline
+      setZScoreMin(1.8);          // 2.99 is way too strict for non-manufacturing
+      setViScoreMin(12);
       setYieldMin(3);
-      setDeMax(1.0);
+      setDeMax(1.5);              // Typical healthy debt
       setPeMax(15);
-      setPbvMax(2);
-      setRoeMin(15);
+      setPbvMax(2.0);
+      setRoeMin(10);
       return;
     }
 
@@ -71,14 +119,14 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
       setDpsGrowthMin(0);
       setPeBandMode('none');
       setPbvBandMode('none');
-      setFScoreMin(7);
-      setZScoreMin(3.5);
+      setFScoreMin(7);     // Very strong F-Score
+      setZScoreMin(2.99);  // Safe zone
       setViScoreMin(12);
       setYieldMin(2);
-      setDeMax(0.5);
-      setPeMax(25);
-      setPbvMax(4);
-      setRoeMin(12);
+      setDeMax(0.5);       // Minimal debt
+      setPeMax(20);
+      setPbvMax(3);
+      setRoeMin(10);
       return;
     }
 
@@ -99,33 +147,34 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
     }
 
     if (nextPreset === 'previous') {
-      setEpsGrowthMin(5);
+      setEpsGrowthMin(0);
       setDpsGrowthMin(0);
-      setPeBandMode('below_avg');
-      setPbvBandMode('below_avg');
-      setFScoreMin(6);
-      setZScoreMin(3.0);
-      setViScoreMin(12);
+      setPeBandMode('none'); // No strict band requirement
+      setPbvBandMode('none');
+      setFScoreMin(5);
+      setZScoreMin(1.8);
+      setViScoreMin(10);
       setYieldMin(4);
-      setDeMax(1.5);
-      setPeMax(15);
-      setPbvMax(2);
-      setRoeMin(12);
+      setDeMax(2.0);
+      setPeMax(20);
+      setPbvMax(3.0);
+      setRoeMin(10);
       return;
     }
 
-    setEpsGrowthMin(0);
+    // Default: 'latest' (สูตรเข้มข้น - Strict but possible)
+    setEpsGrowthMin(5);
     setDpsGrowthMin(0);
-    setPeBandMode('none');
+    setPeBandMode('below_avg');
     setPbvBandMode('none');
-    setFScoreMin(5);
-    setZScoreMin(2.5);
+    setFScoreMin(6);
+    setZScoreMin(2.0);
     setViScoreMin(12);
-    setYieldMin(5);
-    setDeMax(1);
-    setPeMax(12);
+    setYieldMin(4);
+    setDeMax(1.5);
+    setPeMax(15);
     setPbvMax(2.5);
-    setRoeMin(15);
+    setRoeMin(12);
   };
 
   const handleScan = async () => {
@@ -229,292 +278,171 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-indigo-100 p-2 rounded-xl text-indigo-600">
-              <Search size={24} />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-slate-800">VI Screener (สแกนหาหุ้นคุณค่า)</h2>
-              <p className="text-sm text-slate-500">กรองหุ้นจากฐานข้อมูลด้วยเกณฑ์คุณภาพและความถูกของราคา</p>
-            </div>
+      {/* Premium Hero Header */}
+      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 relative overflow-hidden">
+        {/* Decorators */}
+        <div className="absolute -right-20 -top-20 w-64 h-64 bg-indigo-50 rounded-full blur-3xl opacity-70 z-0"></div>
+        <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-emerald-50 rounded-full blur-3xl opacity-70 z-0"></div>
+
+        <div className="relative z-10 flex flex-col gap-6">
+          <div className="flex items-center gap-4">
+             <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-3 rounded-2xl text-white shadow-lg shadow-indigo-200">
+               <Search size={28} strokeWidth={2.5} />
+             </div>
+             <div>
+               <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">VI Screener Cockpit</h2>
+               <p className="text-sm font-medium text-slate-500 mt-1">สแกนหาหุ้นคุณค่าและตรวจสุขภาพการเงินระดับมืออาชีพ</p>
+             </div>
           </div>
-          <div className="bg-slate-100 p-1 rounded-lg flex items-center gap-1 self-start md:self-auto flex-wrap">
-            <button
-              type="button"
-              onClick={() => applyPreset('previous')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'previous' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              สูตรสมดุล
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('latest')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'latest' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              สูตรเข้มข้น
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('vi')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'vi' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              🎯 Value Investing (VI)
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('high_dividend')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'high_dividend' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              💰 High Dividend
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('safe_haven')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'safe_haven' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              🛡️ Safe Haven
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('no_filter')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${preset === 'no_filter' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              ไม่กรอง
-            </button>
+
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+            {[
+              { id: 'latest', name: '👑 สูตรเข้มข้น', desc: 'คัดหุ้นสุดยอดVI' },
+              { id: 'previous', name: '⚖️ สูตรสมดุล', desc: 'ไม่ตึงเกินไป' },
+              { id: 'vi', name: '🎯 Value Investing', desc: 'เน้นราคาถูกและดี' },
+              { id: 'high_dividend', name: '💰 High Dividend', desc: 'ปันผลสม่ำเสมอ' },
+              { id: 'safe_haven', name: '🛡️ Safe Haven', desc: 'งบแข็งแกร่ง' },
+              { id: 'no_filter', name: '🌐 กรองเอง', desc: 'ตั้งค่าอิสระ' },
+            ].map(p => (
+              <button
+                key={p.id}
+                onClick={() => applyPreset(p.id as ScreenerPreset)}
+                className={`p-3.5 rounded-2xl text-left transition-all border ${
+                  preset === p.id 
+                    ? 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-800 text-white shadow-xl shadow-slate-300 transform scale-105 z-10 ring-2 ring-white ring-offset-2' 
+                    : 'bg-white/60 border-slate-200 text-slate-600 hover:bg-white hover:border-slate-300 backdrop-blur-sm'
+                }`}
+              >
+                <div className={`text-sm font-black tracking-wide ${preset === p.id ? 'text-white' : 'text-slate-800'}`}>{p.name}</div>
+                <div className={`text-[10px] font-bold uppercase tracking-wider mt-1 ${preset === p.id ? 'text-slate-300' : 'text-slate-400'}`}>{p.desc}</div>
+              </button>
+            ))}
           </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-          {/* Growth Criteria */}
-          <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <h3 className="font-semibold text-slate-700 flex items-center gap-2">
-              <TrendingUp size={18} className="text-blue-500" />
-              แนวโน้มการเติบโต (Growth)
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 mt-2">
+          {/* Growth Criteria Panel */}
+          <div className="space-y-4 bg-gradient-to-b from-blue-50/50 to-white/50 p-5 rounded-3xl border border-blue-100 shadow-[0_2px_10px_-4px_rgba(59,130,246,0.1)]">
+            <h3 className="font-black text-slate-800 flex items-center gap-2 mb-2">
+              <span className="bg-blue-100/80 p-1.5 rounded-lg border border-blue-200"><TrendingUp size={20} className="text-blue-600" /></span>
+              Growth Engine
             </h3>
             
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                EPS Growth (5Y CAGR) ขั้นต่ำ (%)
-              </label>
-              <input
-                type="number"
-                value={epsGrowthMin}
-                placeholder="ไม่กรอง"
-                onChange={(e) => setEpsGrowthMin(e.target.value === '' ? '' : Number(e.target.value))}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                DPS Growth (5Y CAGR) ขั้นต่ำ (%)
-              </label>
-              <input
-                type="number"
-                value={dpsGrowthMin}
-                placeholder="ไม่กรอง"
-                onChange={(e) => setDpsGrowthMin(e.target.value === '' ? '' : Number(e.target.value))}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center justify-between">
-                <span>อัตราผลตอบแทนเงินปันผล ขั้นต่ำ (%)</span>
-                <span className="text-xs text-slate-500">Yield</span>
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder="ไม่กรอง"
-                value={yieldMin}
-                onChange={(e) => setYieldMin(e.target.value === '' ? '' : Number(e.target.value))}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center justify-between">
-                <span>ผลตอบแทนส่วนผู้ถือหุ้น ขั้นต่ำ (%)</span>
-                <span className="text-xs text-slate-500" title="> 15 คือดีเยี่ยม">ROE</span>
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder="ไม่กรอง"
-                value={roeMin}
-                onChange={(e) => setRoeMin(e.target.value === '' ? '' : Number(e.target.value))}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
+            <ModernMetricInput 
+               label="EPS Growth" subtitle="5Y CAGR ขั้นต่ำ" unit="%" 
+               min={0} max={30} step={1} value={epsGrowthMin} onChange={setEpsGrowthMin} highlightColor="bg-blue-500" 
+            />
+            <ModernMetricInput 
+               label="DPS Growth" subtitle="5Y CAGR ขั้นต่ำ" unit="%" 
+               min={0} max={30} step={1} value={dpsGrowthMin} onChange={setDpsGrowthMin} highlightColor="bg-cyan-500" 
+            />
+            <ModernMetricInput 
+               label="Dividend Yield" subtitle="อัตราปันผลตอบแทน" unit="%" 
+               min={0} max={15} step={0.1} value={yieldMin} onChange={setYieldMin} highlightColor="bg-teal-500" 
+            />
+            <ModernMetricInput 
+               label="Return on Equity" subtitle="ROE ขั้นต่ำ" unit="%" 
+               min={0} max={40} step={1} value={roeMin} onChange={setRoeMin} highlightColor="bg-indigo-500" 
+            />
           </div>
 
-          {/* Value Criteria */}
-          <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <h3 className="font-semibold text-slate-700 flex items-center gap-2">
-              <AlertTriangle size={18} className="text-orange-500" />
-              ความถูกของราคา (Valuation Bands)
+          {/* Valuation Criteria Panel */}
+          <div className="space-y-4 bg-gradient-to-b from-amber-50/50 to-white/50 p-5 rounded-3xl border border-amber-100 shadow-[0_2px_10px_-4px_rgba(245,158,11,0.1)]">
+            <h3 className="font-black text-slate-800 flex items-center gap-2 mb-2">
+              <span className="bg-amber-100/80 p-1.5 rounded-lg border border-amber-200"><Target size={20} className="text-amber-600" /></span>
+              Valuation Radars
             </h3>
             
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                PE Band Target
-              </label>
+            <div className="group relative bg-white/70 backdrop-blur-md border border-slate-200/60 p-3.5 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+              <label className="block text-xs font-black text-slate-800 tracking-wide uppercase mb-2">PE Band Target</label>
               <select
                 value={peBandMode}
                 onChange={(e) => setPeBandMode(e.target.value)}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                className="w-full p-2.5 text-sm font-bold border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none bg-slate-50 cursor-pointer"
               >
-                <option value="none">ไม่กรอง</option>
-                <option value="below_avg">ต่ำกว่าค่าเฉลี่ย (Below Avg)</option>
-                <option value="below_minus_1_sd">ต่ำกว่า -1 SD (Margin of Safety)</option>
+                <option value="none">🌐 ไม่กรอง (Any)</option>
+                <option value="below_avg">📉 ต่ำกว่าค่าเฉลี่ย (Below Avg)</option>
+                <option value="below_minus_1_sd">💎 ต่ำกว่า -1 SD (Margin of Safety)</option>
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                PBV Band Target
-              </label>
+            <div className="group relative bg-white/70 backdrop-blur-md border border-slate-200/60 p-3.5 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+              <label className="block text-xs font-black text-slate-800 tracking-wide uppercase mb-2">PBV Band Target</label>
               <select
                 value={pbvBandMode}
                 onChange={(e) => setPbvBandMode(e.target.value)}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                className="w-full p-2.5 text-sm font-bold border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none bg-slate-50 cursor-pointer"
               >
-                <option value="none">ไม่กรอง</option>
-                <option value="below_avg">ต่ำกว่าค่าเฉลี่ย (Below Avg)</option>
-                <option value="below_minus_1_sd">ต่ำกว่า -1 SD (Margin of Safety)</option>
+                <option value="none">🌐 ไม่กรอง (Any)</option>
+                <option value="below_avg">📉 ต่ำกว่าค่าเฉลี่ย (Below Avg)</option>
+                <option value="below_minus_1_sd">💎 ต่ำกว่า -1 SD (Margin of Safety)</option>
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center justify-between">
-                <span>P/E Ratio สูงสุด (เท่า)</span>
-                <span className="text-xs text-slate-500">PE Max</span>
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder="ไม่กรอง"
-                value={peMax}
-                onChange={(e) => setPeMax(e.target.value === '' ? '' : Number(e.target.value))}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center justify-between">
-                <span>P/BV Ratio สูงสุด (เท่า)</span>
-                <span className="text-xs text-slate-500">PBV Max</span>
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder="ไม่กรอง"
-                value={pbvMax}
-                onChange={(e) => setPbvMax(e.target.value === '' ? '' : Number(e.target.value))}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
+            <ModernMetricInput 
+               label="Max P/E Ratio" subtitle="เพดาน P/E สูงสุด" unit="x" 
+               min={5} max={50} step={1} value={peMax} onChange={setPeMax} highlightColor="bg-amber-500" 
+            />
+            <ModernMetricInput 
+               label="Max P/BV Ratio" subtitle="เพดาน P/BV สูงสุด" unit="x" 
+               min={0.5} max={10} step={0.1} value={pbvMax} onChange={setPbvMax} highlightColor="bg-orange-500" 
+            />
           </div>
 
-          {/* Quality Criteria */}
-          <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <h3 className="font-semibold text-slate-700 flex items-center gap-2">
-              <ShieldCheck size={18} className="text-emerald-500" />
-              คุณภาพความแข็งแกร่ง (Quality Health)
+          {/* Quality Criteria Panel */}
+          <div className="space-y-4 bg-gradient-to-b from-emerald-50/50 to-white/50 p-5 rounded-3xl border border-emerald-100 shadow-[0_2px_10px_-4px_rgba(16,185,129,0.1)]">
+            <h3 className="font-black text-slate-800 flex items-center gap-2 mb-2">
+              <span className="bg-emerald-100/80 p-1.5 rounded-lg border border-emerald-200"><ShieldCheck size={20} className="text-emerald-600" /></span>
+              Quality Assurance
             </h3>
             
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center justify-between">
-                <span>Piotroski F-Score ขั้นต่ำ (0-9)</span>
-                <span className="text-xs text-slate-500" title="> 5 คือแข็งแกร่ง">แนะนำ {'>'}= 6</span>
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="9"
-                placeholder="ไม่กรอง"
-                value={fScoreMin}
-                onChange={(e) => setFScoreMin(e.target.value === '' ? '' : Number(e.target.value))}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center justify-between">
-                <span>Altman Z-Score ขั้นต่ำ</span>
-                <span className="text-xs text-slate-500" title="> 2.99 คือปลอดภัย">แนะนำ {'>'} 2.99</span>
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder="ไม่กรอง"
-                value={zScoreMin}
-                onChange={(e) => setZScoreMin(e.target.value === '' ? '' : Number(e.target.value))}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center justify-between">
-                <span>VI Quality Scorecard (0-20)</span>
-                <span className="text-xs text-slate-500" title="> 10 คือผ่านเกณฑ์">แนะนำ {'>'} 10</span>
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="20"
-                placeholder="ไม่กรอง"
-                value={viScoreMin}
-                onChange={(e) => setViScoreMin(e.target.value === '' ? '' : Number(e.target.value))}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center justify-between">
-                <span>หนี้สินต่อทุน สูงสุด (เท่า)</span>
-                <span className="text-xs text-slate-500" title="< 1.0 คือดี">D/E Max</span>
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder="ไม่กรอง"
-                value={deMax}
-                onChange={(e) => setDeMax(e.target.value === '' ? '' : Number(e.target.value))}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
+            <ModernMetricInput 
+               label="Piotroski F-Score" subtitle="คะแนนคุณภาพ 0-9" unit="Pts" 
+               min={0} max={9} step={1} value={fScoreMin} onChange={setFScoreMin} highlightColor="bg-emerald-500" 
+            />
+            <ModernMetricInput 
+               label="Altman Z-Score" subtitle="โอกาสล้มละลาย (ยิ่งสูงยิ่งดี)" unit="Pts" 
+               min={0} max={10} step={0.1} value={zScoreMin} onChange={setZScoreMin} highlightColor="bg-green-500" 
+            />
+            <ModernMetricInput 
+               label="VI Scorecard" subtitle="คะแนนอัตโนมัติ 0-20" unit="Pts" 
+               min={0} max={20} step={1} value={viScoreMin} onChange={setViScoreMin} highlightColor="bg-purple-500" 
+            />
+            <ModernMetricInput 
+               label="Max D/E Ratio" subtitle="หนี้สินต่อทุน สูงสุด" unit="x" 
+               min={0.1} max={5} step={0.1} value={deMax} onChange={setDeMax} highlightColor="bg-rose-500" 
+            />
           </div>
         </div>
 
         <button
           onClick={handleScan}
           disabled={isLoading}
-          className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full py-4 bg-slate-900 border-2 border-slate-800 hover:bg-slate-800 hover:border-slate-700 text-white font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] text-lg uppercase tracking-widest relative overflow-hidden group"
         >
+          {/* Subtle Shine Effect over button */}
+          <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-shimmer transition-transform" />
+          
           {isLoading ? (
             <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              กำลังสแกน...
+              <div className="w-6 h-6 border-4 border-slate-600 border-t-white rounded-full animate-spin"></div>
+              <span>Scanning Database...</span>
             </>
           ) : (
             <>
-              <Search size={20} />
-              เริ่มสแกนหาหุ้น
+              <Zap size={24} className="text-yellow-400 fill-yellow-400" />
+              <span>Engage Screener</span>
             </>
           )}
         </button>
         
         {error && (
-          <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm border border-red-100 flex items-start gap-2">
+          <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm border border-red-100 flex items-start gap-2 shadow-sm">
             <AlertTriangle size={16} className="mt-0.5 shrink-0" />
-            <span>{error}</span>
+            <span className="font-semibold">{error}</span>
           </div>
         )}
-      </div>
 
       {stats && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
@@ -539,15 +467,15 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
           </div>
 
           {results.length > 0 ? (
-            <div className="overflow-x-auto rounded-xl border border-slate-200 max-h-[600px]">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 max-h-[600px] shadow-sm bg-white">
               <table className="w-full text-sm text-left relative">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 align-top sticky top-0 z-20 shadow-sm">
+                <thead className="bg-slate-50 text-slate-700 align-top sticky top-0 z-20">
                   <tr>
-                    <th className="p-4 font-semibold sticky left-0 bg-slate-50 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] border-b border-slate-200 border-r border-white">Ticker</th>
-                    <th className="p-4 font-semibold text-right border-b border-slate-200 border-r border-white">Price</th>
-                    <th className="p-4 font-semibold text-center bg-blue-50/90 border-b border-slate-200 border-r border-white" colSpan={4}>Growth & Returns</th>
-                    <th className="p-4 font-semibold text-center bg-orange-50/90 border-b border-slate-200 border-r border-white" colSpan={4}>Valuation</th>
-                    <th className="p-4 font-semibold text-center bg-emerald-50/90 border-b border-slate-200" colSpan={4}>Quality</th>
+                    <th className="p-4 font-black sticky left-0 bg-slate-50 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] border-b border-slate-200 border-r border-slate-100">Ticker</th>
+                    <th className="p-4 font-black text-right border-b border-slate-200 border-r border-slate-100">Price</th>
+                    <th className="p-4 font-black text-center bg-blue-50/90 border-b border-blue-200/50 border-r border-slate-100" colSpan={4}>Growth & Returns</th>
+                    <th className="p-4 font-black text-center bg-amber-50/90 border-b border-amber-200/50 border-r border-slate-100" colSpan={4}>Valuation Target</th>
+                    <th className="p-4 font-black text-center bg-emerald-50/90 border-b border-emerald-200/50" colSpan={4}>Quality Health</th>
                   </tr>
                   <tr className="text-xs text-slate-500 bg-white/95 backdrop-blur shadow-sm border-b border-slate-200">
                     <th className="p-2 px-4 border-r border-slate-100 sticky left-0 bg-white/95 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"></th>
