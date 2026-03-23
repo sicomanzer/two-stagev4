@@ -107,13 +107,13 @@ export default function SingleStockView({
                   {ticker.includes('-') ? 'CRYPTO/FX' : 'STOCK'}
                 </span>
               </div>
-              <p className="text-slate-500 font-medium text-sm mt-0.5">Stock Analysis & Valuation Cockpit</p>
+              <p className="text-slate-500 font-medium text-sm mt-0.5">แผงควบคุมวิเคราะห์และประเมินมูลค่าหุ้น</p>
             </div>
           </div>
 
           {currentPrice && (
              <div className="flex flex-col xl:items-end z-10">
-               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Current Price</span>
+               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">ราคาปัจจุบัน</span>
                <div className="flex items-baseline gap-2">
                  <span className="text-4xl font-black text-slate-800 tracking-tighter">{currentPrice.toFixed(2)}</span>
                  <span className="text-sm font-bold text-slate-500">THB</span>
@@ -162,7 +162,7 @@ export default function SingleStockView({
               <div className="relative z-10">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="text-emerald-100 font-medium text-xs uppercase tracking-wider">Fair Value</p>
+                    <p className="text-emerald-100 font-medium text-xs uppercase tracking-wider">ราคาที่เหมาะสม</p>
                     <h3 className="text-xl font-bold mt-0.5">มูลค่าที่เหมาะสม</h3>
                   </div>
                   <div className="bg-white/20 p-1 rounded-lg backdrop-blur-sm">
@@ -180,7 +180,7 @@ export default function SingleStockView({
                 {result.currentPrice && (
                   <div className="bg-black/10 rounded-xl p-2 backdrop-blur-sm">
                     <div className="flex justify-between items-center mt-1 pt-1 border-t border-white/10">
-                      <span className="text-emerald-100 text-xs">Margin of Safety</span>
+                      <span className="text-emerald-100 text-xs">ส่วนเผื่อเพื่อความปลอดภัย (MOS)</span>
                       <span className={`text-xl font-black ${
                         (result.margin || 0) > 0 ? 'text-white' : 'text-emerald-200'
                       }`}>
@@ -197,7 +197,7 @@ export default function SingleStockView({
                     {result.status === 'Undervalued' && <CheckCircle2 size={16} />}
                     {result.status === 'Overvalued' && <XCircle size={16} />}
                     {result.status === 'Fair' && <AlertCircle size={16} />}
-                    <span>{result.status.toUpperCase()}</span>
+                    <span>{result.status === 'Undervalued' ? 'ต่ำกว่ามูลค่า' : result.status === 'Overvalued' ? 'สูงกว่ามูลค่า' : 'มูลค่าเหมาะสม'}</span>
                 </div>
               </div>
             </div>
@@ -207,7 +207,7 @@ export default function SingleStockView({
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[11px] uppercase tracking-wide text-slate-500 font-semibold">Signal</p>
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500 font-semibold">สัญญาณ</p>
                   <h3 className="text-base font-bold text-slate-900 mt-0.5">คำแนะนำรวมทุกมิติ</h3>
                 </div>
                 <span className={`text-xs font-bold px-3 py-1 rounded-full ${
@@ -217,31 +217,33 @@ export default function SingleStockView({
                       ? 'bg-amber-100 text-amber-700'
                       : 'bg-red-100 text-red-700'
                 }`}>
-                  {investmentSignal.action}
+                  {investmentSignal.action === 'BUY' ? 'ซื้อ' : investmentSignal.action === 'HOLD' ? 'ถือ' : 'ขาย'}
                 </span>
               </div>
 
               <div className="mt-3 grid grid-cols-3 gap-2">
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <p className="text-[10px] font-semibold text-slate-500 uppercase">Score</p>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase">คะแนน</p>
                   <p className="text-lg font-extrabold text-slate-800 mt-0.5">{investmentSignal.score.toFixed(0)}</p>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <p className="text-[10px] font-semibold text-slate-500 uppercase">Confidence</p>
-                  <p className="text-lg font-extrabold text-slate-800 mt-0.5">{investmentSignal.confidence}</p>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase">ความมั่นใจ</p>
+                  <p className="text-lg font-extrabold text-slate-800 mt-0.5">
+                    {investmentSignal.confidence === 'High' ? 'สูง' : investmentSignal.confidence === 'Medium' ? 'ปานกลาง' : 'ต่ำ'}
+                  </p>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
                   <p className="text-[10px] font-semibold text-slate-500 uppercase">DDM</p>
-                  <p className="text-lg font-extrabold text-slate-800 mt-0.5">{result.recommendation}</p>
+                  <p className="text-lg font-extrabold text-slate-800 mt-0.5">{result.recommendation === 'Buy' ? 'ซื้อ' : result.recommendation === 'Hold' ? 'ถือ' : 'ขาย'}</p>
                 </div>
               </div>
 
               <div className="mt-3 grid grid-cols-5 gap-1.5">
-                <SignalPill label="Val" value={investmentSignal.valuationScore} />
-                <SignalPill label="Qlt" value={investmentSignal.qualityScore} />
-                <SignalPill label="Risk" value={investmentSignal.riskScore} />
-                <SignalPill label="Trend" value={investmentSignal.momentumScore} />
-                <SignalPill label="Scn" value={investmentSignal.scenarioScore} />
+                <SignalPill label="มูลค่า" value={investmentSignal.valuationScore} />
+                <SignalPill label="คุณภาพ" value={investmentSignal.qualityScore} />
+                <SignalPill label="ความเสี่ยง" value={investmentSignal.riskScore} />
+                <SignalPill label="แนวโน้ม" value={investmentSignal.momentumScore} />
+                <SignalPill label="สถานการณ์" value={investmentSignal.scenarioScore} />
               </div>
 
               {investmentSignal.reasons.length > 0 && (
@@ -261,16 +263,16 @@ export default function SingleStockView({
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="px-4 py-2 border-b border-slate-200 bg-[#4472C4] text-white flex justify-between items-center">
                 <h3 className="font-bold text-sm">{result.ticker}</h3>
-                <span className="text-xs font-medium opacity-80">Assumption</span>
+                <span className="text-xs font-medium opacity-80">สมมติฐาน</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
                   <thead className="text-slate-700 bg-[#E9EBF5] border-b border-slate-300">
                     <tr>
-                      <th className="px-3 py-1.5 font-bold">Year</th>
-                      <th className="px-3 py-1.5 font-bold text-right">Div</th>
+                      <th className="px-3 py-1.5 font-bold">ปี</th>
+                      <th className="px-3 py-1.5 font-bold text-right">ปันผล</th>
                       <th className="px-3 py-1.5 font-bold text-right">PV</th>
-                      <th className="px-3 py-1.5 font-bold text-right">Gr%</th>
+                      <th className="px-3 py-1.5 font-bold text-right">เติบโต%</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -292,7 +294,7 @@ export default function SingleStockView({
                       </tr>
                     ))}
                     <tr className="bg-[#70AD47] text-white font-bold">
-                      <td className="px-3 py-1.5">Fair Price</td>
+                      <td className="px-3 py-1.5">ราคาที่เหมาะสม</td>
                       <td className="px-3 py-1.5 text-right" colSpan={3}>{result.fairPrice.toFixed(2)}</td>
                     </tr>
                   </tbody>
@@ -325,8 +327,8 @@ export default function SingleStockView({
       {/* --- LEVEL 3: Deep Dive Quality Dashboard --- */}
       <div className="space-y-4 pt-6 mt-4">
         <div className="flex items-center gap-2 mb-2 pl-2 border-l-4 border-indigo-500">
-          <h2 className="text-xl font-black text-slate-800 tracking-tight">Quality & Safety Dashboard</h2>
-          <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-indigo-100 shadow-sm">Deep Dive</span>
+          <h2 className="text-xl font-black text-slate-800 tracking-tight">คุณภาพและความปลอดภัย</h2>
+          <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-indigo-100 shadow-sm">เจาะลึก</span>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -339,8 +341,8 @@ export default function SingleStockView({
       {/* --- LEVEL 4: Advanced Analytics --- */}
       <div className="space-y-4 pt-6 mt-4">
         <div className="flex items-center gap-2 mb-2 pl-2 border-l-4 border-blue-500">
-          <h2 className="text-xl font-black text-slate-800 tracking-tight">Advanced Analytics</h2>
-          <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-blue-100 shadow-sm">Pro Tools</span>
+          <h2 className="text-xl font-black text-slate-800 tracking-tight">การวิเคราะห์ขั้นสูง</h2>
+          <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-blue-100 shadow-sm">เครื่องมือระดับโปร</span>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

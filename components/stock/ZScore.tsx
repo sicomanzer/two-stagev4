@@ -49,12 +49,12 @@ export default function ZScore({ zScore }: ZScoreProps) {
               </span>
               <h3 className="font-black text-lg tracking-tight">Altman Z-Score</h3>
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">Bankruptcy Risk {zScore.year ? `(${zScore.year})` : ''}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">ความเสี่ยงล้มละลาย {zScore.year ? `(${zScore.year})` : ''}</p>
           </div>
           <div className="text-right flex flex-col items-end">
             <span className="text-4xl font-black tracking-tighter mix-blend-multiply opacity-80">{zScore.score.toFixed(2)}</span>
             <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full mt-1 ${badgeColor} shadow-sm border border-white/50 backdrop-blur-md`}>
-              {zScore.status}
+              {zScore.status === 'Safe' ? 'ปลอดภัย' : zScore.status === 'Grey' ? 'เฝ้าระวัง' : 'เสี่ยงสูง'}
             </span>
           </div>
         </div>
@@ -63,10 +63,10 @@ export default function ZScore({ zScore }: ZScoreProps) {
       {/* Criteria List */}
       <div className="p-2 flex-grow relative z-10 bg-white/40 backdrop-blur-sm">
         <div className="grid grid-cols-12 gap-2 px-4 py-2 text-[9px] uppercase font-black text-slate-400 tracking-widest">
-          <div className="col-span-4">Component</div>
-          <div className="col-span-4 text-right">Value</div>
-          <div className="col-span-2 text-right">Weight</div>
-          <div className="col-span-2 text-right">Score</div>
+          <div className="col-span-4">องค์ประกอบ</div>
+          <div className="col-span-4 text-right">ค่าที่ได้</div>
+          <div className="col-span-2 text-right">น้ำหนัก</div>
+          <div className="col-span-2 text-right">คะแนน</div>
         </div>
         
         <div className="space-y-1">
@@ -95,24 +95,24 @@ export default function ZScore({ zScore }: ZScoreProps) {
       <div className="bg-white/40 backdrop-blur-md px-4 py-3 border-t border-white/20 relative z-10 space-y-3 shadow-inner">
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-xl border border-white/60 bg-white/50 px-2 py-2 text-center shadow-[0_1px_2px_0_rgba(0,0,0,0.02)]">
-            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Safe</p>
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">ปลอดภัย</p>
             <p className="text-[11px] font-black text-emerald-600 mt-1">&gt; 3.0</p>
           </div>
           <div className="rounded-xl border border-white/60 bg-white/50 px-2 py-2 text-center shadow-[0_1px_2px_0_rgba(0,0,0,0.02)]">
-            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Grey</p>
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">เฝ้าระวัง</p>
             <p className="text-[11px] font-black text-amber-600 mt-1">1.8 - 3.0</p>
           </div>
           <div className="rounded-xl border border-white/60 bg-white/50 px-2 py-2 text-center shadow-[0_1px_2px_0_rgba(0,0,0,0.02)]">
-            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Distress</p>
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">เสี่ยงสูง</p>
             <p className="text-[11px] font-black text-red-600 mt-1">&lt; 1.8</p>
           </div>
         </div>
         <div className="flex items-center justify-between text-[10px] font-bold pb-1 pt-1 border-t border-white/50">
           <span className="text-slate-500 uppercase tracking-widest">{description}</span>
           <span className="text-slate-700 tracking-wider">
-            {zScore.status === 'Safe' && `Above Safe Zone +${(zScore.score - safeThreshold).toFixed(2)}`}
-            {zScore.status === 'Grey' && `Gap to Safe ${(gapToSafe).toFixed(2)}`}
-            {zScore.status === 'Distress' && `Above Distress ${(gapToDistress).toFixed(2)}`}
+            {zScore.status === 'Safe' && `สูงกว่าเกณฑ์ปลอดภัย +${(zScore.score - safeThreshold).toFixed(2)}`}
+            {zScore.status === 'Grey' && `ห่างจากเกณฑ์ปลอดภัย ${(gapToSafe).toFixed(2)}`}
+            {zScore.status === 'Distress' && `ห่างจากเกณฑ์เฝ้าระวัง ${(distressThreshold - zScore.score).toFixed(2)}`}
           </span>
         </div>
       </div>

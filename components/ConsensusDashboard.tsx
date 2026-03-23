@@ -28,9 +28,9 @@ export default function ConsensusDashboard({ consensus, ticker }: ConsensusDashb
       <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4">
         <h3 className="text-white font-bold text-lg flex items-center gap-2">
           <span className="text-2xl">🎯</span>
-          {ticker} — Fair Value Consensus
+          {ticker} — ราคาเหมาะสม (Consensus)
         </h3>
-        <p className="text-slate-300 text-xs mt-1">Multi-Model Valuation Cross-Check</p>
+        <p className="text-slate-300 text-xs mt-1">เปรียบเทียบราคาเหมาะสมจากหลายโมเดล</p>
       </div>
 
       <div className="p-6 space-y-4">
@@ -56,17 +56,17 @@ export default function ConsensusDashboard({ consensus, ticker }: ConsensusDashb
 
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-            <p className="text-[10px] font-semibold text-slate-500 uppercase">Models Used</p>
+            <p className="text-[10px] font-semibold text-slate-500 uppercase">จำนวนโมเดล</p>
             <p className="text-sm font-extrabold text-slate-800 mt-0.5">{models.length}</p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-            <p className="text-[10px] font-semibold text-slate-500 uppercase">Min - Max</p>
+            <p className="text-[10px] font-semibold text-slate-500 uppercase">ต่ำสุด - สูงสุด</p>
             <p className="text-sm font-extrabold text-slate-800 mt-0.5">
               {minFair.toFixed(0)} - {maxModelFair.toFixed(0)}
             </p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-            <p className="text-[10px] font-semibold text-slate-500 uppercase">Spread</p>
+            <p className="text-[10px] font-semibold text-slate-500 uppercase">ส่วนต่าง</p>
             <p className="text-sm font-extrabold text-slate-800 mt-0.5">{spreadPct.toFixed(1)}%</p>
           </div>
         </div>
@@ -87,14 +87,14 @@ export default function ConsensusDashboard({ consensus, ticker }: ConsensusDashb
           <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-5 border border-emerald-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">★ Consensus Fair Value</p>
+                <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">★ ราคาเหมาะสม (Consensus)</p>
                 <p className="text-3xl font-extrabold text-emerald-700 mt-1">
                   {consensus.consensusFairPrice.toFixed(2)} <span className="text-lg font-medium">บาท</span>
                 </p>
               </div>
               {consensus.currentPrice && consensus.upside !== null && (
                 <div className="text-center sm:text-right">
-                  <p className="text-xs font-bold text-slate-500 uppercase">Current: {consensus.currentPrice.toFixed(2)}</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase">ราคาปัจจุบัน: {consensus.currentPrice.toFixed(2)}</p>
                   <p className={`text-2xl font-extrabold mt-1 ${
                     consensus.upside > 15 ? 'text-emerald-600' :
                     consensus.upside > 0 ? 'text-blue-600' :
@@ -108,10 +108,10 @@ export default function ConsensusDashboard({ consensus, ticker }: ConsensusDashb
                     consensus.upside > 0 ? 'bg-blue-100 text-blue-700' :
                     consensus.upside > -15 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
                   }`}>
-                    {consensus.upside > 30 ? '🔥 STRONG BUY' :
-                     consensus.upside > 15 ? '✅ BUY ZONE' :
-                     consensus.upside > 0 ? '➡️ FAIR' :
-                     consensus.upside > -15 ? '⚠️ HOLD' : '🛑 OVERVALUED'}
+                    {consensus.upside > 30 ? '🔥 ซื้อทันที' :
+                     consensus.upside > 15 ? '✅ โซนซื้อ' :
+                     consensus.upside > 0 ? '➡️ ราคายุติธรรม' :
+                     consensus.upside > -15 ? '⚠️ ถือ' : '🛑 แพงเกินไป'}
                   </p>
                 </div>
               )}

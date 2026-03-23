@@ -553,7 +553,7 @@ export function calculateFScore(
   const pass1 = roa > 0;
   if (pass1) score++;
   criteria.push({
-    name: 'Return on Assets (ROA)',
+    name: 'ผลตอบแทนต่อสินทรัพย์ (ROA)',
     condition: '> 0',
     value: `${roa.toFixed(2)}% (${currentYear})`,
     passed: pass1,
@@ -565,7 +565,7 @@ export function calculateFScore(
   const pass2 = cfo > 0;
   if (pass2) score++;
   criteria.push({
-    name: 'Operating Cash Flow (CFO)',
+    name: 'กระแสเงินสดจากการดำเนินงาน (CFO)',
     condition: '> 0',
     value: `${formatNumber(cfo)} (${currentYear})`,
     passed: pass2,
@@ -577,8 +577,8 @@ export function calculateFScore(
   const pass3 = roa > prevRoa;
   if (pass3) score++;
   criteria.push({
-    name: 'Change in ROA',
-    condition: '> Previous Year',
+    name: 'การเปลี่ยนแปลงของ ROA',
+    condition: '> ปีก่อนหน้า',
     value: `${roa.toFixed(2)}% vs ${prevRoa.toFixed(2)}% (${currentYear} vs ${prevYear})`,
     passed: pass3,
     score: pass3 ? 1 : 0
@@ -589,8 +589,8 @@ export function calculateFScore(
   const pass4 = cfo > netIncome;
   if (pass4) score++;
   criteria.push({
-    name: 'Accruals (CFO > Net Income)',
-    condition: 'CFO > Net Income',
+    name: 'รายการค้างรับค้างจ่าย (CFO > กำไรสุทธิ)',
+    condition: 'CFO > กำไรสุทธิ',
     value: `${formatNumber(cfo)} vs ${formatNumber(netIncome)} (${currentYear})`,
     passed: pass4,
     score: pass4 ? 1 : 0
@@ -612,8 +612,8 @@ export function calculateFScore(
   const pass5 = currentLeverage <= prevLeverage;
   if (pass5) score++;
   criteria.push({
-    name: 'Change in Leverage (LTD/Assets)',
-    condition: '<= Previous Year',
+    name: 'การเปลี่ยนแปลงของภาระหนี้สิน (หนี้ระยะยาว/สินทรัพย์)',
+    condition: '<= ปีก่อนหน้า',
     value: `${(currentLeverage * 100).toFixed(2)}% vs ${(prevLeverage * 100).toFixed(2)}% (${currentYear} vs ${prevYear})`,
     passed: pass5,
     score: pass5 ? 1 : 0
@@ -625,8 +625,8 @@ export function calculateFScore(
   const pass6 = currentCR > prevCR;
   if (pass6) score++;
   criteria.push({
-    name: 'Change in Current Ratio',
-    condition: '> Previous Year',
+    name: 'การเปลี่ยนแปลงของอัตราส่วนทุนหมุนเวียน',
+    condition: '> ปีก่อนหน้า',
     value: `${currentCR.toFixed(2)} vs ${prevCR.toFixed(2)} (${currentYear} vs ${prevYear})`,
     passed: pass6,
     score: pass6 ? 1 : 0
@@ -643,9 +643,9 @@ export function calculateFScore(
   }
   if (pass7) score++;
   criteria.push({
-    name: 'Change in Shares Outstanding',
-    condition: '<= Previous Year',
-    value: currentShares && prevShares ? `${formatNumber(currentShares)} vs ${formatNumber(prevShares)} (${currentYear} vs ${prevYear})` : 'Data N/A',
+    name: 'การเปลี่ยนแปลงของจำนวนหุ้นจดทะเบียน',
+    condition: '<= ปีก่อนหน้า',
+    value: currentShares && prevShares ? `${formatNumber(currentShares)} vs ${formatNumber(prevShares)} (${currentYear} vs ${prevYear})` : 'ไม่มีข้อมูล',
     passed: pass7,
     score: pass7 ? 1 : 0
   });
@@ -658,8 +658,8 @@ export function calculateFScore(
   const pass8 = currentGPM > prevGPM;
   if (pass8) score++;
   criteria.push({
-    name: 'Change in Gross Margin',
-    condition: '> Previous Year',
+    name: 'การเปลี่ยนแปลงของอัตรากำไรขั้นต้น',
+    condition: '> ปีก่อนหน้า',
     value: `${currentGPM.toFixed(2)}% vs ${prevGPM.toFixed(2)}% (${currentYear} vs ${prevYear})`,
     passed: pass8,
     score: pass8 ? 1 : 0
@@ -676,8 +676,8 @@ export function calculateFScore(
   const pass9 = currentAT > prevAT;
   if (pass9) score++;
   criteria.push({
-    name: 'Change in Asset Turnover',
-    condition: '> Previous Year',
+    name: 'การเปลี่ยนแปลงของอัตราหมุนเวียนทรัพย์สิน',
+    condition: '> ปีก่อนหน้า',
     value: `${currentAT.toFixed(2)} vs ${prevAT.toFixed(2)} (${currentYear} vs ${prevYear})`,
     passed: pass9,
     score: pass9 ? 1 : 0
@@ -760,11 +760,11 @@ export function calculateZScore(
   else if (score < 1.81) status = 'Distress';
 
   const components: ZScoreComponent[] = [
-    { name: 'Working Capital / Total Assets', formula: '1.2 * A', value: A, weight: 1.2, score: 1.2 * A },
-    { name: 'Retained Earnings / Total Assets', formula: '1.4 * B', value: B, weight: 1.4, score: 1.4 * B },
-    { name: 'EBIT / Total Assets', formula: '3.3 * C', value: C, weight: 3.3, score: 3.3 * C },
-    { name: 'Market Value of Equity / Total Liab', formula: '0.6 * D', value: D, weight: 0.6, score: 0.6 * D },
-    { name: 'Sales / Total Assets', formula: '1.0 * E', value: E, weight: 1.0, score: 1.0 * E },
+    { name: 'เงินทุนหมุนเวียน / สินทรัพย์รวม', formula: '1.2 * A', value: A, weight: 1.2, score: 1.2 * A },
+    { name: 'กำไรสะสม / สินทรัพย์รวม', formula: '1.4 * B', value: B, weight: 1.4, score: 1.4 * B },
+    { name: 'EBIT / สินทรัพย์รวม', formula: '3.3 * C', value: C, weight: 3.3, score: 3.3 * C },
+    { name: 'มูลค่าตลาดของส่วนทุน / หนี้สินรวม', formula: '0.6 * D', value: D, weight: 0.6, score: 0.6 * D },
+    { name: 'ยอดขาย / สินทรัพย์รวม', formula: '1.0 * E', value: E, weight: 1.0, score: 1.0 * E },
   ];
 
   return {
@@ -797,35 +797,35 @@ export function calculateTrendAnalysis(
 
   const cagrs: CAGRData[] = [
     {
-      metric: 'Revenue',
+      metric: 'รายได้',
       cagr3y: calculateCAGR(recent3.map(h => h.revenue)),
       cagr5y: calculateCAGR(recent5.map(h => h.revenue)),
       cagr10y: calculateCAGR(recent10.map(h => h.revenue)),
       trend: getTrend(calculateCAGR(recent5.map(h => h.revenue))),
     },
     {
-      metric: 'Net Profit',
+      metric: 'กำไรสุทธิ',
       cagr3y: calculateCAGR(recent3.map(h => h.netProfit)),
       cagr5y: calculateCAGR(recent5.map(h => h.netProfit)),
       cagr10y: calculateCAGR(recent10.map(h => h.netProfit)),
       trend: getTrend(calculateCAGR(recent5.map(h => h.netProfit))),
     },
     {
-      metric: 'EPS',
+      metric: 'กำไรต่อหุ้น (EPS)',
       cagr3y: calculateCAGR(recent3.map(h => h.eps)),
       cagr5y: calculateCAGR(recent5.map(h => h.eps)),
       cagr10y: calculateCAGR(recent10.map(h => h.eps)),
       trend: getTrend(calculateCAGR(recent5.map(h => h.eps))),
     },
     {
-      metric: 'DPS',
+      metric: 'ปันผลต่อหุ้น (DPS)',
       cagr3y: calculateCAGR(recent3.map(h => h.dps)),
       cagr5y: calculateCAGR(recent5.map(h => h.dps)),
       cagr10y: calculateCAGR(recent10.map(h => h.dps)),
       trend: getTrend(calculateCAGR(recent5.map(h => h.dps))),
     },
     {
-      metric: 'BVPS',
+      metric: 'มูลค่าทางบัญชีต่อหุ้น (BVPS)',
       cagr3y: calculateCAGR(recent3.map(h => h.bvps)),
       cagr5y: calculateCAGR(recent5.map(h => h.bvps)),
       cagr10y: calculateCAGR(recent10.map(h => h.bvps)),
@@ -892,9 +892,9 @@ export function calculateScenarioAnalysis(
   years: number
 ): ScenarioAnalysis {
   const scenarios: Scenario[] = [
-    { name: 'Bull Case', g: 0.07, ks: 0.10, probability: 0.25, fairPrice: 0 },
-    { name: 'Base Case', g: 0.05, ks: 0.10, probability: 0.50, fairPrice: 0 },
-    { name: 'Bear Case', g: 0.03, ks: 0.12, probability: 0.25, fairPrice: 0 },
+    { name: 'กรณีดีเยี่ยม (Bull Case)', g: 0.07, ks: 0.10, probability: 0.25, fairPrice: 0 },
+    { name: 'กรณีพื้นฐาน (Base Case)', g: 0.05, ks: 0.10, probability: 0.50, fairPrice: 0 },
+    { name: 'กรณีย่ำแย่ (Bear Case)', g: 0.03, ks: 0.12, probability: 0.25, fairPrice: 0 },
   ];
 
   scenarios.forEach(s => {
@@ -928,26 +928,26 @@ export function calculateInvestmentSignal(params: {
 
   if (params.result?.margin !== null && params.result?.margin !== undefined) {
     valuationCandidates.push(scoreFromUpside(params.result.margin));
-    if (params.result.margin >= 15) reasons.push(`DDM margin +${params.result.margin.toFixed(1)}%`);
-    if (params.result.margin <= -15) reasons.push(`DDM margin ${params.result.margin.toFixed(1)}%`);
+    if (params.result.margin >= 15) reasons.push(`MOS ของ DDM อยู่ที่ +${params.result.margin.toFixed(1)}%`);
+    if (params.result.margin <= -15) reasons.push(`MOS ของ DDM อยู่ที่ ${params.result.margin.toFixed(1)}%`);
   }
 
   if (params.consensus?.upside !== null && params.consensus?.upside !== undefined) {
     valuationCandidates.push(scoreFromUpside(params.consensus.upside));
-    if (params.consensus.upside >= 15) reasons.push(`Consensus upside +${params.consensus.upside.toFixed(1)}%`);
-    if (params.consensus.upside <= -10) reasons.push(`Consensus upside ${params.consensus.upside.toFixed(1)}%`);
+    if (params.consensus.upside >= 15) reasons.push(`อัพไซด์เทียบกับ Consensus +${params.consensus.upside.toFixed(1)}%`);
+    if (params.consensus.upside <= -10) reasons.push(`ดาวน์ไซด์เทียบกับ Consensus ${params.consensus.upside.toFixed(1)}%`);
   }
 
   if (params.scorecard) {
     const score = (params.scorecard.totalScore / Math.max(params.scorecard.maxScore, 1)) * 100;
     qualityCandidates.push(clamp(score, 0, 100));
-    reasons.push(`VI Score ${params.scorecard.totalScore}/${params.scorecard.maxScore}`);
+    reasons.push(`คะแนนคุณภาพ VI อยู่ที่ ${params.scorecard.totalScore}/${params.scorecard.maxScore}`);
   }
 
   if (params.fScore) {
     const score = (params.fScore.score / 9) * 100;
     qualityCandidates.push(clamp(score, 0, 100));
-    reasons.push(`F-Score ${params.fScore.score}/9 (${params.fScore.grade})`);
+    reasons.push(`Piotroski F-Score ${params.fScore.score}/9 (${params.fScore.grade === 'Strong' ? 'แข็งแกร่ง' : params.fScore.grade === 'Stable' ? 'มั่นคง' : 'อ่อนแอ'})`);
   }
 
   if (params.zScore) {
@@ -956,7 +956,7 @@ export function calculateInvestmentSignal(params: {
     if (params.zScore.status === 'Distress') base = 20;
     const adjustment = clamp((params.zScore.score - 2) * 10, -15, 15);
     riskCandidates.push(clamp(base + adjustment, 0, 100));
-    reasons.push(`Altman Z ${params.zScore.score.toFixed(2)} (${params.zScore.status})`);
+    reasons.push(`Altman Z-Score ${params.zScore.score.toFixed(2)} (${params.zScore.status === 'Safe' ? 'ปลอดภัย' : params.zScore.status === 'Grey' ? 'เฝ้าระวัง' : 'เสี่ยงสูง'})`);
   }
 
   if (params.trendAnalysis) {
@@ -986,11 +986,11 @@ export function calculateInvestmentSignal(params: {
       100;
     scenarioCandidates.push(scoreFromUpside(weightedUpside));
 
-    const bear = params.scenarioAnalysis.scenarios.find((s) => s.name.toLowerCase().includes('bear'));
+    const bear = params.scenarioAnalysis.scenarios.find((s) => s.name.toLowerCase().includes('bear') || s.name.toLowerCase().includes('ย่ำแย่'));
     if (bear) {
       const bearUpside = ((bear.fairPrice - params.scenarioAnalysis.currentPrice) / params.scenarioAnalysis.currentPrice) * 100;
       scenarioCandidates.push(clamp(50 + bearUpside * 1.2, 10, 95));
-      reasons.push(`Bear case ${bearUpside > 0 ? '+' : ''}${bearUpside.toFixed(1)}%`);
+      reasons.push(`กรณี Bear Case ${bearUpside > 0 ? '+' : ''}${bearUpside.toFixed(1)}%`);
     }
   }
 
