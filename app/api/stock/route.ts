@@ -516,15 +516,26 @@ export async function GET(request: Request) {
 
     // Process Dividends from Chart Events
     const dividendByYear = new Map<number, number>();
+    const dividendByQuarterByYear = new Map<number, { q1: number; q2: number; q3: number; q4: number; payments: number }>();
     try {
        if (chartData && chartData.events && chartData.events.dividends) {
            const divs = chartData.events.dividends;
            if (Array.isArray(divs)) {
                divs.forEach((d: any) => {
                    if (d.date && d.amount) {
-                       const year = new Date(d.date).getFullYear();
+                       const dateVal = new Date(d.date);
+                       const year = dateVal.getFullYear();
+                       const amount = Number(d.amount) || 0;
                        const current = dividendByYear.get(year) || 0;
-                       dividendByYear.set(year, current + d.amount);
+                       dividendByYear.set(year, current + amount);
+                       const quarterData = dividendByQuarterByYear.get(year) || { q1: 0, q2: 0, q3: 0, q4: 0, payments: 0 };
+                       const month = dateVal.getMonth();
+                       if (month <= 2) quarterData.q1 += amount;
+                       else if (month <= 5) quarterData.q2 += amount;
+                       else if (month <= 8) quarterData.q3 += amount;
+                       else quarterData.q4 += amount;
+                       quarterData.payments += 1;
+                       dividendByQuarterByYear.set(year, quarterData);
                    }
                });
            } else {
@@ -533,8 +544,17 @@ export async function GET(request: Request) {
                    if (d.date && d.amount) {
                        const dateVal = typeof d.date === 'number' ? new Date(d.date * 1000) : new Date(d.date);
                        const year = dateVal.getFullYear();
+                       const amount = Number(d.amount) || 0;
                        const current = dividendByYear.get(year) || 0;
-                       dividendByYear.set(year, current + d.amount);
+                       dividendByYear.set(year, current + amount);
+                       const quarterData = dividendByQuarterByYear.get(year) || { q1: 0, q2: 0, q3: 0, q4: 0, payments: 0 };
+                       const month = dateVal.getMonth();
+                       if (month <= 2) quarterData.q1 += amount;
+                       else if (month <= 5) quarterData.q2 += amount;
+                       else if (month <= 8) quarterData.q3 += amount;
+                       else quarterData.q4 += amount;
+                       quarterData.payments += 1;
+                       dividendByQuarterByYear.set(year, quarterData);
                    }
                });
            }
@@ -682,6 +702,14 @@ export async function GET(request: Request) {
         // Add Dividend
         if (dividendByYear.has(y)) {
             entry.dps = dividendByYear.get(y);
+        }
+        if (dividendByQuarterByYear.has(y)) {
+            const quarterly = dividendByQuarterByYear.get(y)!;
+            entry.dpsQ1 = quarterly.q1;
+            entry.dpsQ2 = quarterly.q2;
+            entry.dpsQ3 = quarterly.q3;
+            entry.dpsQ4 = quarterly.q4;
+            entry.dpsPayments = quarterly.payments;
         }
         
         // Add Price

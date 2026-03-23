@@ -6,6 +6,11 @@ export interface StockHistory {
   netProfit: number | null;
   eps: number | null;
   dps: number | null;
+  dpsQ1?: number | null;
+  dpsQ2?: number | null;
+  dpsQ3?: number | null;
+  dpsQ4?: number | null;
+  dpsPayments?: number | null;
   de: number | null;
   npm: number | null;
   roe: number | null;

@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   BarChart,
   Bar,
@@ -14,7 +14,6 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  ComposedChart,
 } from 'recharts';
 
 interface StockHistory {
@@ -23,6 +22,11 @@ interface StockHistory {
   netProfit: number | null;
   eps: number | null;
   dps: number | null;
+  dpsQ1?: number | null;
+  dpsQ2?: number | null;
+  dpsQ3?: number | null;
+  dpsQ4?: number | null;
+  dpsPayments?: number | null;
   de: number | null;
   npm: number | null;
   pe: number | null;
@@ -95,6 +99,7 @@ export default function StockCharts({ history, ratioBands, ticker }: StockCharts
   if (!history || history.length === 0) {
     return <div className="text-center p-8 text-slate-500">ไม่มีข้อมูลประวัติสำหรับหุ้นนี้</div>;
   }
+  const hasQuarterlyDps = history.some((entry) => (entry.dpsQ1 || 0) > 0 || (entry.dpsQ2 || 0) > 0 || (entry.dpsQ3 || 0) > 0 || (entry.dpsQ4 || 0) > 0);
 
   // Prepare PE Band Data
   const peChartData = ratioBands?.pe.data.map(d => {
@@ -214,18 +219,28 @@ export default function StockCharts({ history, ratioBands, ticker }: StockCharts
             </ChartContainer>
 
           {/* Health & Divs Charts */}
-          <ChartContainer title={`เงินปันผลต่อหุ้น (DPS)`}> 
+          <ChartContainer title={`เงินปันผลต่อหุ้น (DPS) แยกรายครั้ง`}> 
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={history}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
                 <Tooltip content={<CustomTooltip unit="THB" />} cursor={{fill: '#f8fafc'}} />
-                <Bar dataKey="dps" name="DPS" radius={[4, 4, 0, 0]} barSize={40}>
-                  {history.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={(entry.dps || 0) < 0 ? '#ef4444' : '#10b981'} />
-                  ))}
-                </Bar>
+                {hasQuarterlyDps ? (
+                  <>
+                    <Legend verticalAlign="top" height={32} />
+                    <Bar dataKey="dpsQ1" name="Q1" stackId="dpsQuarterly" fill="#f59e0b" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="dpsQ2" name="Q2" stackId="dpsQuarterly" fill="#3b82f6" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="dpsQ3" name="Q3" stackId="dpsQuarterly" fill="#10b981" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="dpsQ4" name="Q4" stackId="dpsQuarterly" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                  </>
+                ) : (
+                  <Bar dataKey="dps" name="DPS" radius={[4, 4, 0, 0]} barSize={40}>
+                    {history.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={(entry.dps || 0) < 0 ? '#ef4444' : '#10b981'} />
+                    ))}
+                  </Bar>
+                )}
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
