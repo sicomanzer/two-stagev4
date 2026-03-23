@@ -21,6 +21,7 @@ import {
   ZScoreResult,
   InvestmentSignal
 } from '@/types/stock';
+import MarketCyclePanel from '@/components/stock/MarketCyclePanel';
 
 interface SingleStockViewProps {
   children?: ReactNode;
@@ -362,6 +363,24 @@ export default function SingleStockView({
               <ConsensusDashboard consensus={consensus} ticker={ticker} />
             )}
             {trendAnalysis && <TrendAnalysisPanel analysis={trendAnalysis} />}
+          </div>
+        </div>
+      )}
+
+      {/* --- LEVEL 5: Market Cycle Analysis --- */}
+      {result && showAdvanced && ratioBands && stockHistory && stockHistory.length > 0 && (
+        <div className="space-y-4 pt-6 mt-4 animate-in fade-in slide-in-from-top-4 duration-500 delay-150">
+          <div className="flex items-center gap-2 mb-2 pl-2 border-l-4 border-emerald-500">
+            <h2 className="text-xl font-black text-slate-800 tracking-tight">Market Cycle</h2>
+            <span className="px-2.5 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-emerald-100 shadow-sm">Cycle</span>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-6">
+            <MarketCyclePanel 
+              ratioBands={ratioBands} 
+              stockHistory={stockHistory} 
+              currentPrice={currentPrice} 
+            />
           </div>
         </div>
       )}

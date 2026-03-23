@@ -1,0 +1,172 @@
+import React from 'react';
+import { RefreshCcw, Activity, TrendingUp, AlertTriangle, ArrowDownRight, Info } from 'lucide-react';
+
+interface MarketCyclePanelProps {
+  ratioBands: any;
+  stockHistory: any[];
+  currentPrice: number | null;
+}
+
+export default function MarketCyclePanel({ ratioBands, stockHistory, currentPrice }: MarketCyclePanelProps) {
+  // 1. Calculate Z-Score to determine valuation extreme
+  let zScorePE = 0;
+  let hasData = false;
+
+  if (ratioBands?.pe?.current && ratioBands?.pe?.mean && ratioBands?.pe?.stdDev) {
+    zScorePE = (ratioBands.pe.current - ratioBands.pe.mean) / ratioBands.pe.stdDev;
+    hasData = true;
+  } else if (ratioBands?.pbv?.current && ratioBands?.pbv?.mean && ratioBands?.pbv?.stdDev) {
+    zScorePE = (ratioBands.pbv.current - ratioBands.pbv.mean) / ratioBands.pbv.stdDev;
+    hasData = true;
+  }
+
+  // 2. Determine Price Trend (Simple momentum check)
+  let isPriceTrendingUp = true;
+  if (stockHistory && stockHistory.length >= 2 && currentPrice) {
+    const lastYearPrice = stockHistory[0].price; // assuming index 0 is most recent year-end
+    if (currentPrice < lastYearPrice) {
+      isPriceTrendingUp = false;
+    }
+  }
+
+  // 3. Logic to determine the 4 Phases of Market Cycle
+  // Phase 1: Accumulation (Undervalued, Fear)
+  // Phase 2: Markup (Fair/Recovering, Optimism)
+  // Phase 3: Distribution (Overvalued, Greed)
+  // Phase 4: Markdown (Overvalued/Fair but momentum down, Panic/Capitulation)
+  let currentPhase = 2; // Default
+  
+  if (hasData) {
+    if (zScorePE <= -0.5) {
+      currentPhase = isPriceTrendingUp ? 2 : 1;
+    } else if (zScorePE > -0.5 && zScorePE <= 1.0) {
+      currentPhase = isPriceTrendingUp ? 2 : 4;
+    } else if (zScorePE > 1.0) {
+      currentPhase = isPriceTrendingUp ? 3 : 4;
+    }
+  }
+
+  const phases = [
+    {
+      id: 1,
+      name: 'สะสมพลัง (Accumulation)',
+      icon: Activity,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+      activeColor: 'bg-blue-500',
+      desc: 'หุ้นราคาถูก ข่าวร้ายเต็มตลาด คนส่วนใหญ่กลัวและสิ้นหวัง',
+      lesson: 'บทเรียน: ช่วงเวลาที่ปลอดภัยที่สุด คือตอนที่ทุกคนกลัวสุดขีด (Margin of Safety สูงสุด)',
+    },
+    {
+      id: 2,
+      name: 'ขาขึ้น (Markup)',
+      icon: TrendingUp,
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-200',
+      activeColor: 'bg-emerald-500',
+      desc: 'ราคาเริ่มฟื้นตัว ปัจจัยพื้นฐานดีขึ้น คนเริ่มมีความหวัง',
+      lesson: 'บทเรียน: ตลาดถูกขับเคลื่อนด้วยความคาดหวัง เราต้องรู้ว่าตอนนี้ตลาดกำลังให้ค่าความหวังมากเกินไปหรือไม่',
+    },
+    {
+      id: 3,
+      name: 'แจกจ่าย (Distribution)',
+      icon: AlertTriangle,
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-200',
+      activeColor: 'bg-amber-500',
+      desc: 'ราคาแพง ข่าวดีเต็มตลาด ทุกคนมั่นใจและประมาท',
+      lesson: 'บทเรียน: ความเสี่ยงสูงสุด ซ่อนอยู่ในตอนที่ตลาดดูปลอดภัยที่สุด (ระวังความโลภ)',
+    },
+    {
+      id: 4,
+      name: 'ขาลง (Markdown)',
+      icon: ArrowDownRight,
+      color: 'text-rose-600',
+      bgColor: 'bg-rose-50',
+      borderColor: 'border-rose-200',
+      activeColor: 'bg-rose-500',
+      desc: 'ราคาตกต่ำ ปัจจัยพื้นฐานเริ่มแย่ลง คนเริ่มเทขายหนีตาย',
+      lesson: 'บทเรียน: ไม่ควรฝืนตลาด ควรรอให้ฝุ่นตลบและวัฏจักรเริ่มรอบใหม่',
+    }
+  ];
+
+  if (!hasData) return null;
+
+  return (
+    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden h-full">
+      <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+        <RefreshCcw size={120} />
+      </div>
+      
+      <div className="flex items-center gap-2 mb-6">
+        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+          <RefreshCcw size={20} />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-slate-800">Market Cycle Analysis</h3>
+          <p className="text-xs text-slate-500">วิเคราะห์ตำแหน่งปัจจุบันของหุ้นในวัฏจักร (5 บทเรียนนอกตำรา)</p>
+        </div>
+      </div>
+
+      {/* Cycle Visualization */}
+      <div className="relative mb-8 mt-4">
+        {/* Progress Line */}
+        <div className="absolute top-1/2 left-0 w-full h-1.5 bg-slate-100 rounded-full -translate-y-1/2 z-0"></div>
+        
+        <div className="relative z-10 flex justify-between">
+          {phases.map((phase, index) => {
+            const isActive = phase.id === currentPhase;
+            const isPast = phase.id < currentPhase;
+            const Icon = phase.icon;
+            
+            return (
+              <div key={phase.id} className="flex flex-col items-center w-1/4">
+                <div 
+                  className={`w-10 h-10 rounded-full flex items-center justify-center border-4 transition-all duration-500 ${
+                    isActive 
+                      ? `${phase.activeColor} border-white shadow-md text-white scale-110` 
+                      : isPast 
+                        ? 'bg-slate-200 border-white text-slate-400'
+                        : 'bg-white border-slate-100 text-slate-300'
+                  }`}
+                >
+                  <Icon size={18} strokeWidth={isActive ? 3 : 2} />
+                </div>
+                <p className={`text-[11px] sm:text-xs font-bold mt-2 text-center transition-colors ${isActive ? phase.color : 'text-slate-400'}`}>
+                  {phase.name}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Active Phase Details */}
+      <div className={`p-4 rounded-xl border ${phases[currentPhase-1].bgColor} ${phases[currentPhase-1].borderColor}`}>
+        <div className="flex items-start gap-3">
+          <div className={`mt-0.5 ${phases[currentPhase-1].color}`}>
+            <Info size={18} />
+          </div>
+          <div>
+            <h4 className={`text-sm font-bold ${phases[currentPhase-1].color} mb-1`}>
+              สถานะปัจจุบัน: {phases[currentPhase-1].name}
+            </h4>
+            <p className="text-sm text-slate-700 mb-3 leading-relaxed">
+              {phases[currentPhase-1].desc} 
+              <span className="text-xs text-slate-500 ml-1">
+                (อ้างอิงจาก Z-Score: {zScorePE.toFixed(2)} และทิศทางราคา)
+              </span>
+            </p>
+            <div className="bg-white/60 p-3 rounded-lg border border-white/40 text-xs text-slate-700 italic font-medium">
+              "{phases[currentPhase-1].lesson}"
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  );
+}
