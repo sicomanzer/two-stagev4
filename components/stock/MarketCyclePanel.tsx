@@ -12,11 +12,19 @@ export default function MarketCyclePanel({ ratioBands, stockHistory, currentPric
   let zScorePE = 0;
   let hasData = false;
 
-  if (ratioBands?.pe?.current && ratioBands?.pe?.mean && ratioBands?.pe?.stdDev) {
-    zScorePE = (ratioBands.pe.current - ratioBands.pe.mean) / ratioBands.pe.stdDev;
+  const currentPE = ratioBands?.pe?.data?.[ratioBands.pe.data.length - 1]?.value;
+  const peAvg = ratioBands?.pe?.stats?.avg;
+  const peSd = ratioBands?.pe?.stats?.sd;
+
+  const currentPBV = ratioBands?.pbv?.data?.[ratioBands.pbv.data.length - 1]?.value;
+  const pbvAvg = ratioBands?.pbv?.stats?.avg;
+  const pbvSd = ratioBands?.pbv?.stats?.sd;
+
+  if (currentPE !== undefined && peAvg !== undefined && peSd !== undefined && peSd > 0) {
+    zScorePE = (currentPE - peAvg) / peSd;
     hasData = true;
-  } else if (ratioBands?.pbv?.current && ratioBands?.pbv?.mean && ratioBands?.pbv?.stdDev) {
-    zScorePE = (ratioBands.pbv.current - ratioBands.pbv.mean) / ratioBands.pbv.stdDev;
+  } else if (currentPBV !== undefined && pbvAvg !== undefined && pbvSd !== undefined && pbvSd > 0) {
+    zScorePE = (currentPBV - pbvAvg) / pbvSd;
     hasData = true;
   }
 
@@ -93,7 +101,17 @@ export default function MarketCyclePanel({ ratioBands, stockHistory, currentPric
     }
   ];
 
-  if (!hasData) return null;
+  if (!hasData) {
+    return (
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm text-center">
+        <div className="text-slate-400 mb-2 flex justify-center">
+          <Info size={32} />
+        </div>
+        <h3 className="text-slate-600 font-medium">ไม่สามารถวิเคราะห์ Market Cycle ได้</h3>
+        <p className="text-sm text-slate-500 mt-1">ไม่มีข้อมูล P/E หรือ P/BV ย้อนหลังเพียงพอสำหรับการคำนวณ Z-Score</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden h-full">
