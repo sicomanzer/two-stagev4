@@ -383,7 +383,8 @@ TTW`);
               const payoutVal = data.payoutRatio || 0;
               
               if (roeVal && payoutVal) {
-                gCalc = roeVal * (1 - payoutVal);
+                // Prevent negative growth solely due to payout > 100%
+                gCalc = roeVal * Math.max(0, 1 - payoutVal);
               }
 
               // Cap g at 7% (0.07) as per requirement
@@ -494,7 +495,8 @@ TTW`);
         const r = parseFloat(roe);
         const p = parseFloat(payoutRatio);
         if (isNaN(r) || isNaN(p)) return '0.00';
-        calculatedG = (r / 100) * (1 - p / 100) * 100;
+        // Prevent negative growth solely due to payout > 100%
+        calculatedG = (r / 100) * Math.max(0, 1 - p / 100) * 100;
       } else if (assistantMethod === 'historical') {
         const start = parseFloat(divStart);
         const end = parseFloat(divEnd);

@@ -376,24 +376,24 @@ export async function GET(request: Request) {
             
             const totalEquity = f.totalEquityGrossMinorityInterest || f.totalStockholderEquity;
             
-            // Recalculate derived metrics if we have new data
-            if (entry.shares && totalEquity) {
+            // Recalculate derived metrics ONLY if missing (do NOT overwrite thaifin/cache values)
+            if (!entry.bvps && entry.shares && totalEquity) {
                 entry.bvps = totalEquity / entry.shares;
             }
-            if (entry.netProfit && entry.totalAssets) {
+            if (!entry.roa && entry.netProfit && entry.totalAssets) {
                 entry.roa = (entry.netProfit / entry.totalAssets) * 100;
             }
-            if (entry.netProfit && totalEquity) {
+            if (!entry.roe && entry.netProfit && totalEquity) {
                 entry.roe = (entry.netProfit / totalEquity) * 100;
             }
-            if (entry.totalCurrentAssets && entry.totalCurrentLiabilities) {
+            if (!entry.currentRatio && entry.totalCurrentAssets && entry.totalCurrentLiabilities) {
                 entry.currentRatio = entry.totalCurrentAssets / entry.totalCurrentLiabilities;
             }
             
-            // Update DE
+            // Update DE only if missing
             let totalDebt = f.totalDebt;
             if (!totalDebt) totalDebt = (f.currentDebt || 0) + (f.longTermDebt || 0);
-            if (totalDebt && totalEquity) {
+            if (!entry.de && totalDebt && totalEquity) {
                 entry.de = totalDebt / totalEquity;
             }
         });
@@ -738,10 +738,8 @@ export async function GET(request: Request) {
         if (!hasData) {
             yearMap.delete(year);
         } else {
-            // Fix ROE calculation if it looks wrong or missing (e.g. from thaifin)
-            // Use local calculation if we have netProfit and totalEquity (or totalAssets for ROA fallback?)
-            // We can calculate totalEquity from bvps * shares or use it directly
-            if (entry.netProfit && entry.bvps && entry.shares) {
+            // Fix ROE: Only calculate if MISSING — do NOT overwrite authoritative thaifin/cache values
+            if (!entry.roe && entry.netProfit && entry.bvps && entry.shares) {
                 const totalEq = entry.bvps * entry.shares;
                 if (totalEq > 0) {
                     entry.roe = (entry.netProfit / totalEq) * 100;
@@ -749,6 +747,10 @@ export async function GET(request: Request) {
             } else if (entry.roe && entry.roe > 1000) {
                 // If ROE is ridiculously high (like 4685.6%), try to divide by 100
                 entry.roe = entry.roe / 100;
+            }
+            // Fix ROA: Only calculate if MISSING
+            if (!entry.roa && entry.netProfit && entry.totalAssets && entry.totalAssets > 0) {
+                entry.roa = (entry.netProfit / entry.totalAssets) * 100;
             }
         }
     });
@@ -787,10 +789,30 @@ export async function GET(request: Request) {
       dividendYield = d0 / currentPrice;
     }
 
+    // Extract the latest priority values from History (thaifin/SET data) for accuracy over Yahoo
+    let finalRoe = quote.financialData?.returnOnEquity;
+    let finalPe = quote.summaryDetail?.trailingPE;
+    let finalPbv = quote.defaultKeyStatistics?.priceToBook;
+    let finalEps = quote.defaultKeyStatistics?.trailingEps || quote.defaultKeyStatistics?.forwardEps;
+    let finalRoa = quote.financialData?.returnOnAssets;
+    let finalDe = quote.financialData?.debtToEquity !== undefined && quote.financialData?.debtToEquity !== null ? quote.financialData.debtToEquity / 100 : undefined;
+    
+    if (history && history.length > 0) {
+       for (let i = history.length - 1; i >= Math.max(0, history.length - 3); i--) {
+           const h = history[i];
+           if (finalRoe === quote.financialData?.returnOnEquity && h.roe !== null && h.roe !== undefined) finalRoe = h.roe / 100;
+           if (finalPe === quote.summaryDetail?.trailingPE && h.pe !== null && h.pe !== undefined) finalPe = h.pe;
+           if (finalPbv === quote.defaultKeyStatistics?.priceToBook && h.pbv !== null && h.pbv !== undefined) finalPbv = h.pbv;
+           if (finalEps === (quote.defaultKeyStatistics?.trailingEps || quote.defaultKeyStatistics?.forwardEps) && h.eps !== null && h.eps !== undefined) finalEps = h.eps;
+           if (finalRoa === quote.financialData?.returnOnAssets && h.roa !== null && h.roa !== undefined) finalRoa = h.roa / 100;
+           if (finalDe === (quote.financialData?.debtToEquity !== undefined && quote.financialData?.debtToEquity !== null ? quote.financialData.debtToEquity / 100 : undefined) && h.de !== null && h.de !== undefined) finalDe = h.de;
+       }
+    }
+
     const data = {
       currentPrice: currentPrice,
       d0: d0,
-      roe: quote.financialData?.returnOnEquity,
+      roe: finalRoe,
       payoutRatio: quote.summaryDetail?.payoutRatio,
       // Additional fields for table
       sector: quote.summaryProfile?.sector,
@@ -798,11 +820,11 @@ export async function GET(request: Request) {
       sectorKey: quote.summaryProfile?.sector, // Explicit key for sector
       industryKey: quote.summaryProfile?.industry, // Explicit key for industry
       exDividendDate: quote.calendarEvents?.exDividendDate || quote.summaryDetail?.exDividendDate,
-      pe: quote.summaryDetail?.trailingPE,
-      pbv: quote.defaultKeyStatistics?.priceToBook,
-      eps: quote.defaultKeyStatistics?.trailingEps || quote.defaultKeyStatistics?.forwardEps,
-      debtToEquity: quote.financialData?.debtToEquity !== undefined && quote.financialData?.debtToEquity !== null ? quote.financialData.debtToEquity / 100 : undefined, // Yahoo returns percentage (e.g. 150 for 1.5), we need ratio
-      roa: quote.financialData?.returnOnAssets,
+      pe: finalPe,
+      pbv: finalPbv,
+      eps: finalEps,
+      debtToEquity: finalDe,
+      roa: finalRoa,
       marketCap: quote.summaryDetail?.marketCap,
       dividendYield: dividendYield,
       shortName: quote.price?.shortName,
