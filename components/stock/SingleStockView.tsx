@@ -1,5 +1,5 @@
-import React, { ReactNode } from 'react';
-import { AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import React, { ReactNode, useState } from 'react';
+import { AlertCircle, CheckCircle2, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import StockCharts from '@/components/StockCharts';
 import ConsensusDashboard from '@/components/ConsensusDashboard';
 import Scorecard from '@/components/Scorecard';
@@ -57,6 +57,7 @@ export default function SingleStockView({
   error,
   onSelectPeerTicker
 }: SingleStockViewProps) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
   
   if (error) {
     return (
@@ -132,7 +133,7 @@ export default function SingleStockView({
             </div>
             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 text-center min-w-[90px]">
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">ROE</p>
-              <p className="text-sm font-black text-emerald-600">{latestRoe !== undefined && latestRoe !== null ? (latestRoe * 100).toFixed(1) + '%' : 'N/A'}</p>
+              <p className="text-sm font-black text-emerald-600">{latestRoe !== undefined && latestRoe !== null ? latestRoe.toFixed(1) + '%' : 'N/A'}</p>
             </div>
             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 text-center min-w-[90px]">
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">EPS</p>
@@ -322,35 +323,55 @@ export default function SingleStockView({
         </div>
       </div>
 
+      {/* --- ADVANCED ANALYTICS TOGGLE --- */}
+      {result && (
+        <div className="flex justify-center pt-4">
+          <button 
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-full shadow-sm text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+          >
+            {showAdvanced ? (
+              <>ซ่อนข้อมูลวิเคราะห์เชิงลึก <ChevronUp size={18} /></>
+            ) : (
+              <>ดูข้อมูลวิเคราะห์เชิงลึกเพิ่มเติม <ChevronDown size={18} /></>
+            )}
+          </button>
+        </div>
+      )}
+
       {/* --- LEVEL 3: Deep Dive Quality Dashboard --- */}
-      <div className="space-y-4 pt-6 mt-4">
-        <div className="flex items-center gap-2 mb-2 pl-2 border-l-4 border-indigo-500">
-          <h2 className="text-xl font-black text-slate-800 tracking-tight">Quality & Safety Dashboard</h2>
-          <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-indigo-100 shadow-sm">Deep Dive</span>
+      {result && showAdvanced && (
+        <div className="space-y-4 pt-6 mt-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-2 mb-2 pl-2 border-l-4 border-indigo-500">
+            <h2 className="text-xl font-black text-slate-800 tracking-tight">Quality & Safety Dashboard</h2>
+            <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-indigo-100 shadow-sm">Deep Dive</span>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {fScore && <FScore fScore={fScore} />}
+            {zScore && <ZScore zScore={zScore} />}
+            {scorecard && <Scorecard scorecard={scorecard} />}
+          </div>
         </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {fScore && <FScore fScore={fScore} />}
-          {zScore && <ZScore zScore={zScore} />}
-          {scorecard && <Scorecard scorecard={scorecard} />}
-        </div>
-      </div>
+      )}
 
       {/* --- LEVEL 4: Advanced Analytics --- */}
-      <div className="space-y-4 pt-6 mt-4">
-        <div className="flex items-center gap-2 mb-2 pl-2 border-l-4 border-blue-500">
-          <h2 className="text-xl font-black text-slate-800 tracking-tight">Advanced Analytics</h2>
-          <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-blue-100 shadow-sm">Pro Tools</span>
+      {result && showAdvanced && (
+        <div className="space-y-4 pt-6 mt-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-2 mb-2 pl-2 border-l-4 border-blue-500">
+            <h2 className="text-xl font-black text-slate-800 tracking-tight">Advanced Analytics</h2>
+            <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-blue-100 shadow-sm">Pro Tools</span>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {scenarioAnalysis && <ScenarioAnalysisPanel analysis={scenarioAnalysis} />}
+            {consensus && (
+              <ConsensusDashboard consensus={consensus} ticker={ticker} />
+            )}
+            {trendAnalysis && <TrendAnalysisPanel analysis={trendAnalysis} />}
+          </div>
         </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {scenarioAnalysis && <ScenarioAnalysisPanel analysis={scenarioAnalysis} />}
-          {result && consensus && (
-            <ConsensusDashboard consensus={consensus} ticker={ticker} />
-          )}
-          {trendAnalysis && <TrendAnalysisPanel analysis={trendAnalysis} />}
-        </div>
-      </div>
+      )}
 
       {/* 5. Detailed Calculation Table - REMOVED per user request */}
 

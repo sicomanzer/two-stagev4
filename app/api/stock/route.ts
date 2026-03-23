@@ -284,6 +284,7 @@ export async function GET(request: Request) {
             // BVPS (Book Value Per Share)
             const bvps = (totalEquity && shares) ? totalEquity / shares : null;
             const roa = (netProfit && totalAssets) ? (netProfit / totalAssets) * 100 : null;
+            const roe = (netProfit && totalEquity) ? (netProfit / totalEquity) * 100 : null;
 
             // Z-Score specific fields
             const retainedEarnings = f.retainedEarnings || f.retainedEarningsTotalEquity;
@@ -303,6 +304,7 @@ export async function GET(request: Request) {
             setIfMissing('longTermDebt', longTermDebt);
             setIfMissing('bvps', bvps);
             setIfMissing('roa', roa);
+            setIfMissing('roe', roe);
             setIfMissing('retainedEarnings', retainedEarnings);
             setIfMissing('ebit', ebit);
             setIfMissing('totalLiabilities', totalLiabilities);
@@ -380,6 +382,9 @@ export async function GET(request: Request) {
             }
             if (entry.netProfit && entry.totalAssets) {
                 entry.roa = (entry.netProfit / entry.totalAssets) * 100;
+            }
+            if (entry.netProfit && totalEquity) {
+                entry.roe = (entry.netProfit / totalEquity) * 100;
             }
             if (entry.totalCurrentAssets && entry.totalCurrentLiabilities) {
                 entry.currentRatio = entry.totalCurrentAssets / entry.totalCurrentLiabilities;
@@ -704,6 +709,19 @@ export async function GET(request: Request) {
         const hasData = entry.revenue || entry.netProfit || entry.totalAssets || entry.price || entry.dps;
         if (!hasData) {
             yearMap.delete(year);
+        } else {
+            // Fix ROE calculation if it looks wrong or missing (e.g. from thaifin)
+            // Use local calculation if we have netProfit and totalEquity (or totalAssets for ROA fallback?)
+            // We can calculate totalEquity from bvps * shares or use it directly
+            if (entry.netProfit && entry.bvps && entry.shares) {
+                const totalEq = entry.bvps * entry.shares;
+                if (totalEq > 0) {
+                    entry.roe = (entry.netProfit / totalEq) * 100;
+                }
+            } else if (entry.roe && entry.roe > 1000) {
+                // If ROE is ridiculously high (like 4685.6%), try to divide by 100
+                entry.roe = entry.roe / 100;
+            }
         }
     });
 

@@ -283,16 +283,16 @@ export function calculateScorecard(
   let roeScore = 0;
   if (roeValues.length >= 3) {
     const avgROE = roeValues.reduce((a, b) => a + b, 0) / roeValues.length;
-    const allAbove15 = roeValues.every(v => v > 0.12);
-    if (avgROE > 0.15 && allAbove15) roeScore = 3;
-    else if (avgROE > 0.12) roeScore = 2;
-    else if (avgROE > 0.08) roeScore = 1;
+    const allAbove15 = roeValues.every(v => v > 12); // Thaifin roe is percentage (e.g. 15.5)
+    if (avgROE > 15 && allAbove15) roeScore = 3;
+    else if (avgROE > 12) roeScore = 2;
+    else if (avgROE > 8) roeScore = 1;
   }
   categories.push({
     name: 'ROE',
     score: roeScore,
     maxScore: 3,
-    detail: roeValues.length > 0 ? `AVG ${(roeValues.reduce((a, b) => a + b, 0) / roeValues.length * 100).toFixed(1)}%` : 'N/A',
+    detail: roeValues.length > 0 ? `AVG ${(roeValues.reduce((a, b) => a + b, 0) / roeValues.length).toFixed(1)}%` : 'N/A',
     icon: '📊',
   });
   totalScore += roeScore;
