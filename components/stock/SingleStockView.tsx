@@ -57,8 +57,17 @@ export default function SingleStockView({
   error,
   onSelectPeerTicker
 }: SingleStockViewProps) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  // Use useEffect to update showAdvanced based on result changes
+  const [showAdvanced, setShowAdvanced] = React.useState(!!result);
   
+  React.useEffect(() => {
+    if (result) {
+      setShowAdvanced(true);
+    } else {
+      setShowAdvanced(false);
+    }
+  }, [result]);
+
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start space-x-3 text-red-700">
@@ -322,22 +331,6 @@ export default function SingleStockView({
            )}
         </div>
       </div>
-
-      {/* --- ADVANCED ANALYTICS TOGGLE --- */}
-      {result && (
-        <div className="flex justify-center pt-4">
-          <button 
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-full shadow-sm text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
-          >
-            {showAdvanced ? (
-              <>ซ่อนข้อมูลวิเคราะห์เชิงลึก <ChevronUp size={18} /></>
-            ) : (
-              <>ดูข้อมูลวิเคราะห์เชิงลึกเพิ่มเติม <ChevronDown size={18} /></>
-            )}
-          </button>
-        </div>
-      )}
 
       {/* --- LEVEL 3: Deep Dive Quality Dashboard --- */}
       {result && showAdvanced && (
