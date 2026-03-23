@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Info, TrendingUp, AlertTriangle, ShieldCheck, Download, ChevronUp, ChevronDown, ChevronsUpDown, ExternalLink, Zap, Target } from 'lucide-react';
 
-type ScreenerPreset = 'previous' | 'latest' | 'no_filter' | 'vi' | 'high_dividend' | 'safe_haven';
+type ScreenerPreset = 'previous' | 'latest' | 'no_filter' | 'vi' | 'high_dividend' | 'safe_haven' | 'quality_dividend';
 
 interface ScreenerViewProps {
   onSelectTicker: (ticker: string) => void;
@@ -12,6 +12,7 @@ const ModernMetricInput = ({
 }: any) => {
   const isUnset = value === '';
   const percent = isUnset ? 0 : Math.min(Math.max(((value - min) / (max - min)) * 100, 0), 100);
+  const clampNumber = (num: number) => Math.min(max, Math.max(min, num));
   
   return (
     <div className="group relative bg-white/70 backdrop-blur-md border border-slate-200/60 p-3.5 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.1)] transition-all">
@@ -25,7 +26,10 @@ const ModernMetricInput = ({
              <input 
                type="number" 
                value={value} 
-               onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))} 
+               min={min}
+               max={max}
+               step={step}
+               onChange={(e) => onChange(e.target.value === '' ? '' : clampNumber(Number(e.target.value)))} 
                className="w-12 text-right text-sm font-black text-slate-800 outline-none bg-transparent"
                placeholder="All"
              />
@@ -64,6 +68,7 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
   const [fScoreMin, setFScoreMin] = useState<number | ''>(5);
   const [zScoreMin, setZScoreMin] = useState<number | ''>(2.5);
   const [viScoreMin, setViScoreMin] = useState<number | ''>(12);
+  const [marketCycleMode, setMarketCycleMode] = useState<string>('any');
   
   // New metrics
   const [yieldMin, setYieldMin] = useState<number | ''>(5);
@@ -71,6 +76,7 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
   const [peMax, setPeMax] = useState<number | ''>(12);
   const [pbvMax, setPbvMax] = useState<number | ''>(2.5);
   const [roeMin, setRoeMin] = useState<number | ''>(15);
+  const [dividendStreakMin, setDividendStreakMin] = useState<number | ''>(2);
 
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
@@ -81,6 +87,24 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
 
   const applyPreset = (nextPreset: ScreenerPreset) => {
     setPreset(nextPreset);
+
+    if (nextPreset === 'quality_dividend') {
+      setEpsGrowthMin(0);
+      setDpsGrowthMin(0);
+      setPeBandMode('none');
+      setPbvBandMode('none');
+      setFScoreMin(6);
+      setZScoreMin(2.5);
+      setViScoreMin(12);
+      setYieldMin(5);
+      setDeMax(1.2);
+      setPeMax(18);
+      setPbvMax(2.5);
+      setRoeMin(12);
+      setDividendStreakMin(2);
+      setMarketCycleMode('any');
+      return;
+    }
 
     if (nextPreset === 'high_dividend') {
       setEpsGrowthMin(0);
@@ -95,6 +119,8 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
       setPeMax(20);
       setPbvMax(3.0);
       setRoeMin(8);
+      setDividendStreakMin(2);
+      setMarketCycleMode('any');
       return;
     }
 
@@ -111,6 +137,8 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
       setPeMax(15);
       setPbvMax(2.0);
       setRoeMin(10);
+      setDividendStreakMin('');
+      setMarketCycleMode('any');
       return;
     }
 
@@ -127,6 +155,8 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
       setPeMax(20);
       setPbvMax(3);
       setRoeMin(10);
+      setDividendStreakMin('');
+      setMarketCycleMode('any');
       return;
     }
 
@@ -143,6 +173,8 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
       setPeMax('');
       setPbvMax('');
       setRoeMin('');
+      setDividendStreakMin('');
+      setMarketCycleMode('any');
       return;
     }
 
@@ -159,6 +191,8 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
       setPeMax(20);
       setPbvMax(3.0);
       setRoeMin(10);
+      setDividendStreakMin('');
+      setMarketCycleMode('any');
       return;
     }
 
@@ -175,6 +209,8 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
     setPeMax(15);
     setPbvMax(2.5);
     setRoeMin(12);
+    setDividendStreakMin('');
+    setMarketCycleMode('any');
   };
 
   const handleScan = async () => {
@@ -199,6 +235,8 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
           peMax: peMax === '' ? undefined : Number(peMax),
           pbvMax: pbvMax === '' ? undefined : Number(pbvMax),
           roeMin: roeMin === '' ? undefined : Number(roeMin),
+          dividendStreakMin: dividendStreakMin === '' ? undefined : Number(dividendStreakMin),
+          marketCycleMode: marketCycleMode === 'any' ? undefined : marketCycleMode,
         }),
       });
 
@@ -250,7 +288,7 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
 
   const exportToCSV = () => {
     if (results.length === 0) return;
-    const headers = ['Ticker', 'Price', 'EPS CAGR', 'DPS CAGR', 'Yield', 'ROE', 'P/E', 'P/BV', 'PE -1SD', 'PBV -1SD', 'D/E', 'F-Score', 'Z-Score', 'VI Score'];
+    const headers = ['Ticker', 'Price', 'EPS CAGR', 'DPS CAGR', 'Yield', 'ROE', 'P/E', 'P/BV', 'PE -1SD', 'PBV -1SD', 'D/E', 'F-Score', 'Z-Score', 'VI Score', 'Market Cycle'];
     const csvData = sortedResults.map(r => [
       r.ticker,
       r.currentPrice,
@@ -265,7 +303,8 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
       r.latestDE?.toFixed(2),
       r.fScore,
       r.zScore?.toFixed(2),
-      r.viScore
+      r.viScore,
+      r.marketCycleLabel || ''
     ].join(','));
     
     const csvContent = [headers.join(','), ...csvData].join('\n');
@@ -295,11 +334,12 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
              </div>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-7 gap-3">
             {[
               { id: 'latest', name: '👑 สูตรเข้มข้น', desc: 'คัดหุ้นสุดยอดVI' },
               { id: 'previous', name: '⚖️ สูตรสมดุล', desc: 'ไม่ตึงเกินไป' },
               { id: 'vi', name: '🎯 Value Investing', desc: 'เน้นราคาถูกและดี' },
+              { id: 'quality_dividend', name: '🏆 ดี + ปันผล 5%', desc: 'พื้นฐานดี+ยิลด์สูง' },
               { id: 'high_dividend', name: '💰 High Dividend', desc: 'ปันผลสม่ำเสมอ' },
               { id: 'safe_haven', name: '🛡️ Safe Haven', desc: 'งบแข็งแกร่ง' },
               { id: 'no_filter', name: '🌐 กรองเอง', desc: 'ตั้งค่าอิสระ' },
@@ -409,6 +449,24 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
                label="VI Scorecard" subtitle="คะแนนอัตโนมัติ 0-20" unit="Pts" 
                min={0} max={20} step={1} value={viScoreMin} onChange={setViScoreMin} highlightColor="bg-purple-500" 
             />
+            <ModernMetricInput
+               label="Dividend Streak" subtitle="ปีที่จ่ายปันผลต่อเนื่องขั้นต่ำ" unit="Y"
+               min={0} max={15} step={1} value={dividendStreakMin} onChange={setDividendStreakMin} highlightColor="bg-lime-500"
+            />
+            <div className="group relative bg-white/70 backdrop-blur-md border border-slate-200/60 p-3.5 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+              <label className="block text-xs font-black text-slate-800 tracking-wide uppercase mb-2">Market Cycle</label>
+              <select
+                value={marketCycleMode}
+                onChange={(e) => setMarketCycleMode(e.target.value)}
+                className="w-full p-2.5 text-sm font-bold border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-slate-50 cursor-pointer"
+              >
+                <option value="any">🌐 ไม่กรอง (Any)</option>
+                <option value="accumulation">🔵 สะสมพลัง (Accumulation)</option>
+                <option value="markup">🟢 ขาขึ้น (Markup)</option>
+                <option value="distribution">🟠 แจกจ่าย (Distribution)</option>
+                <option value="markdown">🔴 ขาลง (Markdown)</option>
+              </select>
+            </div>
             <ModernMetricInput 
                label="Max D/E Ratio" subtitle="หนี้สินต่อทุน สูงสุด" unit="x" 
                min={0.1} max={5} step={0.1} value={deMax} onChange={setDeMax} highlightColor="bg-rose-500" 

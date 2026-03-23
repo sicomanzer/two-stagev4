@@ -27,6 +27,79 @@ const calculateStats = (data: number[]) => {
   return { avg, sd };
 };
 
+const getDividendStreakYears = (history: any[]) => {
+  const currentYear = new Date().getFullYear();
+  let streak = 0;
+  let startedStreak = false;
+
+  for (let i = history.length - 1; i >= 0; i--) {
+    const h = history[i];
+    if (h.year === currentYear && (!h.dps || h.dps <= 0)) {
+      continue;
+    }
+
+    if (h.dps && h.dps > 0) {
+      streak++;
+      startedStreak = true;
+    } else {
+      if (startedStreak) break;
+      if (h.year < currentYear) break;
+    }
+  }
+
+  return streak;
+};
+
+const getMarketCycle = (
+  history: any[],
+  currentPrice: number | null,
+  latestPE: number | null | undefined,
+  peStats: { avg: number; sd: number },
+  latestPBV: number | null | undefined,
+  pbvStats: { avg: number; sd: number }
+) => {
+  let zScore = 0;
+  let hasData = false;
+
+  if (latestPE !== null && latestPE !== undefined && peStats.sd > 0) {
+    zScore = (latestPE - peStats.avg) / peStats.sd;
+    hasData = true;
+  } else if (latestPBV !== null && latestPBV !== undefined && pbvStats.sd > 0) {
+    zScore = (latestPBV - pbvStats.avg) / pbvStats.sd;
+    hasData = true;
+  }
+
+  if (!hasData) {
+    return { phase: 'unknown', label: 'ไม่พอข้อมูล', zScore: null };
+  }
+
+  let isPriceTrendingUp = true;
+  if (history.length > 0 && currentPrice !== null && currentPrice !== undefined) {
+    const latestHistoricalPrice = history[history.length - 1]?.close ?? history[history.length - 1]?.price;
+    if (latestHistoricalPrice && currentPrice < latestHistoricalPrice) {
+      isPriceTrendingUp = false;
+    }
+  }
+
+  let phase: 'accumulation' | 'markup' | 'distribution' | 'markdown' = 'markup';
+  if (zScore <= -0.5) {
+    phase = isPriceTrendingUp ? 'markup' : 'accumulation';
+  } else if (zScore > -0.5 && zScore <= 1.0) {
+    phase = isPriceTrendingUp ? 'markup' : 'markdown';
+  } else {
+    phase = isPriceTrendingUp ? 'distribution' : 'markdown';
+  }
+
+  const labelMap = {
+    accumulation: 'สะสมพลัง',
+    markup: 'ขาขึ้น',
+    distribution: 'แจกจ่าย',
+    markdown: 'ขาลง'
+  };
+
+  return { phase, label: labelMap[phase], zScore };
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -42,8 +115,12 @@ export async function POST(request: Request) {
       deMax,
       peMax,
       pbvMax,
-      roeMin
+      roeMin,
+      marketCycleMode,
+      dividendStreakMin
     } = body;
+    const effectiveViScoreMin = viScoreMin !== undefined ? Math.min(Number(viScoreMin), 20) : undefined;
+    const effectiveDividendStreakMin = dividendStreakMin !== undefined ? Math.max(0, Number(dividendStreakMin)) : undefined;
 
     const cache: any = await getFundamentalsCache();
     if (!cache || !cache.tickers) {
@@ -153,18 +230,22 @@ export async function POST(request: Request) {
         pbvStats.avg
       );
       const viScore = scorecard.totalScore;
+      const marketCycle = getMarketCycle(history, currentPrice, latestPE, peStats, latestPBV, pbvStats);
+      const dividendStreakYears = getDividendStreakYears(enrichedHistory);
 
       // Check Filters
       if (epsGrowthMin !== undefined && (epsCAGR * 100) < epsGrowthMin) continue;
       if (dpsGrowthMin !== undefined && (dpsCAGR * 100) < dpsGrowthMin) continue;
       if (fScoreMin !== undefined && fScore < fScoreMin) continue;
       if (zScoreMin !== undefined && zScore < zScoreMin) continue;
-      if (viScoreMin !== undefined && viScore < viScoreMin) continue;
+      if (effectiveViScoreMin !== undefined && viScore < effectiveViScoreMin) continue;
       if (yieldMin !== undefined && latestYield < yieldMin) continue;
       if (deMax !== undefined && latestDE > deMax) continue;
       if (peMax !== undefined && (!latestPE || latestPE > peMax)) continue;
       if (pbvMax !== undefined && (!latestPBV || latestPBV > pbvMax)) continue;
       if (roeMin !== undefined && latestROE < roeMin) continue;
+      if (marketCycleMode !== undefined && marketCycle.phase !== marketCycleMode) continue;
+      if (effectiveDividendStreakMin !== undefined && dividendStreakYears < effectiveDividendStreakMin) continue;
 
       if (peBandMode === 'below_minus_1_sd') {
         if (!latestPE || !peStats.avg || latestPE > peMinus1SD) continue;
@@ -194,7 +275,11 @@ export async function POST(request: Request) {
         currentPrice,
         latestROE,
         latestDE,
-        latestYield
+        latestYield,
+        dividendStreakYears,
+        marketCycle: marketCycle.phase,
+        marketCycleLabel: marketCycle.label,
+        marketCycleZScore: marketCycle.zScore
       });
     }
 
