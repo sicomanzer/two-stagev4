@@ -1,12 +1,5 @@
 import type {Metadata} from 'next';
-import { Noto_Sans_Thai } from 'next/font/google';
 import './globals.css'; // Global styles
-
-const notoSansThai = Noto_Sans_Thai({
-  subsets: ['thai', 'latin'],
-  display: 'swap',
-  variable: '--font-noto-sans-thai',
-});
 
 export const metadata: Metadata = {
   title: 'VI Stock Analyzer — Two-Stage DDM Calculator',
@@ -15,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="th" suppressHydrationWarning className={notoSansThai.variable}>
-      <body className={`font-sans antialiased ${notoSansThai.className}`} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
             try {

@@ -42,7 +42,7 @@ export default function Scorecard({ scorecard }: ScorecardProps) {
               <span className="p-1.5 bg-white/50 rounded-lg shadow-sm border border-white/40 backdrop-blur-md">
                 🏆
               </span>
-              <h3 className="font-black text-lg tracking-tight">คะแนนคุณภาพ (VI Scorecard)</h3>
+              <h3 className="font-black text-lg tracking-tight">VI Quality Scorecard</h3>
             </div>
             <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">{scorecard.ticker}</p>
           </div>
@@ -86,9 +86,9 @@ export default function Scorecard({ scorecard }: ScorecardProps) {
         <div className="space-y-1">
           <div className="grid grid-cols-12 gap-1 text-[8px] font-black uppercase tracking-widest text-slate-400 px-2 mb-2">
             <div className="col-span-1"></div>
-            <div className="col-span-4">ตัวชี้วัด</div>
-            <div className="col-span-4">รายละเอียด</div>
-            <div className="col-span-3 text-right">คะแนน</div>
+            <div className="col-span-4">Metric</div>
+            <div className="col-span-4">Detail</div>
+            <div className="col-span-3 text-right">Score</div>
           </div>
           {scorecard.categories.map((cat, i) => (
             <div 

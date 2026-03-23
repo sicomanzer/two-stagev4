@@ -16,9 +16,9 @@ export default function ScenarioAnalysisPanel({ analysis }: ScenarioAnalysisPane
       <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4">
         <h3 className="text-white font-bold text-lg flex items-center gap-2">
           <span className="text-2xl">🎲</span>
-          {analysis.ticker} — การวิเคราะห์สถานการณ์จำลอง
+          {analysis.ticker} — Scenario Analysis
         </h3>
-        <p className="text-amber-100 text-xs mt-1">วิเคราะห์มูลค่าหุ้นตามสถานการณ์ต่างๆ (ดีเยี่ยม / ฐาน / เลวร้าย)</p>
+        <p className="text-amber-100 text-xs mt-1">วิเคราะห์มูลค่าหุ้นตาม Scenario ต่างๆ (Bull / Base / Bear)</p>
       </div>
 
       <div className="p-6 space-y-3">
@@ -68,7 +68,7 @@ export default function ScenarioAnalysisPanel({ analysis }: ScenarioAnalysisPane
               {/* Probability */}
               <div className="flex justify-between mt-1">
                 <span className="text-[8px] text-slate-500">
-                  โอกาสเกิด: {(scenario.probability * 100).toFixed(0)}%
+                  Prob: {(scenario.probability * 100).toFixed(0)}%
                 </span>
                 {analysis.currentPrice && (
                   <span className={`text-[8px] font-bold ${
@@ -88,7 +88,7 @@ export default function ScenarioAnalysisPanel({ analysis }: ScenarioAnalysisPane
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
-                ★ มูลค่าเหมาะสมตามความน่าจะเป็น
+                ★ Probability-Weighted Fair Value
               </p>
               <p className="text-2xl font-extrabold mt-0.5">
                 {analysis.weightedFairPrice.toFixed(2)} <span className="text-sm font-medium text-slate-400">บาท</span>
@@ -96,7 +96,7 @@ export default function ScenarioAnalysisPanel({ analysis }: ScenarioAnalysisPane
             </div>
             {analysis.currentPrice && (
               <div className="text-right">
-                <p className="text-[10px] text-slate-400">ราคาปัจจุบัน: ฿{analysis.currentPrice.toFixed(2)}</p>
+                <p className="text-[10px] text-slate-400">Current: ฿{analysis.currentPrice.toFixed(2)}</p>
                 <p className={`text-lg font-bold mt-0.5 ${
                   analysis.weightedFairPrice > analysis.currentPrice ? 'text-emerald-400' : 'text-red-400'
                 }`}>

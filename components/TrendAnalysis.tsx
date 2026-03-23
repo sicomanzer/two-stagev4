@@ -55,7 +55,7 @@ export default function TrendAnalysisPanel({ analysis }: TrendAnalysisPanelProps
       <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-4">
         <h3 className="text-white font-bold text-lg flex items-center gap-2">
           <span className="text-2xl">📈</span>
-          {analysis.ticker} — การวิเคราะห์แนวโน้ม
+          {analysis.ticker} — Trend Analysis
         </h3>
         <p className="text-blue-200 text-xs mt-1">วิเคราะห์แนวโน้มการเติบโตย้อนหลัง 3, 5, 10 ปี (CAGR)</p>
       </div>

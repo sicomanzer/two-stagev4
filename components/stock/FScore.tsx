@@ -42,12 +42,12 @@ export default function FScore({ fScore }: FScoreProps) {
               </span>
               <h3 className="font-black text-lg tracking-tight">Piotroski F-Score</h3>
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">สุขภาพทางการเงิน {fScore.year ? `(${fScore.year})` : ''}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">Financial Health {fScore.year ? `(${fScore.year})` : ''}</p>
           </div>
           <div className="text-right flex flex-col items-end">
             <span className="text-4xl font-black tracking-tighter mix-blend-multiply opacity-80">{fScore.score}<span className="text-xl opacity-50">/9</span></span>
             <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full mt-1 ${badgeColor} shadow-sm border border-white/50 backdrop-blur-md`}>
-              {fScore.grade === 'Strong' ? 'แข็งแกร่ง' : fScore.grade === 'Stable' ? 'มั่นคง' : 'อ่อนแอ'}
+              {fScore.grade}
             </span>
           </div>
         </div>
@@ -56,9 +56,9 @@ export default function FScore({ fScore }: FScoreProps) {
       {/* Criteria List */}
       <div className="p-2 flex-grow relative z-10 bg-white/40 backdrop-blur-sm">
         <div className="grid grid-cols-12 gap-2 px-4 py-2 text-[9px] uppercase font-black text-slate-400 tracking-widest">
-          <div className="col-span-7">เกณฑ์</div>
-          <div className="col-span-3 text-right">ค่าที่ได้</div>
-          <div className="col-span-2 text-center">ผ่าน</div>
+          <div className="col-span-7">Criteria</div>
+          <div className="col-span-3 text-right">Value</div>
+          <div className="col-span-2 text-center">Pass</div>
         </div>
         
         <div className="space-y-1">
@@ -87,7 +87,7 @@ export default function FScore({ fScore }: FScoreProps) {
       
       {/* Footer */}
       <div className="bg-white/40 backdrop-blur-md px-4 py-3 border-t border-white/20 text-[10px] font-bold text-center text-slate-500 uppercase tracking-widest relative z-10">
-        คะแนน ≥ 7 หมายถึง มีสุขภาพทางการเงินที่แข็งแกร่ง
+        Score ≥ 7 means Strong Financial Health
       </div>
     </div>
   );
