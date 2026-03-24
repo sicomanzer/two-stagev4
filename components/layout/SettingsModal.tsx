@@ -296,105 +296,16 @@ export default function SettingsModal({
             {activeTab === 'system' && (
               <div className="space-y-4 animate-in fade-in duration-200">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">คำสั่งอัปเดตข้อมูล (Data Update Command)</label>
-                  <div className="space-y-3">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">ระบบฐานข้อมูลหลัก (Database System)</label>
+                  <div className="mt-3 p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-start gap-3">
+                    <Database className="text-emerald-500 shrink-0 mt-0.5" size={20} />
                     <div>
-                      <div className="flex gap-2 mb-1">
-                        <input
-                          type="text"
-                          readOnly
-                          value="npm run sync:thaifin-cache"
-                          className="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 font-mono text-xs outline-none"
-                        />
-                      </div>
-                      <p className="text-[10px] text-slate-400">
-                        คำอธิบาย: ใช้สำหรับดึงข้อมูลงบการเงินปีล่าสุดจาก Server มาเก็บไว้ใน Cache (หุ้นที่กำหนด)
+                      <h3 className="text-sm font-bold text-emerald-800">Supabase Auto-Caching: โหมดทำงานอัตโนมัติเปิดอยู่</h3>
+                      <p className="text-[11px] text-emerald-600 mt-1 leading-relaxed">
+                        ระบบอัปเดตข้อมูลหุ้นทั้งหมดได้ถูกย้ายไปทำงานบน Cloud Database (Supabase) เรียบร้อยแล้ว (Phase 2 Migration). 
+                        ไม่ต้องกดปุ่มอัปเดตข้อมูลเองอีกต่อไป ระบบจะทำการดึงข้อมูลใหม่และบันทึกลง Database อัตโนมัติเมื่อมีการค้นหาหุ้น!
                       </p>
                     </div>
-                    
-                    <div>
-                      <div className="flex gap-2 mb-1">
-                        <input
-                          type="text"
-                          readOnly
-                          value="python scripts/sync_thaifin_cache.py --all"
-                          className="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 font-mono text-xs outline-none"
-                        />
-                      </div>
-                      <p className="text-[10px] text-slate-400">
-                        คำอธิบาย: ใช้สำหรับดึงข้อมูลงบการเงินของ &quot;ทุกหุ้น&quot; ในตลาด (ใช้เวลานานกว่า)
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <h3 className="text-xs font-semibold text-slate-700 mb-2">ขั้นตอนการอัปเดตข้อมูล:</h3>
-                    <ol className="list-decimal list-inside space-y-1 text-[10px] text-slate-500">
-                      <li>เปิด Terminal (หรือ Command Prompt) ในโฟลเดอร์โปรเจกต์</li>
-                      <li>พิมพ์คำสั่งด้านบนที่ต้องการ แล้วกด Enter</li>
-                      <li>รอจนกว่าระบบจะทำงานเสร็จ (สังเกตข้อความ &quot;Done&quot; หรือ &quot;Success&quot;)</li>
-                      <li>รีเฟรชหน้าเว็บเพื่อดูข้อมูลล่าสุด</li>
-                    </ol>
-                  </div>
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => runSync('default')}
-                      disabled={isSyncLoading || isClearCacheLoading}
-                      className="w-full py-2 px-3 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
-                    >
-                      {isSyncLoading && syncMode === 'default' && (
-                        <div 
-                          className="absolute left-0 top-0 bottom-0 bg-white/20 transition-all duration-300"
-                          style={{ width: `${syncProgress}%` }}
-                        />
-                      )}
-                      <span className="relative z-10">
-                        {isSyncLoading && syncMode === 'default' ? `กำลังอัปเดต... ${syncProgress}%` : 'อัปเดตหุ้นที่กำหนด'}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => runSync('all')}
-                      disabled={isSyncLoading || isClearCacheLoading}
-                      className="w-full py-2 px-3 bg-slate-800 text-white rounded-xl text-xs font-semibold hover:bg-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
-                    >
-                      {isSyncLoading && syncMode === 'all' && (
-                        <div 
-                          className="absolute left-0 top-0 bottom-0 bg-white/20 transition-all duration-300"
-                          style={{ width: `${syncProgress}%` }}
-                        />
-                      )}
-                      <span className="relative z-10">
-                        {isSyncLoading && syncMode === 'all' ? `กำลังอัปเดต... ${syncProgress}%` : 'อัปเดตทุกหุ้น'}
-                      </span>
-                    </button>
-                  </div>
-
-                  {isSyncLoading && syncStatusText && (
-                    <div className="mt-2 text-center text-[10px] text-emerald-600 font-medium animate-pulse">
-                      {syncStatusText}
-                    </div>
-                  )}
-                  
-                  <div className="mt-3">
-                    <button
-                      type="button"
-                      onClick={handleClearCache}
-                      disabled={isClearCacheLoading || isSyncLoading}
-                      className="w-full py-2 px-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden"
-                    >
-                      {isClearCacheLoading && (
-                        <div 
-                          className="absolute left-0 top-0 bottom-0 bg-red-200/50 transition-all duration-100"
-                          style={{ width: `${clearProgress}%` }}
-                        />
-                      )}
-                      <span className="relative z-10 flex items-center gap-2">
-                        <Trash2 size={14} />
-                        {isClearCacheLoading ? `กำลังเคลียร์แคช... ${clearProgress}%` : 'เคลียร์แคชข้อมูลหุ้น (Clear Cache)'}
-                      </span>
-                    </button>
                   </div>
                 </div>
 
