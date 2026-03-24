@@ -156,6 +156,8 @@ TTW`);
   const [reverseDdm, setReverseDdm] = useState<ReverseDDMResult | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [journalTicker, setJournalTicker] = useState<string | null>(null);
+  const [sector, setSector] = useState<string | null>(null);
+  const [industry, setIndustry] = useState<string | null>(null);
 
   // === Transaction Modal State ===
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
@@ -226,6 +228,9 @@ TTW`);
         setIsAssistantOpen(true);
         setAssistantMethod('sustainable');
       }
+
+      setSector(data.sector || null);
+      setIndustry(data.industry || null);
       
     } catch (err: any) {
       setError(`ไม่สามารถดึงข้อมูลหุ้น ${tickerToFetch} ได้: ${err.message}`);
@@ -619,7 +624,9 @@ TTW`);
             reverseDdm={reverseDdm}
             error={error}
             onSelectPeerTicker={handleSelectPeerTicker}
-          >
+            sector={sector}
+            industry={industry}
+            >
             {/* Pass InputForm as Children for Sidebar Layout */}
             <InputForm
                 mode={mode}

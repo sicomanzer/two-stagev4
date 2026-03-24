@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { AlertCircle, CheckCircle2, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertCircle, CheckCircle2, XCircle, ChevronDown, ChevronUp, Sparkles, Loader2 } from 'lucide-react';
 import StockCharts from '@/components/StockCharts';
 import ConsensusDashboard from '@/components/ConsensusDashboard';
 import Scorecard from '@/components/Scorecard';
@@ -41,6 +41,8 @@ interface SingleStockViewProps {
   reverseDdm: ReverseDDMResult | null;
   error: string | null;
   onSelectPeerTicker: (ticker: string) => void;
+  sector?: string | null;
+  industry?: string | null;
 }
 
 export default function SingleStockView({
@@ -59,18 +61,62 @@ export default function SingleStockView({
   investmentSignal,
   reverseDdm,
   error,
-  onSelectPeerTicker
+  onSelectPeerTicker,
+  sector,
+  industry
 }: SingleStockViewProps) {
   // Use useEffect to update showAdvanced based on result changes
   const [showAdvanced, setShowAdvanced] = React.useState(!!result);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
   
   React.useEffect(() => {
     if (result) {
       setShowAdvanced(true);
+      setAiAnalysis(null); // Reset when ticker changes
     } else {
       setShowAdvanced(false);
     }
-  }, [result]);
+  }, [result, ticker]);
+
+  const handleRunAI = async () => {
+    if (!ticker || stockHistory.length === 0) return;
+    setIsAiLoading(true);
+    setAiAnalysis(null);
+    try {
+      const metrics = {
+        pe: latestPe,
+        pbv: latestPbv,
+        roe: latestRoe,
+        de: stockHistory.find(h => h.de !== null)?.de,
+        yield: scorecard ? scorecard.categories.find(c => c.name.includes('Dividend'))?.score : null, // Fallback
+        fScore: fScore?.score || 0,
+        zScore: zScore?.score || 0
+      };
+
+      const res = await fetch('/api/ai/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticker,
+          history: stockHistory.slice(-10), 
+          metrics,
+          sector,
+          industry
+        })
+      });
+      const data = await res.json();
+      if (data.analysis) {
+        setAiAnalysis(data.analysis);
+      } else {
+        throw new Error(data.error || 'Failed to get analysis');
+      }
+    } catch (err: any) {
+      alert(`AI Analysis Error: ${err.message}`);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   if (error) {
     return (
@@ -355,6 +401,58 @@ export default function SingleStockView({
                 </table>
               </div>
             </div>
+           )}
+
+           {/* 2.7 AI Analysis Action & Box */}
+           {result && (
+             <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl p-4 shadow-lg border border-slate-800 text-white relative overflow-hidden group">
+               {/* Animated Decorators */}
+               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+               
+               <div className="relative z-10">
+                 <div className="flex justify-between items-center mb-3">
+                   <div className="flex items-center gap-2">
+                     <Sparkles className="text-indigo-400" size={18} />
+                     <h3 className="text-sm font-bold text-indigo-100 tracking-tight">AI Moat Analyst (Qwen 2.5)</h3>
+                   </div>
+                   {!aiAnalysis && !isAiLoading && (
+                     <button 
+                       onClick={handleRunAI}
+                       className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg active:scale-95"
+                     >
+                       วิเคราะห์เลย
+                     </button>
+                   )}
+                 </div>
+
+                 {isAiLoading ? (
+                   <div className="py-8 flex flex-col items-center justify-center gap-3 text-indigo-200">
+                     <Loader2 className="animate-spin" size={24} />
+                     <p className="text-[10px] font-medium tracking-widest uppercase">สรุปงบ 10 ปีให้อัตโนมัติ...</p>
+                   </div>
+                 ) : aiAnalysis ? (
+                   <div className="mt-2 space-y-4">
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 max-h-[400px] overflow-y-auto hide-scrollbar">
+                        <div className="prose prose-invert prose-xs text-[11px] leading-relaxed text-slate-200 whitespace-pre-wrap">
+                          {aiAnalysis}
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setAiAnalysis(null)}
+                        className="w-full py-2 border border-white/10 rounded-xl text-[10px] font-bold text-slate-400 hover:bg-white/5 transition-colors"
+                      >
+                        Reset Analysis
+                      </button>
+                   </div>
+                 ) : (
+                   <div className="py-2">
+                     <p className="text-[10px] text-indigo-200/60 leading-relaxed italic border-l-2 border-indigo-500/30 pl-3">
+                       ประมวลผลหุ้นผ่านปัจจัยเชิงคุณภาพ: คูเมืองธุรกิจ, ความยั่งยืนของกำไร, และความเสี่ยง (Open Source Model)
+                     </p>
+                   </div>
+                 )}
+               </div>
+             </div>
            )}
 
            {/* 4. Peer Comparison */}
