@@ -5,6 +5,7 @@ import { calculateFScore, calculateZScore } from '@/lib/calculations';
 // import fundamentalsCache from '@/data/fundamentals-cache.json'; // Removed static import to prevent large bundle size
 
 import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 // Lazy load the large JSON file
 async function getFundamentalsCache() {
@@ -74,19 +75,62 @@ const mergeFundamentalsToYearMap = (yearMap: Map<number, any>, fundamentals: any
 
 async function readFundamentalsCache(ticker: string) {
   try {
-    const cache = await getFundamentalsCache();
-    if (!cache) return null;
-
     const tickerKey = ticker.toUpperCase();
-    const node = (cache as any)?.tickers?.[tickerKey] || (cache as any)?.[tickerKey];
-    if (node && Array.isArray(node.history)) {
-      return node.history;
+
+    // 1. Try Supabase Database first
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('stock_fundamentals')
+        .select('history')
+        .eq('ticker', tickerKey)
+        .single();
+        
+      if (!error && data && data.history) {
+        console.log(`[Cache] Retrieved ${tickerKey} from Supabase DB`);
+        return data.history;
+      }
+    }
+
+    // 2. Fallback to Local JSON 
+    console.log(`[Cache] Fetching ${tickerKey} from local JSON fallback...`);
+    const cache = await getFundamentalsCache();
+    if (cache) {
+      const node = (cache as any)?.tickers?.[tickerKey] || (cache as any)?.[tickerKey];
+      if (node && Array.isArray(node.history)) {
+        return node.history;
+      }
     }
   } catch (e) {
-    console.warn('Error reading local cache:', e);
+    console.warn('Error reading cache:', e);
   }
   return null;
 }
+
+// Helper to save missing cache aggressively back to Supabase
+async function saveToSupabaseCache(ticker: string, history: any[], info: any = {}) {
+  try {
+    if (!supabaseAdmin) return;
+    const tickerKey = ticker.toUpperCase();
+    
+    const { error } = await supabaseAdmin.from('stock_fundamentals').upsert({
+      ticker: tickerKey,
+      company_name: info.companyName || null,
+      sector: info.sector || null,
+      industry: info.industry || null,
+      history: history,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'ticker' });
+
+    if (error) {
+      console.warn(`[Supabase] Failed to upsert cache for ${tickerKey}:`, error.message);
+    } else {
+      console.log(`[Supabase] Ingested history for ${tickerKey} into DB`);
+    }
+  } catch (err) {
+    // silently fail cache writes
+  }
+}
+
 
 export async function GET(request: Request) {
   // Try to suppress notices if the method exists
@@ -758,6 +802,15 @@ export async function GET(request: Request) {
     // Final history construction
     const history = Array.from(yearMap.values())
          .sort((a, b) => a.year - b.year); // Sort by year ascending
+
+    // [New] Cache generated history to Supabase asynchronously after building!
+    if (history.length > 0) {
+       saveToSupabaseCache(symbol, history, {
+         sector: quote.summaryProfile?.sector,
+         industry: quote.summaryProfile?.industry,
+         companyName: quote.price?.longName
+       });
+    }
 
     // Manual Overrides for known incorrect data from Yahoo
     const overrides: Record<string, number> = {

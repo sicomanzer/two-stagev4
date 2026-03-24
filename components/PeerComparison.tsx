@@ -208,7 +208,7 @@ export default function PeerComparison({ mainTicker, onSelectTicker }: PeerCompa
   const avgROE = calculateAvg('roe');
   const avgDE = calculateAvg('de');
   const avgYield = calculateAvg('yield');
-  const sortedPeersData = [...peersData].sort((a, b) => {
+  let sortedPeersData = [...peersData].sort((a, b) => {
     if (a.isLoading !== b.isLoading) return a.isLoading ? 1 : -1;
     if (!!a.error !== !!b.error) return a.error ? 1 : -1;
     if (a.score === null && b.score === null) return a.ticker.localeCompare(b.ticker);
@@ -216,6 +216,20 @@ export default function PeerComparison({ mainTicker, onSelectTicker }: PeerCompa
     if (b.score === null) return -1;
     return b.score - a.score;
   });
+
+  // Limit to top 10, but always ensure main ticker is visible
+  if (sortedPeersData.length > 10) {
+    const mainTickerIndex = sortedPeersData.findIndex(p => p.ticker === mainTicker.toUpperCase());
+    
+    if (mainTickerIndex >= 10) {
+      // Main ticker is outside top 10, keep top 9 + main ticker at the bottom
+      const top9 = sortedPeersData.slice(0, 9);
+      sortedPeersData = [...top9, sortedPeersData[mainTickerIndex]];
+    } else {
+      // Main ticker is inside top 10
+      sortedPeersData = sortedPeersData.slice(0, 10);
+    }
+  }
 
   return (
     <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 flex flex-col gap-6 relative overflow-hidden">

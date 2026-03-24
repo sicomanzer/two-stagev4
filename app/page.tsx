@@ -5,13 +5,13 @@ import {
   calculateDDM, calculateGrahamNumber, 
   calculateConsensus, calculateScorecard, calculateTrendAnalysis,
   calculateScenarioAnalysis, getStatus as getStatusCalc, calculateShares as calcShares, calculateDCF,
-  calculateInvestmentSignal
+  calculateInvestmentSignal, calculateImpliedGrowth
 } from '@/lib/calculations';
 import SettingsModal from '@/components/layout/SettingsModal';
-import { 
+import type { 
   ValuationConsensus, StockScorecard, TrendAnalysis, ScenarioAnalysis as ScenarioAnalysisType,
   StockHistory, RatioBands, DDMResult, ScreeningResult, AppMode, BudgetMode, AllocationRatio, GrowthMethod,
-  FScoreResult, ZScoreResult, InvestmentSignal
+  FScoreResult, ZScoreResult, InvestmentSignal, ReverseDDMResult
 } from '@/types/stock';
 import Header from '@/components/layout/Header';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -153,6 +153,7 @@ TTW`);
   const [trendAnalysis, setTrendAnalysis] = useState<TrendAnalysis | null>(null);
   const [scenarioAnalysis, setScenarioAnalysis] = useState<ScenarioAnalysisType | null>(null);
   const [investmentSignal, setInvestmentSignal] = useState<InvestmentSignal | null>(null);
+  const [reverseDdm, setReverseDdm] = useState<ReverseDDMResult | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [journalTicker, setJournalTicker] = useState<string | null>(null);
 
@@ -282,6 +283,10 @@ TTW`);
         
         const res = calculateDDM(ticker || 'Unknown', d0Num, gNum, ksNum, yearsNum, currentPriceNum);
         setResult(res);
+        
+        const reverseDdmRes = calculateImpliedGrowth(currentPriceNum, d0Num, ksNum);
+        setReverseDdm(reverseDdmRes);
+
         let consensusResult: ValuationConsensus | null = null;
         let sc: StockScorecard | null = null;
         let trend: TrendAnalysis | null = null;
@@ -611,6 +616,7 @@ TTW`);
             trendAnalysis={trendAnalysis}
             scenarioAnalysis={scenarioAnalysis}
             investmentSignal={investmentSignal}
+            reverseDdm={reverseDdm}
             error={error}
             onSelectPeerTicker={handleSelectPeerTicker}
           >

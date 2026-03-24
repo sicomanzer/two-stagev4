@@ -19,7 +19,8 @@ import {
   RatioBands,
   FScoreResult,
   ZScoreResult,
-  InvestmentSignal
+  InvestmentSignal,
+  ReverseDDMResult
 } from '@/types/stock';
 import MarketCyclePanel from '@/components/stock/MarketCyclePanel';
 
@@ -37,6 +38,7 @@ interface SingleStockViewProps {
   trendAnalysis: TrendAnalysis | null;
   scenarioAnalysis: ScenarioAnalysis | null;
   investmentSignal: InvestmentSignal | null;
+  reverseDdm: ReverseDDMResult | null;
   error: string | null;
   onSelectPeerTicker: (ticker: string) => void;
 }
@@ -55,6 +57,7 @@ export default function SingleStockView({
   trendAnalysis,
   scenarioAnalysis,
   investmentSignal,
+  reverseDdm,
   error,
   onSelectPeerTicker
 }: SingleStockViewProps) {
@@ -265,6 +268,48 @@ export default function SingleStockView({
                 </div>
               )}
             </div>
+           )}
+
+           {/* 2.5 Reverse DDM widget (Market Expectation) */}
+           {reverseDdm && (
+             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-sm relative overflow-hidden group">
+               <div className="flex justify-between items-start mb-2 relative z-10">
+                 <div>
+                   <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m19 12-7 7-7-7"/></svg>
+                     Reverse Valuation 
+                   </h3>
+                   <p className="text-[10px] text-slate-500 mt-0.5 max-w-[200px] leading-tight">ความคาดหวังการเติบโตที่แฝงอยู่ในราคาตลาด ณ ปัจจุบัน</p>
+                 </div>
+                 <div className={`p-1.5 rounded-lg border flex flex-col items-center justify-center min-w-[60px] ${
+                   !reverseDdm.isRealistic ? 'bg-red-50 border-red-200 text-red-600' :
+                   reverseDdm.marketExpectationStatus === 'High' ? 'bg-amber-50 border-amber-200 text-amber-600' :
+                   'bg-emerald-50 border-emerald-200 text-emerald-600'
+                 }`}>
+                   <span className="text-base font-black">{(reverseDdm.impliedG * 100).toFixed(2)}%</span>
+                   <span className="text-[8px] font-bold uppercase tracking-wider opacity-70">Implied g</span>
+                 </div>
+               </div>
+               
+               <div className="mt-3 relative z-10">
+                 {!reverseDdm.isRealistic ? (
+                    <div className="text-xs text-red-600 bg-red-100/50 p-2 rounded-lg border border-red-100 flex items-start gap-1.5">
+                      <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                      <span>ราคานี้สะท้อนการเติบโตคาดหวังที่เกินจริงไปมาก (ฟองสบู่) หรือมีข้อบกพร่องทางปันผล</span>
+                    </div>
+                 ) : reverseDdm.marketExpectationStatus === 'High' ? (
+                    <div className="text-xs text-amber-700 bg-amber-100/50 p-2 rounded-lg border border-amber-100 flex items-start gap-1.5">
+                      <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                      <span>ตลาดคาดหวังสูง บริษัทต้องโตเกิน ${(0.10 * 100).toFixed(0)}% ต่อปีไปเรื่อยๆ เพื่อรักษาราดานี้</span>
+                    </div>
+                 ) : (
+                    <div className="text-xs text-emerald-700 bg-emerald-100/50 p-2 rounded-lg border border-emerald-100 flex items-start gap-1.5">
+                      <CheckCircle2 size={14} className="shrink-0 mt-0.5" />
+                      <span>ตลาดคาดหวังการเติบโตที่เป็นไปได้ หากคุณเชื่อว่าบริษัทโตได้มากกว่านี้ หุ้นตัวนี้จะน่าสนใจ</span>
+                    </div>
+                 )}
+               </div>
+             </div>
            )}
 
            {/* 3. Assumption Table */}

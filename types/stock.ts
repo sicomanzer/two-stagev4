@@ -129,6 +129,12 @@ export interface DDMResult {
   tableData: DDMTableRow[];
 }
 
+export interface ReverseDDMResult {
+  impliedG: number;
+  isRealistic: boolean;
+  marketExpectationStatus: 'High' | 'Moderate' | 'Low';
+}
+
 // ===== Multi-Model Valuation Types =====
 
 export interface GrahamResult {

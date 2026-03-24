@@ -9,7 +9,7 @@ import type {
   TrendAnalysis, CAGRData, Scenario, ScenarioAnalysis,
   StockHistory, ScreeningResult, AllocationRatio,
   FScoreResult, FScoreCriteria,
-  ZScoreResult, ZScoreComponent, InvestmentSignal
+  ZScoreResult, ZScoreComponent, InvestmentSignal, ReverseDDMResult
 } from '@/types/stock';
 
 // ===================================================================
@@ -101,6 +101,30 @@ export function calculateDDM(
     tableData,
   };
 }
+
+export function calculateImpliedGrowth(currentPrice: number | null, d0: number, ks: number): ReverseDDMResult | null {
+  if (!currentPrice || currentPrice <= 0 || d0 < 0 || ks <= 0) return null;
+  
+  // Formula: g = (Price * ks - D0) / (Price + D0)
+  const impliedG = (currentPrice * ks - d0) / (currentPrice + d0);
+  
+  let expectationStatus: 'High' | 'Moderate' | 'Low' = 'Moderate';
+  if (impliedG >= 0.10) {
+    expectationStatus = 'High';
+  } else if (impliedG <= 0.03) {
+    expectationStatus = 'Low';
+  }
+
+  // Realistic boundary check: it's very hard for a mature dividend stock to grow > 15% perpetually.
+  const isRealistic = impliedG < 0.15 && impliedG >= 0;
+
+  return {
+    impliedG,
+    isRealistic,
+    marketExpectationStatus: expectationStatus
+  };
+}
+
 
 // ===================================================================
 // 2. GRAHAM NUMBER (Benjamin Graham)
