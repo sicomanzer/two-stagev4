@@ -85,6 +85,7 @@ export default function SingleStockView({
     setIsAiLoading(true);
     setAiAnalysis(null);
     try {
+      // Build data for prompt
       const latestDe = stockHistory.slice().reverse().find(h => h.de !== null && h.de !== undefined)?.de;
       const latestDps = stockHistory.slice().reverse().find(h => h.dps !== null && h.dps !== undefined)?.dps;
       const divYield = (latestDps && currentPrice) ? (latestDps / currentPrice * 100) : null;
@@ -92,9 +93,9 @@ export default function SingleStockView({
       const metrics = {
         pe: latestPe,
         pbv: latestPbv,
-        roe: latestRoe,  // Already in % format (e.g. 20.5 = 20.5%)
+        roe: latestRoe,  // Already in % format
         de: latestDe,    // Latest D/E value
-        yield: divYield,  // Calculated actual dividend yield %
+        yield: divYield,  // Calculated actual dividend yield
         fScore: fScore?.score || 0,
         zScore: zScore?.score || 0
       };
