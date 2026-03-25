@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Info, TrendingUp, AlertTriangle, ShieldCheck, Download, ChevronUp, ChevronDown, ChevronsUpDown, ExternalLink, Zap, Target } from 'lucide-react';
+import { Search, Info, TrendingUp, AlertTriangle, ShieldCheck, Download, ChevronUp, ChevronDown, ChevronsUpDown, ExternalLink, Zap, Target, Brain, Sparkles, Loader2, RefreshCcw } from 'lucide-react';
 
 type ScreenerPreset = 'previous' | 'latest' | 'no_filter' | 'vi' | 'high_dividend' | 'safe_haven' | 'quality_dividend';
 
@@ -82,6 +82,9 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
   const [results, setResults] = useState<any[]>([]);
   const [stats, setStats] = useState<{ total: number; matched: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
   
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'viScore', direction: 'desc' });
 
@@ -248,10 +251,42 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
       const data = await res.json();
       setResults(data.results);
       setStats({ total: data.total, matched: data.matched });
+      setAiSummary(null); // Reset AI summary when new scan is run
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGenerateAISummary = async () => {
+    if (!results || results.length === 0) return;
+    setIsAiLoading(true);
+    setAiSummary(null);
+    try {
+      const criteria = {
+        preset, epsGrowthMin, dividendStreakMin, peMax, pbvMax, roeMin, viScoreMin
+      };
+
+      const res = await fetch('/api/ai/screener', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          results: sortedResults,
+          criteria
+        })
+      });
+
+      const data = await res.json();
+      if (data.summary) {
+        setAiSummary(data.summary);
+      } else {
+        throw new Error(data.error || 'Failed to generate summary');
+      }
+    } catch (err: any) {
+      alert(`AI Summary Error: ${err.message}`);
+    } finally {
+      setIsAiLoading(false);
     }
   };
 
@@ -523,6 +558,51 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
               )}
             </div>
           </div>
+
+          {/* AI Screener Assistant (Idea 1) */}
+          {results.length > 0 && (
+            <div className="mb-6">
+              {!aiSummary && !isAiLoading ? (
+                <button 
+                  onClick={handleGenerateAISummary}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 border border-indigo-200 text-indigo-700 font-bold rounded-2xl transition-all shadow-sm group"
+                >
+                  <Brain className="text-indigo-500 group-hover:scale-110 transition-transform" size={18} />
+                  ให้ AI ช่วยสรุปภาพรวมหุ้นกลุ่มนี้ (Qwen 3)
+                  <Sparkles className="text-indigo-400" size={16} />
+                </button>
+              ) : (
+                <div className="bg-gradient-to-br from-[#0f172a] to-[#1e1b4b] rounded-2xl p-5 shadow-lg relative overflow-hidden border border-indigo-500/30">
+                  <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl"></div>
+                  
+                  <div className="flex items-center justify-between mb-4 relative z-10 border-b border-indigo-500/20 pb-3">
+                    <div className="flex items-center gap-2 text-indigo-200 font-bold">
+                      <Brain size={20} className="text-indigo-400" />
+                      AI Screener Summarizer
+                    </div>
+                    {aiSummary && (
+                      <button onClick={handleGenerateAISummary} disabled={isAiLoading} className="text-indigo-400 hover:text-white transition-colors" title="วิเคราะห์ใหม่">
+                        <RefreshCcw size={16} className={isAiLoading ? 'animate-spin' : ''} />
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="relative z-10 text-indigo-100 text-sm leading-relaxed">
+                    {isAiLoading ? (
+                      <div className="flex flex-col items-center justify-center py-6 gap-3">
+                        <Loader2 className="animate-spin text-indigo-400" size={24} />
+                        <p className="text-xs text-indigo-300 font-medium tracking-widest uppercase">กำลังวิเคราะห์ผลลัพธ์การสแกน...</p>
+                      </div>
+                    ) : (
+                      <div className="prose prose-invert prose-sm max-w-none text-slate-200 whitespace-pre-wrap">
+                        {aiSummary}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {results.length > 0 ? (
             <div className="overflow-x-auto rounded-2xl border border-slate-200 max-h-[600px] shadow-sm bg-white">
