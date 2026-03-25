@@ -9,25 +9,39 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Groq API Key not configured.' }, { status: 500 });
     }
 
-    // Logic: Construct a prompt that summarizes the 10-15 year history
-    const historySummary = history.map((h: any) => 
-      `${h.year}: Revenue=${h.revenue}, NetProfit=${h.netProfit}, ROE=${(h.roe * 100).toFixed(1)}%, DE=${h.de}, Div=${h.dps}`
-    ).join('\n');
+    // Build safe history summary with null checks
+    const historySummary = history.map((h: any) => {
+      const roe = h.roe != null ? `${Number(h.roe).toFixed(1)}%` : 'N/A';
+      const de = h.de != null ? Number(h.de).toFixed(2) : 'N/A';
+      const rev = h.revenue != null ? h.revenue.toLocaleString() : 'N/A';
+      const np = h.netProfit != null ? h.netProfit.toLocaleString() : 'N/A';
+      const dps = h.dps != null ? h.dps : 'N/A';
+      return `${h.year}: Revenue=${rev}, NetProfit=${np}, ROE=${roe}, DE=${de}, Div=${dps}`;
+    }).join('\n');
+
+    // Safe metric formatting (values already in correct units from frontend)
+    const fmtPe = metrics.pe != null ? Number(metrics.pe).toFixed(2) : 'N/A';
+    const fmtPbv = metrics.pbv != null ? Number(metrics.pbv).toFixed(2) : 'N/A';
+    const fmtRoe = metrics.roe != null ? `${Number(metrics.roe).toFixed(1)}%` : 'N/A';
+    const fmtDe = metrics.de != null ? Number(metrics.de).toFixed(2) : 'N/A';
+    const fmtYield = metrics.yield != null ? `${Number(metrics.yield).toFixed(2)}%` : 'N/A';
+    const fmtFScore = metrics.fScore ?? 'N/A';
+    const fmtZScore = metrics.zScore != null ? Number(metrics.zScore).toFixed(2) : 'N/A';
 
     const prompt = `You are an expert Value Investor (VI) and Financial Analyst. 
-Analyze the following stock data for "${ticker}" (${industry} / ${sector}).
+Analyze the following stock data for "${ticker}" (${industry || 'N/A'} / ${sector || 'N/A'}).
 
 STOCK HISTORY (Last 10+ Years):
 ${historySummary}
 
 CURRENT METRICS:
-- P/E: ${metrics.pe}
-- P/BV: ${metrics.pbv}
-- ROE: ${(metrics.roe * 100).toFixed(1)}%
-- D/E: ${metrics.de}
-- Dividend Yield: ${(metrics.yield * 100).toFixed(1)}%
-- F-Score: ${metrics.fScore}/9
-- Z-Score: ${metrics.zScore}
+- P/E: ${fmtPe}
+- P/BV: ${fmtPbv}
+- ROE: ${fmtRoe}
+- D/E: ${fmtDe}
+- Dividend Yield: ${fmtYield}
+- F-Score: ${fmtFScore}/9
+- Z-Score: ${fmtZScore}
 
 TASK:
 Provide a detailed qualitative analysis in THAI language.

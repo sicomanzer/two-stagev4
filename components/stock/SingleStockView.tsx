@@ -84,12 +84,16 @@ export default function SingleStockView({
     setIsAiLoading(true);
     setAiAnalysis(null);
     try {
+      const latestDe = stockHistory.slice().reverse().find(h => h.de !== null && h.de !== undefined)?.de;
+      const latestDps = stockHistory.slice().reverse().find(h => h.dps !== null && h.dps !== undefined)?.dps;
+      const divYield = (latestDps && currentPrice) ? (latestDps / currentPrice * 100) : null;
+
       const metrics = {
         pe: latestPe,
         pbv: latestPbv,
-        roe: latestRoe,
-        de: stockHistory.find(h => h.de !== null)?.de,
-        yield: scorecard ? scorecard.categories.find(c => c.name.includes('Dividend'))?.score : null, // Fallback
+        roe: latestRoe,  // Already in % format (e.g. 20.5 = 20.5%)
+        de: latestDe,    // Latest D/E value
+        yield: divYield,  // Calculated actual dividend yield %
         fScore: fScore?.score || 0,
         zScore: zScore?.score || 0
       };
