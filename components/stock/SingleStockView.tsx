@@ -515,6 +515,7 @@ export default function SingleStockView({
           
           <div className="grid grid-cols-1 gap-6">
             <MarketCyclePanel 
+              ticker={ticker}
               ratioBands={ratioBands} 
               stockHistory={stockHistory} 
               currentPrice={currentPrice} 

@@ -1,13 +1,16 @@
-import React from 'react';
-import { RefreshCcw, Activity, TrendingUp, AlertTriangle, ArrowDownRight, Info } from 'lucide-react';
+import React, { useState } from 'react';
+import { RefreshCcw, Activity, TrendingUp, AlertTriangle, ArrowDownRight, Info, Brain, Sparkles, Loader2 } from 'lucide-react';
 
 interface MarketCyclePanelProps {
+  ticker: string;
   ratioBands: any;
   stockHistory: any[];
   currentPrice: number | null;
 }
 
-export default function MarketCyclePanel({ ratioBands, stockHistory, currentPrice }: MarketCyclePanelProps) {
+export default function MarketCyclePanel({ ticker, ratioBands, stockHistory, currentPrice }: MarketCyclePanelProps) {
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
   // 1. Calculate Z-Score to determine valuation extreme
   let zScorePE = 0;
   let hasData = false;
@@ -113,6 +116,37 @@ export default function MarketCyclePanel({ ratioBands, stockHistory, currentPric
     );
   }
 
+  const handleGetAdvice = async () => {
+    setIsAiLoading(true);
+    setAiAdvice(null);
+    try {
+      const res = await fetch('/api/ai/timing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticker,
+          currentPhaseName: phases[currentPhase-1].name,
+          zScorePE,
+          isPriceTrendingUp,
+          currentPrice,
+          peAvg,
+          pbvAvg
+        })
+      });
+
+      const data = await res.json();
+      if (data.advice) {
+        setAiAdvice(data.advice);
+      } else {
+        throw new Error(data.error || 'Failed to get AI advice');
+      }
+    } catch (err: any) {
+      alert(`AI Timing Error: ${err.message}`);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden h-full">
       <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
@@ -182,6 +216,45 @@ export default function MarketCyclePanel({ ratioBands, stockHistory, currentPric
               "{phases[currentPhase-1].lesson}"
             </div>
           </div>
+        </div>
+
+        {/* AI Timing Advisor (Idea 2) */}
+        <div className="mt-4 pt-4 border-t border-slate-200/50">
+          {!aiAdvice && !isAiLoading ? (
+            <button 
+              onClick={handleGetAdvice}
+              className={`w-full flex items-center justify-center gap-2 py-2.5 bg-white/50 hover:bg-white border ${phases[currentPhase-1].borderColor} ${phases[currentPhase-1].color} font-bold rounded-xl transition-all shadow-sm group`}
+            >
+              <Brain size={16} className="group-hover:scale-110 transition-transform" />
+              ขอคำแนะนำจาก AI (Timing Advisor)
+              <Sparkles size={14} className="opacity-70" />
+            </button>
+          ) : (
+            <div className={`bg-white rounded-xl p-4 border shadow-sm relative overflow-hidden ${phases[currentPhase-1].borderColor}`}>
+              <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                <div className={`flex items-center gap-2 font-bold text-sm ${phases[currentPhase-1].color}`}>
+                  <Brain size={16} />
+                  AI Timing Advisor
+                </div>
+                {aiAdvice && (
+                  <button onClick={handleGetAdvice} disabled={isAiLoading} className="text-slate-400 hover:text-slate-600 transition-colors" title="วิเคราะห์ใหม่">
+                    <RefreshCcw size={14} className={isAiLoading ? 'animate-spin' : ''} />
+                  </button>
+                )}
+              </div>
+              
+              <div className="text-slate-700 text-sm leading-relaxed">
+                {isAiLoading ? (
+                  <div className="flex items-center gap-3 py-2 text-slate-400">
+                    <Loader2 className="animate-spin" size={16} />
+                    <span className="text-xs font-semibold uppercase tracking-wider">Analyzing cycle data...</span>
+                  </div>
+                ) : (
+                  <p>{aiAdvice}</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       
