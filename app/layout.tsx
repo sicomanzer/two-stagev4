@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css'; // Global styles
+import FloatingChatbot from '@/components/layout/FloatingChatbot';
 
 export const metadata: Metadata = {
   title: 'VI Stock Analyzer — Two-Stage DDM Calculator',
@@ -56,6 +57,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           })();
         ` }} />
         {children}
+        <FloatingChatbot />
       </body>
     </html>
   );
