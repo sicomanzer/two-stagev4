@@ -42,11 +42,11 @@ FORMAT: Use bullet points or short paragraphs with emojis for readability. Do no
       body: JSON.stringify({
         model: 'qwen/qwen3-32b',
         messages: [
-          { role: 'system', content: 'You are a professional Thai Stock Screener Analyst.' },
+          { role: 'system', content: 'You are a professional Thai Stock Screener Analyst. You MUST output your final answer securely in THAI language only.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.2,
-        max_tokens: 1024,
+        max_tokens: 2048,
       }),
     });
 
@@ -56,7 +56,11 @@ FORMAT: Use bullet points or short paragraphs with emojis for readability. Do no
     }
 
     let aiResponse = data.choices[0].message.content;
-    aiResponse = aiResponse.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    aiResponse = aiResponse.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim();
+
+    if (!aiResponse) {
+      aiResponse = "วิเคราะห์ข้อมูลซับซ้อนเกินกว่ากำหนดเวลาชั่วคราว กรุณากดขอคำแนะนำใหม่อีกครั้งครับ 🔄";
+    }
 
     return NextResponse.json({ summary: aiResponse });
 

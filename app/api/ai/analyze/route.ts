@@ -61,11 +61,11 @@ FORMAT: Use clean Markdown with emojis. Keep it professional but easy to read.`;
       body: JSON.stringify({
         model: 'qwen/qwen3-32b',
         messages: [
-          { role: 'system', content: 'You are a professional Thai Stock Analyst specializing in Value Investing.' },
+          { role: 'system', content: 'You are a professional Thai Stock Market Analyst. You MUST output your final answer securely in THAI language only. Do NOT output english.' },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.2,
-        max_tokens: 2048,
+        temperature: 0.2, // Low temp for more factual/analytical response
+        max_tokens: 2500, // Important: Increase tokens to allow reasoning AND final output
       }),
     });
 
@@ -75,8 +75,13 @@ FORMAT: Use clean Markdown with emojis. Keep it professional but easy to read.`;
     }
 
     let aiResponse = data.choices[0].message.content;
-    // Qwen3 includes <think>...</think> reasoning blocks - strip them for clean output
-    aiResponse = aiResponse.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    
+    // Remove reasoning tags, handling truncated tags if max_tokens was hit
+    aiResponse = aiResponse.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim();
+
+    if (!aiResponse) {
+      aiResponse = "วิเคราะห์ข้อมูลซับซ้อนเกินกว่ากำหนดเวลาชั่วคราว กรุณากดขอคำแนะนำใหม่อีกครั้งครับ 🔄";
+    }
     return NextResponse.json({ analysis: aiResponse });
 
   } catch (error: any) {

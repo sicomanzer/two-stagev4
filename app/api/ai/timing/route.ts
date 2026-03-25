@@ -34,11 +34,11 @@ FORMAT: Do not use Markdown headings. Just output the short Thai paragraph with 
       body: JSON.stringify({
         model: 'qwen/qwen3-32b',
         messages: [
-          { role: 'system', content: 'You are a professional Thai VI Timing Advisor.' },
+          { role: 'system', content: 'You are a professional Thai VI Timing Advisor. You MUST output your final answer securely in THAI language only.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.3,
-        max_tokens: 500,
+        max_tokens: 1500,
       }),
     });
 
@@ -48,7 +48,11 @@ FORMAT: Do not use Markdown headings. Just output the short Thai paragraph with 
     }
 
     let aiResponse = data.choices[0].message.content;
-    aiResponse = aiResponse.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    aiResponse = aiResponse.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim();
+
+    if (!aiResponse) {
+      aiResponse = "วิเคราะห์ข้อมูลซับซ้อนเกินกว่ากำหนดเวลาชั่วคราว กรุณากดขอคำแนะนำใหม่อีกครั้งครับ 🔄";
+    }
 
     return NextResponse.json({ advice: aiResponse });
 
