@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { AlertCircle, CheckCircle2, XCircle, ChevronDown, ChevronUp, Sparkles, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, XCircle, ChevronDown, ChevronUp, Sparkles, Loader2, X, Brain } from 'lucide-react';
 import StockCharts from '@/components/StockCharts';
 import ConsensusDashboard from '@/components/ConsensusDashboard';
 import Scorecard from '@/components/Scorecard';
@@ -69,6 +69,7 @@ export default function SingleStockView({
   const [showAdvanced, setShowAdvanced] = React.useState(!!result);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
   
   React.useEffect(() => {
     if (result) {
@@ -410,51 +411,40 @@ export default function SingleStockView({
            {/* 2.7 AI Analysis Action & Box */}
            {result && (
              <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl p-4 shadow-lg border border-slate-800 text-white relative overflow-hidden group">
-               {/* Animated Decorators */}
                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                
                <div className="relative z-10">
-                 <div className="flex justify-between items-center mb-3">
+                 <div className="flex justify-between items-center mb-2">
                    <div className="flex items-center gap-2">
                      <Sparkles className="text-indigo-400" size={18} />
-                     <h3 className="text-sm font-bold text-indigo-100 tracking-tight">AI Moat Analyst (Qwen 2.5)</h3>
+                     <h3 className="text-sm font-bold text-indigo-100 tracking-tight">AI Moat Analyst (Qwen 3)</h3>
                    </div>
-                   {!aiAnalysis && !isAiLoading && (
-                     <button 
-                       onClick={handleRunAI}
-                       className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg active:scale-95"
-                     >
-                       วิเคราะห์เลย
-                     </button>
-                   )}
                  </div>
 
-                 {isAiLoading ? (
-                   <div className="py-8 flex flex-col items-center justify-center gap-3 text-indigo-200">
-                     <Loader2 className="animate-spin" size={24} />
-                     <p className="text-[10px] font-medium tracking-widest uppercase">สรุปงบ 10 ปีให้อัตโนมัติ...</p>
-                   </div>
-                 ) : aiAnalysis ? (
-                   <div className="mt-2 space-y-4">
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 max-h-[400px] overflow-y-auto hide-scrollbar">
-                        <div className="prose prose-invert prose-xs text-[11px] leading-relaxed text-slate-200 whitespace-pre-wrap">
-                          {aiAnalysis}
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => setAiAnalysis(null)}
-                        className="w-full py-2 border border-white/10 rounded-xl text-[10px] font-bold text-slate-400 hover:bg-white/5 transition-colors"
-                      >
-                        Reset Analysis
-                      </button>
-                   </div>
-                 ) : (
-                   <div className="py-2">
-                     <p className="text-[10px] text-indigo-200/60 leading-relaxed italic border-l-2 border-indigo-500/30 pl-3">
-                       ประมวลผลหุ้นผ่านปัจจัยเชิงคุณภาพ: คูเมืองธุรกิจ, ความยั่งยืนของกำไร, และความเสี่ยง (Open Source Model)
-                     </p>
-                   </div>
-                 )}
+                 <p className="text-[10px] text-indigo-200/60 leading-relaxed italic border-l-2 border-indigo-500/30 pl-3 mb-3">
+                   ประมวลผลหุ้นผ่านปัจจัยเชิงคุณภาพ: คูเมืองธุรกิจ, ความยั่งยืนของกำไร, และความเสี่ยง
+                 </p>
+                 
+                 <button 
+                   onClick={() => {
+                     if (aiAnalysis) {
+                       setShowAiModal(true);
+                     } else {
+                       handleRunAI();
+                       setShowAiModal(true);
+                     }
+                   }}
+                   disabled={isAiLoading}
+                   className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                 >
+                   {isAiLoading ? (
+                     <><Loader2 className="animate-spin" size={14} /> กำลังวิเคราะห์...</>
+                   ) : aiAnalysis ? (
+                     <><Brain size={14} /> ดูบทวิเคราะห์ AI</>
+                   ) : (
+                     <><Sparkles size={14} /> วิเคราะห์เลย</>
+                   )}
+                 </button>
                </div>
              </div>
            )}
@@ -533,6 +523,82 @@ export default function SingleStockView({
       )}
 
       {/* 5. Detailed Calculation Table - REMOVED per user request */}
+
+      {/* ====== AI ANALYSIS POPUP MODAL ====== */}
+      {showAiModal && (
+        <div 
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowAiModal(false); }}
+        >
+          <div className="bg-gradient-to-br from-[#0f172a] to-[#1e1b4b] rounded-3xl w-full max-w-2xl shadow-2xl border border-indigo-500/20 flex flex-col max-h-[85vh] animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+            {/* Modal Header */}
+            <div className="p-5 pb-3 border-b border-white/10 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-600/30 rounded-xl flex items-center justify-center border border-indigo-500/30">
+                  <Brain className="text-indigo-400" size={22} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-white tracking-tight">AI Moat Analyst</h2>
+                  <p className="text-[10px] text-indigo-300/60 font-medium tracking-wider uppercase">Qwen 3 · Open Source · {ticker}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowAiModal(false)}
+                className="text-slate-400 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-5">
+              {isAiLoading ? (
+                <div className="py-16 flex flex-col items-center justify-center gap-4 text-indigo-200">
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-full border-2 border-indigo-500/20 flex items-center justify-center">
+                      <Loader2 className="animate-spin text-indigo-400" size={28} />
+                    </div>
+                    <div className="absolute -inset-4 bg-indigo-500/10 rounded-full blur-xl animate-pulse"></div>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-indigo-100">กำลังวิเคราะห์ {ticker}...</p>
+                    <p className="text-[10px] font-medium text-indigo-300/50 mt-1 tracking-wider uppercase">สรุปงบ 10 ปี · คูเมือง · จุดเสี่ยง · คำแนะนำ</p>
+                  </div>
+                </div>
+              ) : aiAnalysis ? (
+                <div className="prose prose-invert prose-sm max-w-none text-[13px] leading-relaxed text-slate-200 whitespace-pre-wrap">
+                  {aiAnalysis}
+                </div>
+              ) : (
+                <div className="py-16 text-center text-indigo-300/50">
+                  <p>ไม่มีข้อมูลการวิเคราะห์</p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 pt-3 border-t border-white/10 flex gap-3 shrink-0">
+              <button 
+                onClick={() => {
+                  setAiAnalysis(null);
+                  handleRunAI();
+                }}
+                disabled={isAiLoading}
+                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <Sparkles size={14} />
+                วิเคราะห์ใหม่
+              </button>
+              <button 
+                onClick={() => setShowAiModal(false)}
+                className="flex-1 py-2.5 border border-white/10 text-slate-300 rounded-xl text-xs font-bold hover:bg-white/5 transition-colors"
+              >
+                ปิด
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
