@@ -26,6 +26,7 @@ import TransactionModal from '@/components/portfolio/TransactionModal';
 import ScreenerView from '@/components/stock/ScreenerView';
 import InvestmentJournal from '@/components/InvestmentJournal';
 import Login from '@/components/auth/Login';
+import DailyBriefingPanel from '@/components/layout/DailyBriefingPanel';
 import { supabase } from '@/lib/supabase';
 
 export default function Home() {
@@ -603,7 +604,11 @@ TTW`);
         </div>
       </div>
 
-      <div suppressHydrationWarning className="max-w-[95%] mx-auto space-y-8 p-4 md:p-8 pt-4">
+      <div className="pt-6">
+        <DailyBriefingPanel />
+      </div>
+
+      <div suppressHydrationWarning className="max-w-[95%] mx-auto space-y-8 p-4 md:p-8 pt-0">
 
         {/* Main Content Area */}
         {mode === 'single' ? (
