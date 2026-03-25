@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
     // Limit to top 15 results to save tokens
     const topResults = results.slice(0, 15).map((r: any) => 
-      `${r.ticker} (${r.sector || 'N/A'}): P/E=${r.pe != null ? Number(r.pe).toFixed(1) : 'N/A'}, P/BV=${r.pbv != null ? Number(r.pbv).toFixed(1) : 'N/A'}, ROE=${r.roe != null ? Number(r.roe).toFixed(1)+'%' : 'N/A'}, DivYield=${r.dividend_yield != null ? Number(r.dividend_yield).toFixed(1)+'%' : 'N/A'}`
+      `${r.ticker} (${r.sector || 'N/A'}): P/E=${r.latestPE != null ? Number(r.latestPE).toFixed(1) : 'N/A'}, P/BV=${r.latestPBV != null ? Number(r.latestPBV).toFixed(1) : 'N/A'}, ROE=${r.latestROE != null ? Number(r.latestROE).toFixed(1)+'%' : 'N/A'}, DivYield=${r.latestYield != null ? Number(r.latestYield).toFixed(1)+'%' : 'N/A'}`
     ).join('\n');
 
     const prompt = `You are an expert Value Investor (VI) Data Analyst.
