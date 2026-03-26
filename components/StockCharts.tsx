@@ -14,6 +14,8 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
+  ComposedChart,
+  LabelList,
 } from 'recharts';
 
 interface StockHistory {
@@ -221,7 +223,7 @@ export default function StockCharts({ history, ratioBands, ticker }: StockCharts
           {/* Health & Divs Charts */}
           <ChartContainer title={`เงินปันผลต่อหุ้น (DPS) แยกรายครั้ง`}> 
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={history}>
+              <ComposedChart data={history}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
@@ -233,15 +235,19 @@ export default function StockCharts({ history, ratioBands, ticker }: StockCharts
                     <Bar dataKey="dpsQ2" name="Q2" stackId="dpsQuarterly" fill="#3b82f6" radius={[0, 0, 0, 0]} />
                     <Bar dataKey="dpsQ3" name="Q3" stackId="dpsQuarterly" fill="#10b981" radius={[0, 0, 0, 0]} />
                     <Bar dataKey="dpsQ4" name="Q4" stackId="dpsQuarterly" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                    <Line type="monotone" dataKey="dps" stroke="none" isAnimationActive={false} dot={false} activeDot={false}>
+                      <LabelList dataKey="dps" position="top" fill="#64748b" fontSize={12} formatter={(val: number) => val > 0 ? val.toFixed(2) : ''} />
+                    </Line>
                   </>
                 ) : (
                   <Bar dataKey="dps" name="DPS" radius={[4, 4, 0, 0]} barSize={40}>
                     {history.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={(entry.dps || 0) < 0 ? '#ef4444' : '#10b981'} />
                     ))}
+                    <LabelList dataKey="dps" position="top" fill="#64748b" fontSize={12} formatter={(val: number) => val > 0 ? val.toFixed(2) : ''} />
                   </Bar>
                 )}
-              </BarChart>
+              </ComposedChart>
             </ResponsiveContainer>
           </ChartContainer>
 

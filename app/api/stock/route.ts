@@ -829,6 +829,16 @@ export async function GET(request: Request) {
 
     let d0 = quote.summaryDetail?.dividendRate || quote.summaryDetail?.trailingAnnualDividendRate;
     
+    // Extract the latest valid dividend from History for accuracy over Yahoo snapshot
+    if (history && history.length > 0) {
+      for (let i = history.length - 1; i >= 0; i--) {
+        if (history[i].dps > 0) {
+          d0 = history[i].dps;
+          break;
+        }
+      }
+    }
+    
     // Apply override if exists
     if (overrides[symbol]) {
       d0 = overrides[symbol];

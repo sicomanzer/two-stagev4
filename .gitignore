@@ -15,3 +15,5 @@ __pycache__/
 
 # App data
 data/sync-status.json
+
+*.rar
