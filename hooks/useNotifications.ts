@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { calculateDDM } from '@/lib/calculations';
 
 export function useNotifications() {
   const [telegramBotToken, setTelegramBotToken] = useState('');
@@ -61,16 +62,36 @@ export function useNotifications() {
           if (!res.ok) return item; // Keep old data if fetch fails
           
           const latestPrice = data.currentPrice;
+          const d0Value = typeof data.d0 === 'number' ? data.d0 : (typeof item.d0 === 'number' ? item.d0 : 0);
+          const gValue = typeof item.g === 'number' ? item.g : parseFloat(item.g || '0');
+          const ksValue = typeof item.ks === 'number' ? item.ks : parseFloat(item.ks || '0.1');
+          const yearsValue = 5;
+          const canRecalculate = Number.isFinite(d0Value) && Number.isFinite(gValue) && Number.isFinite(ksValue) && ksValue > 0 && gValue < ksValue;
+          const ddmResult = canRecalculate
+            ? calculateDDM(item.ticker, d0Value, gValue, ksValue, yearsValue, latestPrice)
+            : null;
+          const fairPrice = ddmResult?.fairPrice ?? (item.fair_price || 0);
+          const mos30Price = fairPrice > 0 ? fairPrice * 0.7 : 0;
+          const mos40Price = fairPrice > 0 ? fairPrice * 0.6 : 0;
+          const mos50Price = fairPrice > 0 ? fairPrice * 0.5 : 0;
+          let statusLabel = '-';
+          if (latestPrice > 0 && fairPrice > 0) {
+            if (latestPrice <= mos50Price) statusLabel = 'MOS 50%';
+            else if (latestPrice <= mos40Price) statusLabel = 'MOS 40%';
+            else if (latestPrice <= mos30Price) statusLabel = 'MOS 30%';
+            else if (latestPrice < fairPrice) statusLabel = 'ต่ำกว่า FV';
+            else statusLabel = 'รอก่อนนะ';
+          }
           
           // Check for alerts
           let alertLevel = '';
           if (item.target_price && latestPrice <= item.target_price) alertLevel = `Target Price (${item.target_price})`;
-          else if (latestPrice <= item.mos50_price) alertLevel = 'MOS 50%';
-          else if (latestPrice <= item.mos40_price) alertLevel = 'MOS 40%';
-          else if (latestPrice <= item.mos30_price) alertLevel = 'MOS 30%';
+          else if (latestPrice <= mos50Price) alertLevel = 'MOS 50%';
+          else if (latestPrice <= mos40Price) alertLevel = 'MOS 40%';
+          else if (latestPrice <= mos30Price) alertLevel = 'MOS 30%';
           
           if (alertLevel) {
-            const msg = `🚨 *${item.ticker}* ราคา ${latestPrice.toFixed(2)} บาท\nแตะระดับ ${alertLevel} (Fair: ${item.fair_price?.toFixed(2)})`;
+            const msg = `🚨 *${item.ticker}* ราคา ${latestPrice.toFixed(2)} บาท\nแตะระดับ ${alertLevel} (Fair: ${fairPrice.toFixed(2)})`;
             alertMessages.push(msg);
           }
 
@@ -79,7 +100,12 @@ export function useNotifications() {
           const updatedItem = {
             ...item,
             current_price: latestPrice,
-            d0: data.d0,
+            d0: d0Value,
+            fair_price: fairPrice,
+            mos30_price: mos30Price,
+            mos40_price: mos40Price,
+            mos50_price: mos50Price,
+            status: statusLabel,
             roe: data.roe,
             roa: data.roa,
             eps: data.eps,
@@ -93,11 +119,26 @@ export function useNotifications() {
 
           // Update Supabase
           // 1. Always update price (critical)
-          if (latestPrice !== item.current_price) {
+          if (
+            latestPrice !== item.current_price ||
+            fairPrice !== item.fair_price ||
+            mos30Price !== item.mos30_price ||
+            mos40Price !== item.mos40_price ||
+            mos50Price !== item.mos50_price ||
+            statusLabel !== item.status
+          ) {
             fetch('/api/portfolio', {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id: item.id, current_price: latestPrice })
+              body: JSON.stringify({
+                id: item.id,
+                current_price: latestPrice,
+                fair_price: fairPrice,
+                mos30_price: mos30Price,
+                mos40_price: mos40Price,
+                mos50_price: mos50Price,
+                status: statusLabel
+              })
             }).catch(err => console.error(`Error updating price for ${item.ticker}`, err));
           }
           
@@ -109,7 +150,7 @@ export function useNotifications() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 
                 id: item.id,
-                d0: data.d0,
+                d0: d0Value,
                 roe: data.roe,
                 roa: data.roa,
                 eps: data.eps,

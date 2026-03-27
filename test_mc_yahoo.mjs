@@ -1,0 +1,1 @@
+import yahooFinance from 'yahoo-finance2'; yahooFinance.quoteSummary('MC.BK', { modules: ['summaryDetail'] }).then(res => console.log(res.summaryDetail.dividendRate, res.summaryDetail.trailingAnnualDividendRate));

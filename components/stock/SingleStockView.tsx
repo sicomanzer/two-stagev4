@@ -28,6 +28,8 @@ interface SingleStockViewProps {
   children?: ReactNode;
   result: DDMResult | null;
   ticker: string;
+  companyName?: string | null;
+  thaiCompanyName?: string | null;
   currentPrice: number | null;
   stockHistory: StockHistory[];
   ratioBands: RatioBands | null;
@@ -49,6 +51,8 @@ export default function SingleStockView({
   children,
   result,
   ticker,
+  companyName,
+  thaiCompanyName,
   currentPrice,
   stockHistory,
   ratioBands,
@@ -173,7 +177,13 @@ export default function SingleStockView({
                   {ticker.includes('-') ? 'CRYPTO/FX' : 'STOCK'}
                 </span>
               </div>
-              <p className="text-slate-500 font-medium text-sm mt-0.5">Stock Analysis & Valuation Cockpit</p>
+              {thaiCompanyName && (
+                <p className="text-slate-600 font-medium text-sm mt-1">{thaiCompanyName}</p>
+              )}
+              {companyName && !thaiCompanyName && (
+                <p className="text-slate-600 font-medium text-sm mt-1">{companyName}</p>
+              )}
+              <p className="text-slate-400 font-medium text-xs mt-0.5">Stock Analysis & Valuation Cockpit</p>
             </div>
           </div>
 

@@ -159,6 +159,8 @@ TTW`);
   const [journalTicker, setJournalTicker] = useState<string | null>(null);
   const [sector, setSector] = useState<string | null>(null);
   const [industry, setIndustry] = useState<string | null>(null);
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [thaiCompanyName, setThaiCompanyName] = useState<string | null>(null);
 
   // === Transaction Modal State ===
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
@@ -232,6 +234,8 @@ TTW`);
 
       setSector(data.sector || null);
       setIndustry(data.industry || null);
+      setCompanyName(data.longName || data.shortName || null);
+      setThaiCompanyName(data.thaiCompanyName || null);
       
     } catch (err: any) {
       setError(`ไม่สามารถดึงข้อมูลหุ้น ${tickerToFetch} ได้: ${err.message}`);
@@ -286,8 +290,11 @@ TTW`);
         }
 
         validateInputs({ d0: d0Num, g: gNum, ks: ksNum, years: yearsNum });
-        
+
+        console.log(`Calculating DDM for ${ticker} with parameters: d0=${d0Num}, g=${gNum}, ks=${ksNum}, years=${yearsNum}, price=${currentPriceNum}`);
+
         const res = calculateDDM(ticker || 'Unknown', d0Num, gNum, ksNum, yearsNum, currentPriceNum);
+        console.log(`DDM Result Fair Price: ${res.fairPrice}`);
         setResult(res);
         
         const reverseDdmRes = calculateImpliedGrowth(currentPriceNum, d0Num, ksNum);
@@ -574,6 +581,11 @@ TTW`);
     setTrendAnalysis(null);
     setScenarioAnalysis(null);
     setInvestmentSignal(null);
+    setReverseDdm(null);
+    setSector(null);
+    setIndustry(null);
+    setCompanyName(null);
+    setThaiCompanyName(null);
     setError(null);
     setIsAssistantOpen(false);
   };
@@ -616,6 +628,8 @@ TTW`);
           <SingleStockView
             result={result}
             ticker={ticker}
+            companyName={companyName}
+            thaiCompanyName={thaiCompanyName}
             currentPrice={currentPrice ? parseFloat(currentPrice) : null}
             stockHistory={stockHistory}
             ratioBands={ratioBands}

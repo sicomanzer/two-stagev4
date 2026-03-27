@@ -132,6 +132,26 @@ async function saveToSupabaseCache(ticker: string, history: any[], info: any = {
 }
 
 
+const THAI_COMPANY_NAMES: Record<string, string> = {
+  'PTT': 'บริษัท ปตท. จำกัด (มหาชน)',
+  'AOT': 'บริษัท ท่าอากาศยานไทย จำกัด (มหาชน)',
+  'CPALL': 'บริษัท ซีพี ออลล์ จำกัด (มหาชน)',
+  'ADVANC': 'บริษัท แอดวานซ์ อินโฟร์ เซอร์วิส จำกัด (มหาชน)',
+  'DELTA': 'บริษัท เดลต้า อีเลคโทรนิคส์ (ประเทศไทย) จำกัด (มหาชน)',
+  'PTTEP': 'บริษัท ปตท. สำรวจและผลิตปิโตรเลียม จำกัด (มหาชน)',
+  'GULF': 'บริษัท กัลฟ์ เอ็นเนอร์จี ดีเวลลอปเมนท์ จำกัด (มหาชน)',
+  'BDMS': 'บริษัท กรุงเทพดุสิตเวชการ จำกัด (มหาชน)',
+  'SCB': 'ธนาคารไทยพาณิชย์ จำกัด (มหาชน)',
+  'KBANK': 'ธนาคารกสิกรไทย จำกัด (มหาชน)',
+  'BBL': 'ธนาคารกรุงเทพ จำกัด (มหาชน)',
+  'SCC': 'บริษัท ปูนซิเมนต์ไทย จำกัด (มหาชน)',
+  'CPN': 'บริษัท เซ็นทรัลพัฒนา จำกัด (มหาชน)',
+  'INTUCH': 'บริษัท อินทัช โฮลดิ้งส์ จำกัด (มหาชน)',
+  'MINT': 'บริษัท ไมเนอร์ อินเตอร์เนชั่นแนล จำกัด (มหาชน)',
+  'TLI': 'บริษัท ไทยประกันชีวิต จำกัด (มหาชน)',
+  'MC': 'บริษัท แม็คกรุ๊ป จำกัด (มหาชน)'
+};
+
 export async function GET(request: Request) {
   // Try to suppress notices if the method exists
   try {
@@ -830,11 +850,21 @@ export async function GET(request: Request) {
     let d0 = quote.summaryDetail?.dividendRate || quote.summaryDetail?.trailingAnnualDividendRate;
     
     // Extract the latest valid dividend from History for accuracy over Yahoo snapshot
+    // If this year is 2026, fetch the dividend from the previous year (2025), etc.
     if (history && history.length > 0) {
-      for (let i = history.length - 1; i >= 0; i--) {
-        if (history[i].dps > 0) {
-          d0 = history[i].dps;
-          break;
+      const currentYear = new Date().getFullYear();
+      const targetYear = currentYear - 1;
+      const targetHistory = history.find(h => h.year === targetYear);
+      
+      if (targetHistory && targetHistory.dps > 0) {
+        d0 = targetHistory.dps;
+      } else {
+        // Fallback to the latest available if target year is not found
+        for (let i = history.length - 1; i >= 0; i--) {
+          if (history[i].dps > 0) {
+            d0 = history[i].dps;
+            break;
+          }
         }
       }
     }
@@ -892,6 +922,7 @@ export async function GET(request: Request) {
       dividendYield: dividendYield,
       shortName: quote.price?.shortName,
       longName: quote.price?.longName,
+      thaiCompanyName: THAI_COMPANY_NAMES[tickerClean] || null,
       currency: quote.financialData?.financialCurrency,
       history: history, // Add history to response
       ratioBands: ratioBands, // Add detailed monthly ratio bands

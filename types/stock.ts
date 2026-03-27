@@ -100,6 +100,7 @@ export interface StockQuoteData {
   dividendYield: number | null;
   shortName?: string;
   longName?: string;
+  thaiCompanyName?: string;
   currency?: string;
   history: StockHistory[];
   ratioBands: RatioBands;
