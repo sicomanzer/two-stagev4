@@ -236,7 +236,7 @@ export default function StockCharts({ history, ratioBands, ticker }: StockCharts
                     <Bar dataKey="dpsQ3" name="Q3" stackId="dpsQuarterly" fill="#10b981" radius={[0, 0, 0, 0]} />
                     <Bar dataKey="dpsQ4" name="Q4" stackId="dpsQuarterly" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                     <Line type="monotone" dataKey="dps" stroke="none" isAnimationActive={false} dot={false} activeDot={false}>
-                      <LabelList dataKey="dps" position="top" fill="#64748b" fontSize={12} formatter={(val: number) => val > 0 ? val.toFixed(2) : ''} />
+                      <LabelList dataKey="dps" position="top" fill="#64748b" fontSize={12} formatter={(val) => typeof val === 'number' && val > 0 ? val.toFixed(2) : ''} />
                     </Line>
                   </>
                 ) : (
@@ -244,7 +244,7 @@ export default function StockCharts({ history, ratioBands, ticker }: StockCharts
                     {history.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={(entry.dps || 0) < 0 ? '#ef4444' : '#10b981'} />
                     ))}
-                    <LabelList dataKey="dps" position="top" fill="#64748b" fontSize={12} formatter={(val: number) => val > 0 ? val.toFixed(2) : ''} />
+                    <LabelList dataKey="dps" position="top" fill="#64748b" fontSize={12} formatter={(val) => typeof val === 'number' && val > 0 ? val.toFixed(2) : ''} />
                   </Bar>
                 )}
               </ComposedChart>
