@@ -230,6 +230,21 @@ TTW`);
       if (data.roe || data.payoutRatio) {
         setIsAssistantOpen(true);
         setAssistantMethod('sustainable');
+
+        // Auto-apply sustainable growth rate to match Multi-Screening logic
+        let gCalc = 0;
+        const roeVal = data.roe || 0;
+        const payoutVal = data.payoutRatio || 0;
+        
+        if (roeVal && payoutVal) {
+          gCalc = roeVal * Math.max(0, 1 - payoutVal);
+        }
+        
+        if (gCalc > 0.07) {
+          gCalc = 0.07;
+        }
+        
+        setG((gCalc * 100).toFixed(2));
       }
 
       setSector(data.sector || null);
