@@ -1,4 +1,5 @@
-import { Calculator, TrendingUp, Trash2, RotateCcw, AlertCircle } from 'lucide-react';
+import { Calculator, TrendingUp, Trash2, RotateCcw, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
 import type { RefObject } from 'react';
 import { AppMode, BudgetMode, AllocationRatio, GrowthMethod } from '@/types/stock';
 
@@ -102,6 +103,8 @@ export default function InputForm({
   tickerInputRef
 }: InputFormProps) {
   
+  const [isParamsOpen, setIsParamsOpen] = useState(true);
+
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
       <h2 className="text-lg font-semibold text-slate-800 mb-3">
@@ -253,9 +256,22 @@ export default function InputForm({
           </div>
         )}
 
-        <div className="space-y-4 pt-2">
-          {/* D0 Input */}
-          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 shadow-inner">
+        {/* Toggle Button for Parameters */}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() => setIsParamsOpen(!isParamsOpen)}
+            className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition-colors"
+          >
+            <span className="text-sm font-bold text-slate-700">พารามิเตอร์ DDM (D0, g, ks)</span>
+            {isParamsOpen ? <ChevronUp size={18} className="text-slate-500" /> : <ChevronDown size={18} className="text-slate-500" />}
+          </button>
+        </div>
+
+        {isParamsOpen && (
+          <div className="space-y-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+            {/* D0 Input */}
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 shadow-inner">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">เงินปันผลปีล่าสุด (D0)</label>
             <div className="flex items-center gap-3">
               <span className="text-xl">💰</span>
@@ -479,6 +495,7 @@ export default function InputForm({
             />
           </div>
         </div>
+        )}
 
         {mode === 'single' && (
           <div className="pt-2 border-t border-slate-100">
