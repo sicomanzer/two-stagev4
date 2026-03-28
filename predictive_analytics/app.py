@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import joblib
 import pandas as pd
 import numpy as np
@@ -7,6 +8,7 @@ from data.preprocessing import DataPreprocessor
 from utils.logger import get_logger
 
 app = Flask(__name__)
+CORS(app)
 logger = get_logger(__name__)
 
 # Load models and preprocessor
