@@ -397,8 +397,8 @@ TTW`);
             // If price is provided in input, use it. Otherwise use fetched price.
             const inputPrice = parts[1] ? parseFloat(parts[1].trim()) : null;
 
-            // Use mode=light for faster fetching in Multi-Screening
-            const res = await fetch(`/api/stock?ticker=${t}&mode=light`);
+            // Use full mode for consistent data with Single Stock (especially ROE and History)
+            const res = await fetch(`/api/stock?ticker=${t}`);
             const data = await res.json();
 
             let resultItem = null;
