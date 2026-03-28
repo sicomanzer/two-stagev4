@@ -23,6 +23,7 @@ import {
   ReverseDDMResult
 } from '@/types/stock';
 import MarketCyclePanel from '@/components/stock/MarketCyclePanel';
+import PredictiveAnalysisPanel from '@/components/stock/PredictiveAnalysisPanel';
 
 interface SingleStockViewProps {
   children?: ReactNode;
@@ -216,6 +217,11 @@ export default function SingleStockView({
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI Predictive History Analysis */}
+      {(stockHistory.length > 0) && (
+        <PredictiveAnalysisPanel ticker={ticker} stockHistory={stockHistory} />
       )}
 
       {/* MAIN LAYOUT: Split Top Section (Charts vs Sidebar) */}
