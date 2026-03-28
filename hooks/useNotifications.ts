@@ -63,7 +63,12 @@ export function useNotifications() {
           
           const latestPrice = data.currentPrice;
           const d0Value = typeof data.d0 === 'number' ? data.d0 : (typeof item.d0 === 'number' ? item.d0 : 0);
-          const gValue = typeof item.g === 'number' ? item.g : parseFloat(item.g || '0');
+          
+          let gValue = typeof item.g === 'number' ? item.g : parseFloat(item.g || '0');
+          // Align g rounding logic with Single Stock and Multi-Screening
+          const gCalcRoundedStr = (gValue * 100).toFixed(2);
+          gValue = parseFloat(gCalcRoundedStr) / 100;
+          
           const ksValue = typeof item.ks === 'number' ? item.ks : parseFloat(item.ks || '0.1');
           const yearsValue = 5;
           const canRecalculate = Number.isFinite(d0Value) && Number.isFinite(gValue) && Number.isFinite(ksValue) && ksValue > 0 && gValue < ksValue;

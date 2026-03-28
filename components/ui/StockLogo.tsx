@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 export default function StockLogo({ ticker, size = 'md' }: { ticker: string, size?: 'sm' | 'md' | 'lg' | 'xl' }) {
   const [errorIndex, setErrorIndex] = useState(0);
   const cleanTicker = ticker.replace('.BK', '').trim();
+  
+  // Early return for obviously invalid tickers to prevent unnecessary console errors
+  const isValidTicker = /^[A-Za-z0-9&+-]+$/.test(cleanTicker);
 
   // Try multiple known public sources for Thai stock logos gracefully
   const logoUrls = [
@@ -31,10 +34,10 @@ export default function StockLogo({ ticker, size = 'md' }: { ticker: string, siz
   ];
   const selectedGradient = gradients[charCode % gradients.length];
 
-  if (errorIndex >= logoUrls.length) {
+  if (!isValidTicker || errorIndex >= logoUrls.length) {
      return (
        <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br ${selectedGradient} text-white flex items-center justify-center font-black shadow-md flex-shrink-0`}>
-         {cleanTicker.charAt(0).toUpperCase()}
+         {cleanTicker ? cleanTicker.charAt(0).toUpperCase() : '?'}
        </div>
      );
   }

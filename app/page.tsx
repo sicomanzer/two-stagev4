@@ -34,6 +34,7 @@ export default function Home() {
   const [isLoadingSession, setIsLoadingSession] = useState(true);
 
   const [ticker, setTicker] = useState('ADVANC');
+  const [searchedTicker, setSearchedTicker] = useState('ADVANC');
   const tickerInputRef = useRef<HTMLInputElement | null>(null);
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const [ratioBands, setRatioBands] = useState<RatioBands | null>(null);
@@ -251,6 +252,7 @@ TTW`);
       setIndustry(data.industry || null);
       setCompanyName(data.longName || data.shortName || null);
       setThaiCompanyName(data.thaiCompanyName || null);
+      setSearchedTicker(tickerToFetch);
       
     } catch (err: any) {
       setError(`ไม่สามารถดึงข้อมูลหุ้น ${tickerToFetch} ได้: ${err.message}`);
@@ -306,9 +308,9 @@ TTW`);
 
         validateInputs({ d0: d0Num, g: gNum, ks: ksNum, years: yearsNum });
 
-        console.log(`Calculating DDM for ${ticker} with parameters: d0=${d0Num}, g=${gNum}, ks=${ksNum}, years=${yearsNum}, price=${currentPriceNum}`);
+        console.log(`Calculating DDM for ${searchedTicker} with parameters: d0=${d0Num}, g=${gNum}, ks=${ksNum}, years=${yearsNum}, price=${currentPriceNum}`);
 
-        const res = calculateDDM(ticker || 'Unknown', d0Num, gNum, ksNum, yearsNum, currentPriceNum);
+        const res = calculateDDM(searchedTicker || 'Unknown', d0Num, gNum, ksNum, yearsNum, currentPriceNum);
         console.log(`DDM Result Fair Price: ${res.fairPrice}`);
         setResult(res);
         
@@ -350,7 +352,7 @@ TTW`);
           setConsensus(consensusResult);
 
           sc = calculateScorecard(
-            ticker,
+            searchedTicker,
             stockHistory,
             currentPriceNum,
             res.fairPrice,
@@ -361,10 +363,10 @@ TTW`);
           );
           setScorecard(sc);
 
-          trend = calculateTrendAnalysis(ticker, stockHistory);
+          trend = calculateTrendAnalysis(searchedTicker, stockHistory);
           setTrendAnalysis(trend);
 
-          scenario = calculateScenarioAnalysis(ticker, d0Num, currentPriceNum, yearsNum);
+          scenario = calculateScenarioAnalysis(searchedTicker, d0Num, currentPriceNum, yearsNum);
           setScenarioAnalysis(scenario);
         }
 
@@ -424,6 +426,11 @@ TTW`);
               if (gCalc > 0.07) {
                 gCalc = 0.07;
               }
+
+              // Match Single Stock rounding logic: round to 2 decimal places (percentage) then parse back
+              // Example: 0.010563 -> "1.06" -> 1.06 -> 0.0106
+              const gCalcRoundedStr = (gCalc * 100).toFixed(2);
+              gCalc = parseFloat(gCalcRoundedStr) / 100;
 
               const priceToUse = inputPrice || data.currentPrice;
               const d0Val = data.d0 || 0;
@@ -575,6 +582,7 @@ TTW`);
 
   const handleClearSearch = () => {
     setTicker('');
+    setSearchedTicker('');
     setCurrentPrice('');
     setD0('');
     setG('5');
@@ -642,7 +650,7 @@ TTW`);
           // === Single Stock Mode: Full Width Layout (Internal Grid) ===
           <SingleStockView
             result={result}
-            ticker={ticker}
+            ticker={searchedTicker}
             companyName={companyName}
             thaiCompanyName={thaiCompanyName}
             currentPrice={currentPrice ? parseFloat(currentPrice) : null}
