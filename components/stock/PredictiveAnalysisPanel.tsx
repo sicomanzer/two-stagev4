@@ -130,10 +130,10 @@ export default function PredictiveAnalysisPanel({ ticker, stockHistory }: Props)
               <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dx={-10} />
               <Tooltip 
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                formatter={(value: any) => [
-                  `฿${typeof value === 'number' ? value.toFixed(2) : Number(value || 0).toFixed(2)}`, 
-                  ''
-                ]}
+                formatter={(value: any) => {
+                  if (value === null || value === undefined || isNaN(Number(value))) return ['N/A', ''];
+                  return [`฿${Number(value).toFixed(2)}`, ''];
+                }}
               />
               <Legend wrapperStyle={{ paddingTop: '20px' }} />
               
@@ -162,10 +162,10 @@ export default function PredictiveAnalysisPanel({ ticker, stockHistory }: Props)
               <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dx={-10} tickFormatter={(val) => `${(val/1000).toFixed(0)}k`} />
               <Tooltip 
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                formatter={(value: any) => [
-                  `฿${typeof value === 'number' ? value.toLocaleString(undefined, {maximumFractionDigits: 0}) : Number(value || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}M`, 
-                  ''
-                ]}
+                formatter={(value: any) => {
+                  if (value === null || value === undefined || isNaN(Number(value))) return ['N/A', ''];
+                  return [`฿${Number(value).toLocaleString(undefined, {maximumFractionDigits: 0})}M`, ''];
+                }}
               />
               <Legend wrapperStyle={{ paddingTop: '20px' }} />
               
