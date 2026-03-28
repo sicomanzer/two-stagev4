@@ -1,7 +1,19 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { StockHistory } from '@/types/stock';
 import { usePredictiveAnalytics } from '@/hooks/usePredictiveAnalytics';
 import { Activity, AlertCircle, TrendingUp } from 'lucide-react';
+import {
+  ComposedChart,
+  Line,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Scatter
+} from 'recharts';
 
 interface Props {
   ticker: string;
@@ -11,6 +23,37 @@ interface Props {
 export default function PredictiveAnalysisPanel({ ticker, stockHistory }: Props) {
   const { predictions, isLoading, error, fetchPredictions } = usePredictiveAnalytics();
   const hasFetched = useRef(false);
+
+  // Generate chart data combining history and predictions
+  const chartData = useMemo(() => {
+    if (!predictions || stockHistory.length === 0) return [];
+    
+    // Take last 4 years of history
+    const recentHistory = stockHistory.slice(-4);
+    
+    const data = recentHistory.map(h => ({
+      year: h.year.toString(),
+      actualEps: h.eps,
+      actualNetProfit: h.netProfit ? h.netProfit / 1000000 : null,
+      actualRevenue: h.revenue ? h.revenue / 1000000 : null,
+      isPrediction: false
+    }));
+
+    // Add prediction for next year
+    const lastYear = recentHistory[recentHistory.length - 1].year;
+    data.push({
+      year: `${lastYear + 1} (F)`,
+      actualEps: null as any,
+      actualNetProfit: null as any,
+      actualRevenue: null as any,
+      predictedEps: predictions.eps,
+      predictedNetProfit: predictions.net_profit ? predictions.net_profit / 1000000 : null,
+      predictedRevenue: predictions.revenue ? predictions.revenue / 1000000 : null,
+      isPrediction: true
+    });
+
+    return data;
+  }, [stockHistory, predictions]);
 
   useEffect(() => {
     if (stockHistory.length > 0 && !hasFetched.current) {
@@ -63,7 +106,7 @@ export default function PredictiveAnalysisPanel({ ticker, stockHistory }: Props)
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <MetricCard 
           title="Est. Fair Value" 
           value={predictions.fair_value_estimation} 
@@ -72,13 +115,62 @@ export default function PredictiveAnalysisPanel({ ticker, stockHistory }: Props)
           tooltip="Calculated from Predicted EPS × Predicted P/E"
         />
         <MetricCard title="Predicted EPS" value={predictions.eps} prefix="฿" />
-        <MetricCard title="Predicted DPS" value={predictions.dps} prefix="฿" />
         <MetricCard title="Predicted P/E" value={predictions.pe_ratio} suffix="x" />
-        
-        <MetricCard title="Net Profit (M)" value={(predictions.net_profit || 0) / 1000000} prefix="฿" suffix="M" />
-        <MetricCard title="Revenue (M)" value={(predictions.revenue || 0) / 1000000} prefix="฿" suffix="M" />
-        <MetricCard title="NPM" value={predictions.npm} suffix="%" />
-        <MetricCard title="D/E Ratio" value={predictions.de_ratio} suffix="x" />
+        <MetricCard title="Predicted DPS" value={predictions.dps} prefix="฿" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* EPS Chart */}
+        <div className="h-[300px] w-full">
+          <h3 className="text-sm font-bold text-slate-700 mb-4 text-center">EPS Forecast Trend</h3>
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
+              <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dx={-10} />
+              <Tooltip 
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                formatter={(value: number) => [`฿${value.toFixed(2)}`, '']}
+              />
+              <Legend wrapperStyle={{ paddingTop: '20px' }} />
+              
+              {/* Actual EPS Points (Solid Circles) */}
+              <Scatter yAxisId="left" name="Actual EPS" dataKey="actualEps" fill="#10b981" shape="circle" r={6} />
+              
+              {/* Predicted EPS Points (Hollow Circles) */}
+              <Scatter yAxisId="left" name="Predicted EPS" dataKey="predictedEps" fill="#fff" stroke="#6366f1" strokeWidth={2} shape="circle" r={6} />
+              
+              {/* Trend line connecting actuals */}
+              <Line yAxisId="left" type="monotone" dataKey="actualEps" stroke="#10b981" strokeWidth={2} dot={false} activeDot={false} />
+              
+              {/* Dashed line connecting to prediction */}
+              <Line yAxisId="left" type="monotone" dataKey="predictedEps" stroke="#6366f1" strokeWidth={2} strokeDasharray="5 5" dot={false} activeDot={false} connectNulls />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Revenue & Net Profit Chart */}
+        <div className="h-[300px] w-full">
+          <h3 className="text-sm font-bold text-slate-700 mb-4 text-center">Revenue & Net Profit (M) Forecast</h3>
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
+              <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dx={-10} tickFormatter={(val) => `${(val/1000).toFixed(0)}k`} />
+              <Tooltip 
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                formatter={(value: number) => [`฿${value.toLocaleString(undefined, {maximumFractionDigits: 0})}M`, '']}
+              />
+              <Legend wrapperStyle={{ paddingTop: '20px' }} />
+              
+              <Bar yAxisId="left" name="Actual Revenue" dataKey="actualRevenue" fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={20} />
+              <Bar yAxisId="left" name="Predicted Rev" dataKey="predictedRevenue" fill="#cbd5e1" radius={[4, 4, 0, 0]} barSize={20} />
+              
+              <Scatter yAxisId="left" name="Actual Net Profit" dataKey="actualNetProfit" fill="#ef4444" shape="circle" r={6} />
+              <Scatter yAxisId="left" name="Predicted NP" dataKey="predictedNetProfit" fill="#fff" stroke="#f43f5e" strokeWidth={2} shape="circle" r={6} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
