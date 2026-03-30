@@ -410,7 +410,7 @@ export default function DividendEventsView({
       </div>
 
       {/* ── SUMMARY CARDS (Enhanced with YoY Growth - Feature 1) ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">จำนวนรายการ</p>
           <p className="text-2xl font-bold text-slate-800">{summary.totalRows.toLocaleString()}</p>
@@ -464,6 +464,17 @@ export default function DividendEventsView({
           </p>
           <p className="text-[10px] text-slate-400 mt-1">
             ทุนหุ้นปันผล: <span className="font-bold text-slate-700">฿{totalInvested.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+          </p>
+        </div>
+
+        {/* Feature: Monthly Average */}
+        <div className="bg-white p-5 rounded-2xl border border-blue-100 shadow-sm">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">เงินปันผลเฉลี่ยรายเดือน</p>
+          <p className="text-2xl font-bold text-blue-500">
+            ฿{(summary.totalExpectedCash / 12).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          <p className="text-[10px] text-slate-400 mt-1">
+            เฉลี่ยต่อเดือนจากยอดรวมปี {selectedYearBE}
           </p>
         </div>
       </div>
