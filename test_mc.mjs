@@ -1,1 +1,0 @@
-import yahooFinance from 'yahoo-finance2'; yahooFinance.quoteSummary('MC.BK', { modules: ['summaryDetail', 'financialData'] }).then(res => console.log(res.summaryDetail?.payoutRatio)).catch(console.error);

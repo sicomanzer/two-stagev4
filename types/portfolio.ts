@@ -37,9 +37,16 @@ export interface PortfolioItem {
   // Phase 3 Extensions
   target_price?: number | null; // User defined target price alert
   
+  // Phase 4: Favorites Upgrades
+  notes?: string | null; // Inline thesis / quick note
+  tags?: string[]; // Labels like 'Growth', 'High Div', 'Ready to Buy'
+  sort_order?: number; // Manual priority ranking (drag & drop)
+  
   // Extended fields (may come from live data)
   debt_to_equity?: number | null;
   yield?: number | null;
+  sector?: string | null;
+  industry?: string | null;
 }
 
 export interface JournalEntry {
