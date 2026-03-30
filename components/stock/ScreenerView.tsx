@@ -1,10 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Info, TrendingUp, AlertTriangle, ShieldCheck, Download, ChevronUp, ChevronDown, ChevronsUpDown, ExternalLink, Zap, Target, Brain, Sparkles, Loader2, RefreshCcw } from 'lucide-react';
+import { Search, Info, TrendingUp, AlertTriangle, ShieldCheck, Download, ChevronUp, ChevronDown, ChevronsUpDown, ExternalLink, Zap, Target, Brain, Sparkles, Loader2, RefreshCcw, LayoutGrid, Table2, PieChart, Plus, Star, Eye } from 'lucide-react';
+import ScreenerQuickStats from './ScreenerQuickStats';
+import ScreenerHeatmap, { METRIC_CONFIG } from './ScreenerHeatmap';
+import ScreenerStockCard from './ScreenerStockCard';
+import ScreenerSectorView from './ScreenerSectorView';
 
-type ScreenerPreset = 'previous' | 'latest' | 'no_filter' | 'vi' | 'high_dividend' | 'safe_haven' | 'quality_dividend';
+type ScreenerPreset = 'previous' | 'latest' | 'no_filter' | 'vi' | 'high_dividend' | 'safe_haven' | 'quality_dividend' | 'contrarian';
+
+type ViewMode = 'table' | 'heatmap' | 'cards';
 
 interface ScreenerViewProps {
   onSelectTicker: (ticker: string) => void;
+  onSaveToFavorites?: (tickers: string[]) => void;
+  onOpenJournal?: (ticker: string) => void;
 }
 
 const ModernMetricInput = ({ 
@@ -59,7 +67,7 @@ const ModernMetricInput = ({
   )
 }
 
-export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
+export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpenJournal }: ScreenerViewProps) {
   const [preset, setPreset] = useState<ScreenerPreset>('latest');
   const [epsGrowthMin, setEpsGrowthMin] = useState<number | ''>(0);
   const [dpsGrowthMin, setDpsGrowthMin] = useState<number | ''>(0);
@@ -87,6 +95,13 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
   const [isAiLoading, setIsAiLoading] = useState(false);
   
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'viScore', direction: 'desc' });
+
+  // Tier 1-5 State
+  const [viewMode, setViewMode] = useState<ViewMode>('table');
+  const [heatmapMetric, setHeatmapMetric] = useState('viScore');
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+  const [showSector, setShowSector] = useState(false);
+  const [selectedForSave, setSelectedForSave] = useState<Set<string>>(new Set());
 
   const applyPreset = (nextPreset: ScreenerPreset) => {
     setPreset(nextPreset);
@@ -157,6 +172,24 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
       setDeMax(0.5);       // Minimal debt
       setPeMax(20);
       setPbvMax(3);
+      setRoeMin(10);
+      setDividendStreakMin('');
+      setMarketCycleMode('any');
+      return;
+    }
+
+    if (nextPreset === 'contrarian') {
+      setEpsGrowthMin(0);
+      setDpsGrowthMin('');
+      setPeBandMode('below_minus_1_sd');
+      setPbvBandMode('below_minus_1_sd');
+      setFScoreMin(5);
+      setZScoreMin(1.8);
+      setViScoreMin(12);
+      setYieldMin('');
+      setDeMax(2.0);
+      setPeMax(10);
+      setPbvMax(1.0);
       setRoeMin(10);
       setDividendStreakMin('');
       setMarketCycleMode('any');
@@ -369,7 +402,7 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
              </div>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-7 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
             {[
               { id: 'latest', name: '👑 สูตรเข้มข้น', desc: 'คัดหุ้นสุดยอดVI' },
               { id: 'previous', name: '⚖️ สูตรสมดุล', desc: 'ไม่ตึงเกินไป' },
@@ -377,6 +410,7 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
               { id: 'quality_dividend', name: '🏆 ดี + ปันผล 5%', desc: 'พื้นฐานดี+ยิลด์สูง' },
               { id: 'high_dividend', name: '💰 High Dividend', desc: 'ปันผลสม่ำเสมอ' },
               { id: 'safe_haven', name: '🛡️ Safe Haven', desc: 'งบแข็งแกร่ง' },
+              { id: 'contrarian', name: '🔮 Contrarian', desc: 'หุ้นถูกมองข้าม' },
               { id: 'no_filter', name: '🌐 กรองเอง', desc: 'ตั้งค่าอิสระ' },
             ].map(p => (
               <button
@@ -539,27 +573,62 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
 
       {stats && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-          <div className="flex justify-between items-end mb-4">
+          {/* Header + Actions */}
+          <div className="flex flex-wrap justify-between items-end mb-4 gap-4">
             <div>
               <h3 className="text-lg font-bold text-slate-800">ผลการสแกน (Screening Results)</h3>
               <p className="text-sm text-slate-500">
                 พบหุ้นที่ผ่านเกณฑ์ <strong className="text-indigo-600 text-lg">{stats.matched}</strong> ตัว จากทั้งหมด {stats.total} ตัว
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* View Mode Toggles */}
               {stats.matched > 0 && (
-                <button
-                  onClick={exportToCSV}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg text-sm font-medium transition-colors"
-                >
-                  <Download size={16} />
-                  Export CSV
+                <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-0.5">
+                  {[
+                    { mode: 'table' as ViewMode, icon: <Table2 size={14} />, label: 'Table' },
+                    { mode: 'heatmap' as ViewMode, icon: <LayoutGrid size={14} />, label: 'Heatmap' },
+                    { mode: 'cards' as ViewMode, icon: <Eye size={14} />, label: 'Cards' },
+                  ].map(v => (
+                    <button key={v.mode} onClick={() => setViewMode(v.mode)}
+                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                        viewMode === v.mode ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                      }`}>
+                      {v.icon} {v.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {/* Sector Toggle */}
+              <button onClick={() => setShowSector(!showSector)}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${
+                  showSector ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'bg-white text-slate-500 border-slate-200 hover:border-indigo-200'
+                }`}>
+                <PieChart size={13} /> Sector
+              </button>
+              {/* Batch Save */}
+              {selectedForSave.size > 0 && onSaveToFavorites && (
+                <button onClick={() => { onSaveToFavorites(Array.from(selectedForSave)); setSelectedForSave(new Set()); }}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700 transition-colors shadow-sm">
+                  <Star size={12} /> Save {selectedForSave.size} ตัว
+                </button>
+              )}
+              {stats.matched > 0 && (
+                <button onClick={exportToCSV}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg text-[10px] font-bold transition-colors">
+                  <Download size={14} /> CSV
                 </button>
               )}
             </div>
           </div>
 
-          {/* AI Screener Assistant (Idea 1) */}
+          {/* Tier 1: Quick Stats Dashboard */}
+          {results.length > 0 && <ScreenerQuickStats results={sortedResults} total={stats.total} matched={stats.matched} />}
+
+          {/* Tier 2: Sector Analysis */}
+          {showSector && results.length > 0 && <ScreenerSectorView results={sortedResults} />}
+
+          {/* AI Screener Assistant */}
           {results.length > 0 && (
             <div className="mb-6">
               {!aiSummary && !isAiLoading ? (
@@ -568,17 +637,16 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
                   className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 border border-indigo-200 text-indigo-700 font-bold rounded-2xl transition-all shadow-sm group"
                 >
                   <Brain className="text-indigo-500 group-hover:scale-110 transition-transform" size={18} />
-                  ให้ AI ช่วยสรุปภาพรวมหุ้นกลุ่มนี้ (Qwen 3)
+                  ให้ AI Stock Guru วิเคราะห์เชิงลึก + จัดอันดับ (Qwen 3)
                   <Sparkles className="text-indigo-400" size={16} />
                 </button>
               ) : (
                 <div className="bg-gradient-to-br from-[#0f172a] to-[#1e1b4b] rounded-2xl p-5 shadow-lg relative overflow-hidden border border-indigo-500/30">
                   <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl"></div>
-                  
                   <div className="flex items-center justify-between mb-4 relative z-10 border-b border-indigo-500/20 pb-3">
                     <div className="flex items-center gap-2 text-indigo-200 font-bold">
                       <Brain size={20} className="text-indigo-400" />
-                      AI Screener Summarizer
+                      AI Stock Guru — วิเคราะห์เชิงลึก
                     </div>
                     {aiSummary && (
                       <button onClick={handleGenerateAISummary} disabled={isAiLoading} className="text-indigo-400 hover:text-white transition-colors" title="วิเคราะห์ใหม่">
@@ -586,17 +654,14 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
                       </button>
                     )}
                   </div>
-                  
                   <div className="relative z-10 text-indigo-100 text-sm leading-relaxed">
                     {isAiLoading ? (
                       <div className="flex flex-col items-center justify-center py-6 gap-3">
                         <Loader2 className="animate-spin text-indigo-400" size={24} />
-                        <p className="text-xs text-indigo-300 font-medium tracking-widest uppercase">กำลังวิเคราะห์ผลลัพธ์การสแกน...</p>
+                        <p className="text-xs text-indigo-300 font-medium tracking-widest uppercase">AI กำลังวิเคราะห์เชิงลึกทุกตัว...</p>
                       </div>
                     ) : (
-                      <div className="prose prose-invert prose-sm max-w-none text-slate-200 whitespace-pre-wrap">
-                        {aiSummary}
-                      </div>
+                      <div className="prose prose-invert prose-sm max-w-none text-slate-200 whitespace-pre-wrap">{aiSummary}</div>
                     )}
                   </div>
                 </div>
@@ -604,105 +669,138 @@ export default function ScreenerView({ onSelectTicker }: ScreenerViewProps) {
             </div>
           )}
 
+          {/* Results Views */}
           {results.length > 0 ? (
-            <div className="overflow-x-auto rounded-2xl border border-slate-200 max-h-[600px] shadow-sm bg-white">
-              <table className="w-full text-sm text-left relative">
-                <thead className="bg-slate-50 text-slate-700 align-top sticky top-0 z-20">
-                  <tr>
-                    <th className="p-4 font-black sticky left-0 bg-slate-50 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] border-b border-slate-200 border-r border-slate-100">Ticker</th>
-                    <th className="p-4 font-black text-right border-b border-slate-200 border-r border-slate-100">Price</th>
-                    <th className="p-4 font-black text-center bg-blue-50/90 border-b border-blue-200/50 border-r border-slate-100" colSpan={4}>Growth & Returns</th>
-                    <th className="p-4 font-black text-center bg-amber-50/90 border-b border-amber-200/50 border-r border-slate-100" colSpan={4}>Valuation Target</th>
-                    <th className="p-4 font-black text-center bg-emerald-50/90 border-b border-emerald-200/50" colSpan={4}>Quality Health</th>
-                  </tr>
-                  <tr className="text-xs text-slate-500 bg-white/95 backdrop-blur shadow-sm border-b border-slate-200">
-                    <th className="p-2 px-4 border-r border-slate-100 sticky left-0 bg-white/95 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"></th>
-                    <th className="p-2 px-4 border-r border-slate-100"></th>
-                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="EPS CAGR 5Y" onClick={() => handleSort('epsCAGR')}>EPS% {renderSortIcon('epsCAGR')}</th>
-                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="DPS CAGR 5Y" onClick={() => handleSort('dpsCAGR')}>DPS% {renderSortIcon('dpsCAGR')}</th>
-                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Dividend Yield" onClick={() => handleSort('latestYield')}>Yield% {renderSortIcon('latestYield')}</th>
-                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Return on Equity" onClick={() => handleSort('latestROE')}>ROE% {renderSortIcon('latestROE')}</th>
-                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Price to Earnings" onClick={() => handleSort('latestPE')}>P/E {renderSortIcon('latestPE')}</th>
-                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Price to Book Value" onClick={() => handleSort('latestPBV')}>P/BV {renderSortIcon('latestPBV')}</th>
-                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="PE ที่ -1 Standard Deviation" onClick={() => handleSort('peMinus1SD')}>PE (-1SD) {renderSortIcon('peMinus1SD')}</th>
-                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="PBV ที่ -1 Standard Deviation" onClick={() => handleSort('pbvMinus1SD')}>PBV (-1SD) {renderSortIcon('pbvMinus1SD')}</th>
-                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Debt to Equity Ratio" onClick={() => handleSort('latestDE')}>D/E {renderSortIcon('latestDE')}</th>
-                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Piotroski F-Score (0-9)" onClick={() => handleSort('fScore')}>F-Score {renderSortIcon('fScore')}</th>
-                    <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" title="Altman Z-Score" onClick={() => handleSort('zScore')}>Z-Score {renderSortIcon('zScore')}</th>
-                    <th className="p-2 text-center cursor-pointer hover:bg-slate-50 group" title="คะแนนรวม Value Investing (0-20)" onClick={() => handleSort('viScore')}>VI Score {renderSortIcon('viScore')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-600">
+            <>
+              {/* Heatmap View */}
+              {viewMode === 'heatmap' && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-500">Metric:</span>
+                    <select value={heatmapMetric} onChange={e => setHeatmapMetric(e.target.value)}
+                      className="text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-1 outline-none">
+                      {Object.entries(METRIC_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                    </select>
+                  </div>
+                  <ScreenerHeatmap results={sortedResults} metric={heatmapMetric} onSelectTicker={onSelectTicker} />
+                </div>
+              )}
+
+              {/* Cards View */}
+              {viewMode === 'cards' && (
+                <div className="space-y-3">
                   {sortedResults.map((r, i) => (
-                    <tr key={r.ticker} className="hover:bg-slate-50/80 transition-colors bg-white">
-                      <td className="p-4 font-bold text-indigo-700 sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10 group">
-                        <button
-                          type="button"
-                          onClick={() => onSelectTicker(r.ticker)}
-                          className="hover:underline flex items-center gap-1.5"
-                          title="คลิกเพื่อประเมินมูลค่า (DDM)"
-                        >
-                          {r.ticker}
-                          <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </button>
-                      </td>
-                      <td className="p-4 text-right font-medium bg-slate-50/30">{r.currentPrice?.toFixed(2) || '-'}</td>
-                      
-                      <td className={`p-4 text-center ${r.epsCAGR >= 10 ? 'text-emerald-600 font-medium' : r.epsCAGR > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                        {r.epsCAGR !== null && r.epsCAGR !== undefined ? `${r.epsCAGR.toFixed(1)}%` : '-'}
-                      </td>
-                      <td className={`p-4 text-center ${r.dpsCAGR >= 10 ? 'text-emerald-600 font-medium' : r.dpsCAGR > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                        {r.dpsCAGR !== null && r.dpsCAGR !== undefined ? `${r.dpsCAGR.toFixed(1)}%` : '-'}
-                      </td>
-
-                      <td className={`p-4 text-center font-bold ${r.latestYield >= 5 ? 'text-emerald-700 bg-emerald-50/80' : r.latestYield >= 3 ? 'text-emerald-600' : 'text-slate-600'}`}>
-                        {r.latestYield?.toFixed(2) || '0.00'}%
-                      </td>
-                      <td className={`p-4 text-center font-bold ${r.latestROE >= 15 ? 'text-emerald-700 bg-emerald-50/80' : r.latestROE >= 10 ? 'text-emerald-600' : 'text-slate-600'}`}>
-                        {r.latestROE?.toFixed(2) || '0.00'}%
-                      </td>
-
-                      <td className={`p-4 text-center font-medium ${r.latestPE && r.peMinus1SD && r.latestPE <= r.peMinus1SD ? 'text-emerald-700 bg-emerald-50/80' : ''}`}>
-                        {r.latestPE?.toFixed(2) || '-'}
-                      </td>
-                      <td className={`p-4 text-center font-medium ${r.latestPBV && r.pbvMinus1SD && r.latestPBV <= r.pbvMinus1SD ? 'text-emerald-700 bg-emerald-50/80' : ''}`}>
-                        {r.latestPBV?.toFixed(2) || '-'}
-                      </td>
-
-                      <td className="p-4 text-center text-slate-500 text-xs">
-                        <div title={`AVG: ${r.peAvg?.toFixed(1)}`}>
-                          {r.peMinus1SD?.toFixed(1) || '-'}
-                        </div>
-                      </td>
-                      <td className="p-4 text-center text-slate-500 text-xs">
-                        <div title={`AVG: ${r.pbvAvg?.toFixed(2)}`}>
-                          {r.pbvMinus1SD?.toFixed(2) || '-'}
-                        </div>
-                      </td>
-
-                      <td className={`p-4 text-center font-medium ${r.latestDE < 0.5 ? 'text-emerald-600 font-bold' : r.latestDE < 1 ? 'text-emerald-500' : r.latestDE > 2 ? 'text-red-500 font-bold' : 'text-amber-500'}`}>
-                        {r.latestDE !== null && r.latestDE !== undefined ? r.latestDE.toFixed(2) : '-'}
-                      </td>
-
-                      <td className={`p-4 text-center font-bold ${r.fScore >= 7 ? 'text-emerald-700 bg-emerald-50/80' : r.fScore >= 5 ? 'text-emerald-600' : r.fScore <= 3 ? 'text-red-500 bg-red-50/80' : 'text-amber-500'}`}>
-                        {r.fScore}/9
-                      </td>
-                      <td className={`p-4 text-center font-bold ${r.zScore >= 2.99 ? 'text-emerald-700 bg-emerald-50/80' : r.zScore >= 1.8 ? 'text-emerald-600' : 'text-red-500 bg-red-50/80'}`}>
-                        {r.zScore?.toFixed(2) || '-'}
-                      </td>
-                      <td className={`p-4 text-center font-bold ${r.viScore >= 15 ? 'text-indigo-700 bg-indigo-100/50' : r.viScore >= 12 ? 'text-indigo-600 bg-indigo-50/30' : 'text-slate-600'}`}>
-                        {r.viScore}/20
-                      </td>
-                    </tr>
+                    <div key={r.ticker} className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+                      <ScreenerStockCard stock={r} rank={i} onSelectTicker={onSelectTicker}
+                        onSave={onSaveToFavorites ? (t) => onSaveToFavorites([t]) : undefined}
+                        onJournal={onOpenJournal} />
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </div>
+              )}
+
+              {/* Table View (Original + Enhanced) */}
+              {viewMode === 'table' && (
+                <div className="overflow-x-auto rounded-2xl border border-slate-200 max-h-[600px] shadow-sm bg-white">
+                  <table className="w-full text-sm text-left relative">
+                    <thead className="bg-slate-50 text-slate-700 align-top sticky top-0 z-20">
+                      <tr>
+                        <th className="p-4 font-black sticky left-0 bg-slate-50 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] border-b border-slate-200 border-r border-slate-100">Rank</th>
+                        <th className="p-4 font-black text-right border-b border-slate-200 border-r border-slate-100">Price</th>
+                        <th className="p-4 font-black text-center bg-blue-50/90 border-b border-blue-200/50 border-r border-slate-100" colSpan={4}>Growth & Returns</th>
+                        <th className="p-4 font-black text-center bg-amber-50/90 border-b border-amber-200/50 border-r border-slate-100" colSpan={4}>Valuation Target</th>
+                        <th className="p-4 font-black text-center bg-emerald-50/90 border-b border-emerald-200/50 border-r border-slate-100" colSpan={3}>Quality Health</th>
+                        <th className="p-4 font-black text-center bg-indigo-50/90 border-b border-indigo-200/50">Rating</th>
+                      </tr>
+                      <tr className="text-xs text-slate-500 bg-white/95 backdrop-blur shadow-sm border-b border-slate-200">
+                        <th className="p-2 px-4 border-r border-slate-100 sticky left-0 bg-white/95 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"></th>
+                        <th className="p-2 px-4 border-r border-slate-100"></th>
+                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('epsCAGR')}>EPS% {renderSortIcon('epsCAGR')}</th>
+                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('dpsCAGR')}>DPS% {renderSortIcon('dpsCAGR')}</th>
+                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('latestYield')}>Yield% {renderSortIcon('latestYield')}</th>
+                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('latestROE')}>ROE% {renderSortIcon('latestROE')}</th>
+                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('latestPE')}>P/E {renderSortIcon('latestPE')}</th>
+                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('latestPBV')}>P/BV {renderSortIcon('latestPBV')}</th>
+                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('peMinus1SD')}>PE(-1SD) {renderSortIcon('peMinus1SD')}</th>
+                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('latestDE')}>D/E {renderSortIcon('latestDE')}</th>
+                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('fScore')}>F {renderSortIcon('fScore')}</th>
+                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('zScore')}>Z {renderSortIcon('zScore')}</th>
+                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('viScore')}>VI {renderSortIcon('viScore')}</th>
+                        <th className="p-2 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-slate-600">
+                      {sortedResults.map((r, i) => {
+                        const isExpanded = expandedRows[r.ticker];
+                        const viRating = r.viScore >= 16 ? '🟢' : r.viScore >= 13 ? '🟡' : r.viScore >= 10 ? '🟠' : '🔴';
+                        const rankBadge = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+                        const isSaved = selectedForSave.has(r.ticker);
+                        return (
+                          <React.Fragment key={r.ticker}>
+                            <tr className={`hover:bg-slate-50/80 transition-colors ${isExpanded ? 'bg-indigo-50/30' : 'bg-white'}`}>
+                              <td className="p-3 font-bold text-indigo-700 sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10 group">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs">{rankBadge}</span>
+                                  <button type="button" onClick={() => onSelectTicker(r.ticker)} className="hover:underline flex items-center gap-1 font-black" title="DDM">
+                                    {r.ticker}
+                                    <ExternalLink size={10} className="opacity-0 group-hover:opacity-100" />
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="p-3 text-right font-medium text-sm tabular-nums">{r.currentPrice?.toFixed(2) || '-'}</td>
+                              <td className={`p-3 text-center text-xs ${r.epsCAGR > 0 ? 'text-emerald-500' : 'text-red-500'}`}>{r.epsCAGR?.toFixed(1)}%</td>
+                              <td className={`p-3 text-center text-xs ${r.dpsCAGR > 0 ? 'text-emerald-500' : 'text-red-500'}`}>{r.dpsCAGR?.toFixed(1)}%</td>
+                              <td className={`p-3 text-center text-xs font-bold ${r.latestYield >= 5 ? 'text-emerald-700 bg-emerald-50/80' : ''}`}>{r.latestYield?.toFixed(2)}%</td>
+                              <td className={`p-3 text-center text-xs font-bold ${r.latestROE >= 15 ? 'text-emerald-700 bg-emerald-50/80' : ''}`}>{r.latestROE?.toFixed(1)}%</td>
+                              <td className={`p-3 text-center text-xs ${r.latestPE && r.peMinus1SD && r.latestPE <= r.peMinus1SD ? 'text-emerald-700 bg-emerald-50/80 font-bold' : ''}`}>{r.latestPE?.toFixed(1) || '-'}</td>
+                              <td className={`p-3 text-center text-xs ${r.latestPBV && r.pbvMinus1SD && r.latestPBV <= r.pbvMinus1SD ? 'text-emerald-700 bg-emerald-50/80 font-bold' : ''}`}>{r.latestPBV?.toFixed(2) || '-'}</td>
+                              <td className="p-3 text-center text-[10px] text-slate-400">{r.peMinus1SD?.toFixed(1) || '-'}</td>
+                              <td className={`p-3 text-center text-xs ${r.latestDE < 0.5 ? 'text-emerald-600 font-bold' : r.latestDE > 2 ? 'text-red-500 font-bold' : ''}`}>{r.latestDE?.toFixed(2) || '-'}</td>
+                              <td className={`p-3 text-center text-xs font-bold ${r.fScore >= 7 ? 'text-emerald-700 bg-emerald-50/80' : r.fScore <= 3 ? 'text-red-500' : ''}`}>{r.fScore}/9</td>
+                              <td className={`p-3 text-center text-xs font-bold ${r.zScore >= 2.99 ? 'text-emerald-700 bg-emerald-50/80' : r.zScore < 1.8 ? 'text-red-500' : ''}`}>{r.zScore?.toFixed(2)}</td>
+                              <td className={`p-3 text-center text-xs font-black ${r.viScore >= 15 ? 'text-indigo-700 bg-indigo-100/50' : r.viScore >= 12 ? 'text-indigo-600' : ''}`}>{viRating} {r.viScore}/20</td>
+                              <td className="p-3 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  <button onClick={() => setExpandedRows(p => ({...p, [r.ticker]: !p[r.ticker]}))}
+                                    className={`p-1 rounded-md ${isExpanded ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'} transition-colors`}>
+                                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                  </button>
+                                  {onSaveToFavorites && (
+                                    <button onClick={() => setSelectedForSave(prev => {
+                                        const next = new Set(prev);
+                                        if (next.has(r.ticker)) next.delete(r.ticker); else next.add(r.ticker);
+                                        return next;
+                                      })}
+                                      className={`p-1 rounded-md transition-colors ${isSaved ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400 hover:bg-emerald-50'}`}>
+                                      {isSaved ? <Star size={14} className="fill-emerald-500" /> : <Plus size={14} />}
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                            {/* Expanded Stock Card */}
+                            {isExpanded && (
+                              <tr className="bg-slate-50/70 border-b border-slate-200">
+                                <td colSpan={15} className="shadow-inner">
+                                  <ScreenerStockCard stock={r} rank={i} onSelectTicker={onSelectTicker}
+                                    onSave={onSaveToFavorites ? (t) => onSaveToFavorites([t]) : undefined}
+                                    onJournal={onOpenJournal} />
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           ) : (
             <div className="py-12 bg-slate-50 rounded-xl border border-slate-100 flex flex-col items-center justify-center text-slate-500">
               <Search size={48} className="text-slate-300 mb-4" />
               <p>ไม่พบหุ้นที่ผ่านเกณฑ์ทั้งหมดที่คุณตั้งไว้</p>
-              <p className="text-sm mt-2">โปรดลองผ่อนปรนเกณฑ์บางข้อ (เช่น PE Band หรือ Z-Score) เพื่อดูผลลัพธ์ที่กว้างขึ้น</p>
+              <p className="text-sm mt-2">โปรดลองผ่อนปรนเกณฑ์บางข้อ หรือใช้ preset 🔮 Contrarian เพื่อหาหุ้นเด่นที่ถูกมองข้าม</p>
             </div>
           )}
         </div>
