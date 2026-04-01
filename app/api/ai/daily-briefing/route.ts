@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const apiKey = process.env.GROQ_API_KEY;
+    console.log("Checking Groq API key:", apiKey ? "Configured" : "Missing");
 
     if (!apiKey) {
       return NextResponse.json({ error: 'Groq API Key not configured.' }, { status: 500 });
@@ -41,6 +42,7 @@ FORMAT: Use concise THAI paragraphs with 1-2 emojis. Do not output English.`;
 
     const data = await response.json();
     if (!response.ok) {
+      console.error('Groq API Error:', data);
       throw new Error(data.error?.message || 'Failed to call AI');
     }
 
