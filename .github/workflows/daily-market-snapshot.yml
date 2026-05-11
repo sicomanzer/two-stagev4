@@ -16,7 +16,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
 
       - name: Install Node deps
         run: npm ci
@@ -28,4 +28,3 @@ jobs:
           SNAPSHOT_BATCH_SIZE: "120"
           SNAPSHOT_THROTTLE_MS: "800"
         run: node scripts/update_market_snapshot.js
-
