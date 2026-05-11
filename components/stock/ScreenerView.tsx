@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Search, Info, TrendingUp, AlertTriangle, ShieldCheck, Download, ChevronUp, ChevronDown, ChevronsUpDown, ExternalLink, Zap, Target, Brain, Sparkles, Loader2, RefreshCcw, LayoutGrid, Table2, PieChart, Plus, Star, Eye } from 'lucide-react';
 import ScreenerQuickStats from './ScreenerQuickStats';
 import ScreenerHeatmap, { METRIC_CONFIG } from './ScreenerHeatmap';
@@ -102,6 +102,55 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [showSector, setShowSector] = useState(false);
   const [selectedForSave, setSelectedForSave] = useState<Set<string>>(new Set());
+
+  const [fundamentalsStatus, setFundamentalsStatus] = useState<{
+    localCacheUpdatedAt: string | null;
+    localCacheCount: number;
+    supabaseLastUpdatedAt: string | null;
+  } | null>(null);
+  const [isTriggeringSync, setIsTriggeringSync] = useState(false);
+  const [syncTriggerError, setSyncTriggerError] = useState<string | null>(null);
+  const [syncTriggerOk, setSyncTriggerOk] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    fetch('/api/system/fundamentals-status')
+      .then((r) => r.json())
+      .then((d) => {
+        if (!mounted) return;
+        setFundamentalsStatus(d);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const isSameLocalDay = (a: string, b: string) => {
+    return new Date(a).toLocaleDateString('en-CA') === new Date(b).toLocaleDateString('en-CA');
+  };
+
+  const lastUpdatedAt = fundamentalsStatus?.supabaseLastUpdatedAt || fundamentalsStatus?.localCacheUpdatedAt || null;
+  const isFundamentalsStale = lastUpdatedAt ? !isSameLocalDay(lastUpdatedAt, new Date().toISOString()) : false;
+
+  const handleTriggerSync = async () => {
+    setIsTriggeringSync(true);
+    setSyncTriggerError(null);
+    setSyncTriggerOk(false);
+    try {
+      const res = await fetch('/api/system/trigger-fundamentals-sync', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSyncTriggerError(data?.error || 'Trigger failed');
+        return;
+      }
+      setSyncTriggerOk(true);
+    } catch {
+      setSyncTriggerError('Trigger failed');
+    } finally {
+      setIsTriggeringSync(false);
+    }
+  };
 
   const applyPreset = (nextPreset: ScreenerPreset) => {
     setPreset(nextPreset);
@@ -401,6 +450,37 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
                <p className="text-sm font-medium text-slate-500 mt-1">สแกนหาหุ้นคุณค่าและตรวจสุขภาพการเงินระดับมืออาชีพ</p>
              </div>
           </div>
+
+          {fundamentalsStatus && (
+            <div className={`rounded-2xl border px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3 ${
+              isFundamentalsStale ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'
+            }`}>
+              <div className="text-sm font-bold text-slate-700">
+                <span className="mr-2">ฐานข้อมูล Screener:</span>
+                <span className="font-black">
+                  {lastUpdatedAt ? new Date(lastUpdatedAt).toLocaleString('th-TH') : 'ไม่ทราบเวลาอัปเดต'}
+                </span>
+                <span className="ml-2 text-xs font-bold text-slate-500">
+                  ({fundamentalsStatus.localCacheCount ?? 0} ตัว)
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {syncTriggerError && <div className="text-xs font-bold text-rose-600">{syncTriggerError}</div>}
+                {syncTriggerOk && <div className="text-xs font-bold text-emerald-700">สั่งรันแล้ว</div>}
+                {isFundamentalsStale && (
+                  <button
+                    type="button"
+                    onClick={handleTriggerSync}
+                    disabled={isTriggeringSync}
+                    className="inline-flex items-center gap-2 rounded-xl px-3 py-2 border border-slate-200 bg-white text-slate-700 text-xs font-black hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isTriggeringSync ? <Loader2 size={14} className="animate-spin" /> : <RefreshCcw size={14} />}
+                    Trigger อัปเดตรายวัน
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
             {[

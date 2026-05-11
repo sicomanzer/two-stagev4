@@ -1,10 +1,37 @@
 import { NextResponse } from 'next/server';
 import { calculateFScore, calculateZScore, calculateCAGR, calculateScorecard } from '@/lib/calculations';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import YahooFinance from 'yahoo-finance2';
 
 // We use dynamic import for the cache so it doesn't break the build if it's too large
 // and we only load it on demand.
 export const maxDuration = 60; // Allow more time for large computations
+
+async function getFundamentalsCacheFromSupabase() {
+  try {
+    if (!supabaseAdmin) return null;
+    const { data, error } = await supabaseAdmin
+      .from('stock_fundamentals')
+      .select('ticker,company_name,sector,industry,history,updated_at')
+      .limit(2000);
+    if (error || !data || data.length === 0) return null;
+    const tickers: Record<string, any> = {};
+    for (const row of data) {
+      if (!row.ticker || !row.history) continue;
+      tickers[row.ticker] = {
+        companyName: row.company_name ?? null,
+        sector: row.sector ?? null,
+        industry: row.industry ?? null,
+        history: row.history
+      };
+    }
+    if (Object.keys(tickers).length === 0) return null;
+    return { tickers };
+  } catch (e) {
+    console.warn('Failed to load fundamentals from Supabase:', e);
+    return null;
+  }
+}
 
 async function getFundamentalsCache() {
   try {
@@ -122,7 +149,7 @@ export async function POST(request: Request) {
     const effectiveViScoreMin = viScoreMin !== undefined ? Math.min(Number(viScoreMin), 20) : undefined;
     const effectiveDividendStreakMin = dividendStreakMin !== undefined ? Math.max(0, Number(dividendStreakMin)) : undefined;
 
-    const cache: any = await getFundamentalsCache();
+    const cache: any = (await getFundamentalsCacheFromSupabase()) || (await getFundamentalsCache());
     if (!cache || !cache.tickers) {
       return NextResponse.json({ error: 'ไม่พบฐานข้อมูลหุ้นสำหรับ Screener (fundamentals-cache.json)' }, { status: 500 });
     }

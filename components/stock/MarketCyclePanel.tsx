@@ -213,7 +213,7 @@ export default function MarketCyclePanel({ ticker, ratioBands, stockHistory, cur
               </span>
             </p>
             <div className="bg-white/60 p-3 rounded-lg border border-white/40 text-xs text-slate-700 italic font-medium">
-              "{phases[currentPhase-1].lesson}"
+              &quot;{phases[currentPhase-1].lesson}&quot;
             </div>
           </div>
         </div>
