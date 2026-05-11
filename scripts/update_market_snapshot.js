@@ -63,10 +63,12 @@ async function main() {
 
     const nowIso = new Date().toISOString();
     const rows = [];
+    const received = new Set();
 
     for (const q of quotes || []) {
       const symbol = (q.symbol || '').replace('.BK', '');
       if (!symbol) continue;
+      received.add(symbol);
       rows.push({
         ticker: symbol,
         price: q.regularMarketPrice ?? null,
@@ -77,10 +79,22 @@ async function main() {
       });
     }
 
+    for (const t of batch) {
+      if (received.has(t)) continue;
+      rows.push({
+        ticker: t,
+        price: null,
+        pe: null,
+        pbv: null,
+        dividend_yield: null,
+        updated_at: nowIso
+      });
+    }
+
     await upsertBatch(rows);
     done += batch.length;
-    ok += rows.length;
-    process.stdout.write(`\r✅ Updated ${done}/${tickers.length} tickers (${ok} quotes)   `);
+    ok += received.size;
+    process.stdout.write(`\r✅ Updated ${done}/${tickers.length} tickers (${ok} quotes, ${done - ok} missing)   `);
 
     if (i + batchSize < tickers.length) {
       await sleep(throttleMs);
@@ -94,4 +108,3 @@ main().catch((e) => {
   console.error('\n❌ Snapshot update failed:', e?.message || e);
   process.exit(1);
 });
-
