@@ -104,9 +104,12 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
   const [selectedForSave, setSelectedForSave] = useState<Set<string>>(new Set());
 
   const [fundamentalsStatus, setFundamentalsStatus] = useState<{
-    localCacheUpdatedAt: string | null;
-    localCacheCount: number;
     supabaseLastUpdatedAt: string | null;
+    supabaseCount: number;
+    workflowLastRunAt: string | null;
+    workflowLastRunStatus: string | null;
+    workflowLastRunConclusion: string | null;
+    canTriggerToday: boolean | null;
   } | null>(null);
   const [isTriggeringSync, setIsTriggeringSync] = useState(false);
   const [syncTriggerError, setSyncTriggerError] = useState<string | null>(null);
@@ -114,7 +117,7 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
 
   useEffect(() => {
     let mounted = true;
-    fetch('/api/system/fundamentals-status')
+    fetch('/api/system/market-snapshot-status')
       .then((r) => r.json())
       .then((d) => {
         if (!mounted) return;
@@ -130,15 +133,16 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
     return new Date(a).toLocaleDateString('en-CA') === new Date(b).toLocaleDateString('en-CA');
   };
 
-  const lastUpdatedAt = fundamentalsStatus?.supabaseLastUpdatedAt || fundamentalsStatus?.localCacheUpdatedAt || null;
+  const lastUpdatedAt = fundamentalsStatus?.supabaseLastUpdatedAt || null;
   const isFundamentalsStale = lastUpdatedAt ? !isSameLocalDay(lastUpdatedAt, new Date().toISOString()) : false;
+  const canTriggerToday = fundamentalsStatus?.canTriggerToday ?? null;
 
   const handleTriggerSync = async () => {
     setIsTriggeringSync(true);
     setSyncTriggerError(null);
     setSyncTriggerOk(false);
     try {
-      const res = await fetch('/api/system/trigger-fundamentals-sync', { method: 'POST' });
+      const res = await fetch('/api/system/trigger-market-snapshot', { method: 'POST' });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setSyncTriggerError(data?.error || 'Trigger failed');
@@ -456,18 +460,21 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
               isFundamentalsStale ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'
             }`}>
               <div className="text-sm font-bold text-slate-700">
-                <span className="mr-2">ฐานข้อมูล Screener:</span>
+                <span className="mr-2">อัปเดตอัตราส่วน (Snapshot):</span>
                 <span className="font-black">
                   {lastUpdatedAt ? new Date(lastUpdatedAt).toLocaleString('th-TH') : 'ไม่ทราบเวลาอัปเดต'}
                 </span>
                 <span className="ml-2 text-xs font-bold text-slate-500">
-                  ({fundamentalsStatus.localCacheCount ?? 0} ตัว)
+                  ({fundamentalsStatus.supabaseCount ?? 0} ตัว)
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 {syncTriggerError && <div className="text-xs font-bold text-rose-600">{syncTriggerError}</div>}
                 {syncTriggerOk && <div className="text-xs font-bold text-emerald-700">สั่งรันแล้ว</div>}
-                {isFundamentalsStale && (
+                {isFundamentalsStale && canTriggerToday === false && (
+                  <div className="text-xs font-bold text-slate-600">วันนี้สั่งอัปเดตไปแล้ว</div>
+                )}
+                {isFundamentalsStale && canTriggerToday !== false && (
                   <button
                     type="button"
                     onClick={handleTriggerSync}
@@ -475,7 +482,7 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
                     className="inline-flex items-center gap-2 rounded-xl px-3 py-2 border border-slate-200 bg-white text-slate-700 text-xs font-black hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isTriggeringSync ? <Loader2 size={14} className="animate-spin" /> : <RefreshCcw size={14} />}
-                    Trigger อัปเดตรายวัน
+                    อัปเดตอัตราส่วนล่าสุด
                   </button>
                 )}
               </div>

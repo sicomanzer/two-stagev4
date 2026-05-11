@@ -33,6 +33,32 @@ async function getFundamentalsCacheFromSupabase() {
   }
 }
 
+async function getMarketSnapshotFromSupabase() {
+  try {
+    if (!supabaseAdmin) return null;
+    const { data, error } = await supabaseAdmin
+      .from('stock_market_snapshot')
+      .select('ticker,price,pe,pbv,dividend_yield,updated_at')
+      .limit(2000);
+    if (error || !data || data.length === 0) return null;
+    const map: Record<string, any> = {};
+    for (const row of data) {
+      if (!row.ticker) continue;
+      map[row.ticker] = {
+        price: row.price ?? null,
+        pe: row.pe ?? null,
+        pbv: row.pbv ?? null,
+        yield: row.dividend_yield ?? null,
+        updatedAt: row.updated_at ?? null
+      };
+    }
+    return map;
+  } catch (e) {
+    console.warn('Failed to load market snapshot from Supabase:', e);
+    return null;
+  }
+}
+
 async function getFundamentalsCache() {
   try {
     const cache = await import('@/data/fundamentals-cache.json');
@@ -156,24 +182,25 @@ export async function POST(request: Request) {
 
     const tickers = Object.keys(cache.tickers);
     
-    // Fetch live quotes from Yahoo Finance for all tickers (Section 1)
-    let liveQuotes: Record<string, any> = {};
-    try {
-      const yf = new YahooFinance();
-      const yfSymbols = tickers.map(t => `${t}.BK`);
-      // YahooFinance.quote can handle large arrays
-      const quotes = await yf.quote(yfSymbols);
-      quotes.forEach((q: any) => {
-        const symbol = q.symbol.replace('.BK', '');
-        liveQuotes[symbol] = {
-          price: q.regularMarketPrice,
-          pe: q.trailingPE,
-          pbv: q.priceToBook,
-          yield: q.dividendYield // This is a percentage e.g. 4.47 for 4.47%
-        };
-      });
-    } catch (e) {
-      console.warn('Failed to fetch live quotes from Yahoo Finance, falling back to cache:', e);
+    let liveQuotes: Record<string, any> = (await getMarketSnapshotFromSupabase()) || {};
+
+    if (Object.keys(liveQuotes).length === 0) {
+      try {
+        const yf = new YahooFinance();
+        const yfSymbols = tickers.map(t => `${t}.BK`);
+        const quotes = await yf.quote(yfSymbols);
+        quotes.forEach((q: any) => {
+          const symbol = q.symbol.replace('.BK', '');
+          liveQuotes[symbol] = {
+            price: q.regularMarketPrice,
+            pe: q.trailingPE,
+            pbv: q.priceToBook,
+            yield: q.dividendYield
+          };
+        });
+      } catch (e) {
+        console.warn('Failed to fetch live quotes from Yahoo Finance, falling back to cache:', e);
+      }
     }
 
     const results = [];
