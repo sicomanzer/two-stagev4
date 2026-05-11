@@ -254,7 +254,7 @@ export async function GET(request: Request) {
        // Light mode: Only Quote (fastest)
        [quoteResult] = await Promise.allSettled([
           yahooFinance.quoteSummary(symbol, {
-            modules: ['financialData', 'defaultKeyStatistics', 'summaryDetail', 'price', 'summaryProfile', 'calendarEvents']
+            modules: ['financialData', 'defaultKeyStatistics', 'summaryDetail', 'price', 'summaryProfile', 'calendarEvents', 'balanceSheetHistoryQuarterly']
           }, { validateResult: false })
        ]);
        
@@ -266,7 +266,7 @@ export async function GET(request: Request) {
        // Full mode: Fetch all
        [quoteResult, chartResult, fundamentalsResult] = await Promise.allSettled([
           yahooFinance.quoteSummary(symbol, {
-            modules: ['financialData', 'defaultKeyStatistics', 'summaryDetail', 'price', 'incomeStatementHistory', 'balanceSheetHistory', 'cashflowStatementHistory', 'summaryProfile', 'calendarEvents']
+            modules: ['financialData', 'defaultKeyStatistics', 'summaryDetail', 'price', 'incomeStatementHistory', 'balanceSheetHistory', 'cashflowStatementHistory', 'summaryProfile', 'calendarEvents', 'balanceSheetHistoryQuarterly']
           }, { validateResult: false }),
           yahooFinance.chart(symbol, {
             period1: startDate.toISOString().split('T')[0],
@@ -334,13 +334,14 @@ export async function GET(request: Request) {
                  totalDebt = (f.currentDebt || 0) + (f.longTermDebt || 0);
             }
             
-            const totalEquity = f.totalEquityGrossMinorityInterest || f.totalStockholderEquity;
+            const totalEquity = f.totalStockholderEquity || f.totalEquityGrossMinorityInterest;
             const shares = f.shareIssued || f.dilutedAverageShares || f.basicAverageShares;
             
             if (shares) lastShares = shares;
             if (totalEquity) lastEquity = totalEquity;
             
-            const de = (totalDebt && totalEquity) ? totalDebt / totalEquity : null;
+            const totalLiabilities = f.totalLiabilitiesNetMinorityInterest || f.totalLiabilities;
+            const de = (totalLiabilities && totalEquity) ? totalLiabilities / totalEquity : null;
             const npm = (netProfit && revenue) ? (netProfit / revenue) * 100 : null;
             const gpm = (grossProfit && revenue) ? (grossProfit / revenue) * 100 : null;
             const currentRatio = (currentAssets && currentLiabilities) ? currentAssets / currentLiabilities : null;
@@ -353,7 +354,6 @@ export async function GET(request: Request) {
             // Z-Score specific fields
             const retainedEarnings = f.retainedEarnings || f.retainedEarningsTotalEquity;
             const ebit = f.ebit || f.operatingIncome || f.operatingRevenue - (f.costOfRevenue || 0) - (f.operatingExpense || 0);
-            const totalLiabilities = f.totalLiabilitiesNetMinorityInterest || f.totalLiabilities;
 
             // Merge into entry
             setIfMissing('revenue', revenue);
@@ -429,7 +429,8 @@ export async function GET(request: Request) {
             }
 
             if (!entry.totalAssets) entry.totalAssets = f.totalAssets;
-            if (!entry.totalLiabilities) entry.totalLiabilities = f.totalLiabilitiesNetMinorityInterest || f.totalLiabilities;
+            const totalLiabilities = f.totalLiabilitiesNetMinorityInterest || f.totalLiabilities;
+            if (!entry.totalLiabilities) entry.totalLiabilities = totalLiabilities;
             if (!entry.totalCurrentAssets) entry.totalCurrentAssets = f.totalCurrentAssets || f.totalAssets / 2; // Fallback? No, strict.
             if (!entry.totalCurrentAssets && f.totalCurrentAssets) entry.totalCurrentAssets = f.totalCurrentAssets;
             
@@ -438,7 +439,7 @@ export async function GET(request: Request) {
             if (!entry.retainedEarnings) entry.retainedEarnings = f.retainedEarnings || f.retainedEarningsTotalEquity;
             if (!entry.shares) entry.shares = f.shareIssued || f.commonStockSharesOutstanding;
             
-            const totalEquity = f.totalEquityGrossMinorityInterest || f.totalStockholderEquity;
+            const totalEquity = f.totalStockholderEquity || f.totalEquityGrossMinorityInterest;
             
             // Recalculate derived metrics ONLY if missing (do NOT overwrite thaifin/cache values)
             if (!entry.bvps && entry.shares && totalEquity) {
@@ -455,10 +456,8 @@ export async function GET(request: Request) {
             }
             
             // Update DE only if missing
-            let totalDebt = f.totalDebt;
-            if (!totalDebt) totalDebt = (f.currentDebt || 0) + (f.longTermDebt || 0);
-            if (!entry.de && totalDebt && totalEquity) {
-                entry.de = totalDebt / totalEquity;
+            if (!entry.de && totalLiabilities && totalEquity) {
+                entry.de = totalLiabilities / totalEquity;
             }
         });
     }
@@ -886,6 +885,7 @@ export async function GET(request: Request) {
     let finalRoe = quote.financialData?.returnOnEquity;
     let finalPe = quote.summaryDetail?.trailingPE;
     let finalPbv = quote.defaultKeyStatistics?.priceToBook;
+    let finalBvps: number | undefined = undefined;
     let finalEps = quote.defaultKeyStatistics?.trailingEps || quote.defaultKeyStatistics?.forwardEps;
     let finalRoa = quote.financialData?.returnOnAssets;
     let finalDe = quote.financialData?.debtToEquity !== undefined && quote.financialData?.debtToEquity !== null ? quote.financialData.debtToEquity / 100 : undefined;
@@ -897,9 +897,23 @@ export async function GET(request: Request) {
            if (finalPe === quote.summaryDetail?.trailingPE && h.pe !== null && h.pe !== undefined) finalPe = h.pe;
            if (finalPbv === quote.defaultKeyStatistics?.priceToBook && h.pbv !== null && h.pbv !== undefined) finalPbv = h.pbv;
            if (finalEps === (quote.defaultKeyStatistics?.trailingEps || quote.defaultKeyStatistics?.forwardEps) && h.eps !== null && h.eps !== undefined) finalEps = h.eps;
+           if (finalBvps === undefined && h.bvps !== null && h.bvps !== undefined && Number(h.bvps) > 0) finalBvps = Number(h.bvps);
            if (finalRoa === quote.financialData?.returnOnAssets && h.roa !== null && h.roa !== undefined) finalRoa = h.roa / 100;
            if (finalDe === (quote.financialData?.debtToEquity !== undefined && quote.financialData?.debtToEquity !== null ? quote.financialData.debtToEquity / 100 : undefined) && h.de !== null && h.de !== undefined) finalDe = h.de;
        }
+    }
+
+    if (currentPrice && finalEps && Number(finalEps) > 0) {
+      finalPe = currentPrice / Number(finalEps);
+    }
+    if (currentPrice && finalBvps && Number(finalBvps) > 0) {
+      finalPbv = currentPrice / Number(finalBvps);
+    }
+    const quarterlyBalance = quote.balanceSheetHistoryQuarterly?.balanceSheetStatements?.[0];
+    const quarterlyEquity = quarterlyBalance?.totalStockholderEquity || quarterlyBalance?.totalEquityGrossMinorityInterest;
+    const quarterlyLiabilities = quarterlyBalance?.totalLiabilitiesNetMinorityInterest || quarterlyBalance?.totalLiabilities;
+    if (quarterlyLiabilities && quarterlyEquity) {
+      finalDe = quarterlyLiabilities / quarterlyEquity;
     }
 
     const data = {

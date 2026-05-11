@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Calendar, ChevronDown, Loader2, XCircle, Target, TrendingUp, TrendingDown, Edit3, Check, X } from 'lucide-react';
+import { Calendar, ChevronDown, Loader2, XCircle, Target, TrendingUp, TrendingDown, Edit3, Check, X, RefreshCw } from 'lucide-react';
 import { PortfolioGroup } from '@/types/portfolio';
 import {
   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -110,6 +110,7 @@ export default function DividendEventsView({
   const [dividendGoal, setDividendGoal] = useState(0);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [goalInput, setGoalInput] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   /* ── Effects ── */
   useEffect(() => {
@@ -173,7 +174,7 @@ export default function DividendEventsView({
       }
     };
     run();
-  }, [currentPortfolioId, selectedYearBE, selectedTypes]);
+  }, [currentPortfolioId, selectedYearBE, selectedTypes, refreshKey]);
 
   // Fetch yearly summary for chart
   useEffect(() => {
@@ -208,7 +209,7 @@ export default function DividendEventsView({
       }
     };
     runYearly();
-  }, [currentPortfolioId, selectedTypes, yearOptions]);
+  }, [currentPortfolioId, selectedTypes, yearOptions, refreshKey]);
 
   /* ── Handlers ── */
   const toggleType = (type: EventCode) => {
@@ -239,6 +240,10 @@ export default function DividendEventsView({
   };
   const handleCancelEditGoal = () => {
     setIsEditingGoal(false);
+  };
+
+  const handleRefresh = () => {
+    setRefreshKey((v) => v + 1);
   };
 
   /* ── Computed (useMemo) ── */
@@ -331,14 +336,29 @@ export default function DividendEventsView({
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* ── FILTER SECTION ── */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-600">
-            <Calendar size={22} />
+        <div className="flex items-start justify-between gap-3 mb-5">
+          <div className="flex items-center gap-3">
+            <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-600">
+              <Calendar size={22} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">รายงานรับปันผลรายครั้ง</h2>
+              <p className="text-slate-500 text-xs">ดึงรายชื่อจาก Real Portfolio และแสดงรายการสิทธิ์ตามประเภทที่เลือก</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-slate-800">รายงานรับปันผลรายครั้ง</h2>
-            <p className="text-slate-500 text-xs">ดึงรายชื่อจาก Real Portfolio และแสดงรายการสิทธิ์ตามประเภทที่เลือก</p>
-          </div>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isLoading || isYearlyLoading || !currentPortfolioId}
+            className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border border-slate-200 bg-white text-slate-700 text-sm font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading || isYearlyLoading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <RefreshCw size={16} />
+            )}
+            ดึงข้อมูลล่าสุด
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
