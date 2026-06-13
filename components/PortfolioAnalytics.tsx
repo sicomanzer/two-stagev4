@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, Legend
@@ -10,7 +10,16 @@ import type { PortfolioItem } from '@/types/portfolio';
 interface PortfolioAnalyticsProps {
   items: PortfolioItem[];
   realHoldings?: any[]; // Optional real portfolio data
+  currentPortfolioId: string | null;
 }
+
+interface DividendEventRow {
+  ticker: string;
+  exDate: string;
+  expectedCash: number;
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const COLORS = [
   '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444',
@@ -31,17 +40,40 @@ function CustomPieTooltip({ active, payload }: any) {
   return null;
 }
 
-export default function PortfolioAnalytics({ items, realHoldings }: PortfolioAnalyticsProps) {
-  if (!items || items.length === 0) {
-    return (
-      <div className="bg-white rounded-2xl p-12 shadow-sm border border-slate-100 text-center text-slate-400">
-        <p>ยังไม่มีข้อมูลใน Portfolio สำหรับวิเคราะห์</p>
-      </div>
-    );
-  }
+export default function PortfolioAnalytics({ items, realHoldings, currentPortfolioId }: PortfolioAnalyticsProps) {
+  const [dividendRows, setDividendRows] = useState<DividendEventRow[]>([]);
+  const [isDividendLoading, setIsDividendLoading] = useState(false);
+  const safeItems = items || [];
+
+  useEffect(() => {
+    const loadDividendEvents = async () => {
+      if (!currentPortfolioId) {
+        setDividendRows([]);
+        return;
+      }
+
+      setIsDividendLoading(true);
+      try {
+        const buddhistYear = new Date().getFullYear() + 543;
+        const res = await fetch(
+          `/api/dividend-events?portfolio_id=${currentPortfolioId}&year=${buddhistYear}&types=XD`
+        );
+        if (!res.ok) throw new Error('Failed to load dividend events');
+        const data = await res.json();
+        setDividendRows(Array.isArray(data?.rows) ? data.rows : []);
+      } catch (error) {
+        console.error('Failed to load dividend events for portfolio analytics:', error);
+        setDividendRows([]);
+      } finally {
+        setIsDividendLoading(false);
+      }
+    };
+
+    loadDividendEvents();
+  }, [currentPortfolioId]);
 
   // Calculate allocation data
-  const totalValue = items.reduce((sum, item) => {
+  const totalValue = safeItems.reduce((sum, item) => {
     const price = item.current_price || 0;
     
     // Check if we have real holding data for this ticker
@@ -57,7 +89,7 @@ export default function PortfolioAnalytics({ items, realHoldings }: PortfolioAna
     return sum + price * shares;
   }, 0);
 
-  const allocationData = items.map((item, i) => {
+  const allocationData = safeItems.map((item, i) => {
     const price = item.current_price || 0;
     
     // Check if we have real holding data for this ticker
@@ -80,7 +112,7 @@ export default function PortfolioAnalytics({ items, realHoldings }: PortfolioAna
   }).sort((a, b) => b.value - a.value);
 
   // Calculate summary stats
-  const totalInvested = items.reduce((sum, item) => {
+  const totalInvested = safeItems.reduce((sum, item) => {
     // Check if we have real holding data for this ticker
     const real = realHoldings?.find(h => h.ticker === item.ticker);
     
@@ -91,36 +123,23 @@ export default function PortfolioAnalytics({ items, realHoldings }: PortfolioAna
     return sum + (item.mos30_cost || 0) + (item.mos40_cost || 0) + (item.mos50_cost || 0);
   }, 0);
 
-  const totalAnnualDividend = items.reduce((sum, item) => {
-    const d0 = item.d0 || 0;
-    
-    // Check if we have real holding data for this ticker
-    const real = realHoldings?.find(h => h.ticker === item.ticker);
-    let shares = 0;
-    if (real && real.actualVol > 0) {
-        shares = real.actualVol;
-    } else {
-        shares = (item.mos30_shares || 0) + (item.mos40_shares || 0) + (item.mos50_shares || 0);
-    }
-    
-    return sum + (d0 * shares);
-  }, 0);
+  const totalAnnualDividend = dividendRows.reduce((sum, row) => sum + (row.expectedCash || 0), 0);
 
-  const avgDividendYield = items.reduce((sum, item) => {
+  const avgDividendYield = safeItems.reduce((sum, item) => {
     return sum + (item.dividend_yield || item.yield || 0);
-  }, 0) / items.length;
+  }, 0) / (safeItems.length || 1);
 
   // MOS Distribution
   const mosDistribution = [
-    { name: 'MOS 50%', count: items.filter(i => i.status === 'MOS 50%').length, color: '#10b981' },
-    { name: 'MOS 40%', count: items.filter(i => i.status === 'MOS 40%').length, color: '#14b8a6' },
-    { name: 'MOS 30%', count: items.filter(i => i.status === 'MOS 30%').length, color: '#06b6d4' },
-    { name: 'ต่ำกว่า FV', count: items.filter(i => i.status === 'ต่ำกว่า FV').length, color: '#3b82f6' },
-    { name: 'รอก่อนนะ', count: items.filter(i => i.status === 'รอก่อนนะ' || !i.status).length, color: '#f59e0b' },
+    { name: 'MOS 50%', count: safeItems.filter(i => i.status === 'MOS 50%').length, color: '#10b981' },
+    { name: 'MOS 40%', count: safeItems.filter(i => i.status === 'MOS 40%').length, color: '#14b8a6' },
+    { name: 'MOS 30%', count: safeItems.filter(i => i.status === 'MOS 30%').length, color: '#06b6d4' },
+    { name: 'ต่ำกว่า FV', count: safeItems.filter(i => i.status === 'ต่ำกว่า FV').length, color: '#3b82f6' },
+    { name: 'รอก่อนนะ', count: safeItems.filter(i => i.status === 'รอก่อนนะ' || !i.status).length, color: '#f59e0b' },
   ].filter(d => d.count > 0);
 
   // Dividend Yield Ranking
-  const yieldRanking = items
+  const yieldRanking = safeItems
     .map(item => ({
       ticker: item.ticker,
       yield: (item.dividend_yield || item.yield || 0) * 100,
@@ -128,7 +147,7 @@ export default function PortfolioAnalytics({ items, realHoldings }: PortfolioAna
     .sort((a, b) => b.yield - a.yield);
 
   // --- NEW: Performance Tracking ---
-  const performanceData = items.map(item => {
+  const performanceData = safeItems.map(item => {
      // Simplified assumptions: If user has 'shares' entered for MOS levels, we assume they bought it.
      // If not, we fall back to 0 cost and 0 shares.
      
@@ -167,38 +186,24 @@ export default function PortfolioAnalytics({ items, realHoldings }: PortfolioAna
   const totalPL = performanceData.reduce((sum, d) => sum + d.unrealizedPL, 0);
   const totalPLPct = totalInvested > 0 ? (totalPL / totalInvested) * 100 : 0;
 
-  // --- NEW: Dividend Calendar (Mock) ---
-  // Since we don't have exact ex-dividend dates from Yahoo Finance basic quote,
-  // we will distribute the annual dividend evenly or across typical months (Apr, Sep) for Thai stocks.
-  const dividendCalendar = items.filter(item => (item.d0 || 0) > 0).map(item => {
-      // Check if we have real holding data for this ticker
-      const real = realHoldings?.find(h => h.ticker === item.ticker);
-      
-      let shares = 0;
-      if (real && real.actualVol > 0) {
-          shares = real.actualVol;
-      } else {
-          shares = (item.mos30_shares || 0) + (item.mos40_shares || 0) + (item.mos50_shares || 0);
+  const calendarData = useMemo(() => {
+    const monthly = MONTHS.map(month => ({ month, amount: 0 }));
+    dividendRows.forEach((row) => {
+      const monthIndex = new Date(row.exDate).getMonth();
+      if (monthIndex >= 0 && monthIndex < monthly.length) {
+        monthly[monthIndex].amount += row.expectedCash || 0;
       }
-      
-      const totalDiv = (item.d0 || 0) * shares;
-      
-      // Thai stocks usually pay heavily in April and some in Sep
-      return {
-          ticker: item.ticker,
-          totalDiv,
-          aprDiv: totalDiv * 0.6,
-          sepDiv: totalDiv * 0.4
-      }
-  }).filter(item => item.totalDiv > 0);
+    });
+    return monthly;
+  }, [dividendRows]);
 
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const calendarData = months.map(m => ({ month: m, amount: 0 }));
-  
-  dividendCalendar.forEach(item => {
-      calendarData[3].amount += item.aprDiv; // Apr
-      calendarData[8].amount += item.sepDiv; // Sep
-  });
+  if (safeItems.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl p-12 shadow-sm border border-slate-100 text-center text-slate-400">
+        <p>ยังไม่มีข้อมูลใน Portfolio สำหรับวิเคราะห์</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -233,9 +238,15 @@ export default function PortfolioAnalytics({ items, realHoldings }: PortfolioAna
           color={totalPL >= 0 ? "bg-emerald-100 border-emerald-300" : "bg-red-100 border-red-300"}
         />
         <SummaryCard
-          title="ปันผลต่อปี (โดยประมาณ)"
+          title="ปันผลปีนี้ (XD จริง)"
           value={`฿${totalAnnualDividend > 0 ? totalAnnualDividend.toLocaleString(undefined, { maximumFractionDigits: 0 }) : '0'}`}
-          subtitle={`เฉลี่ย ${(avgDividendYield * 100).toFixed(2)}%`}
+          subtitle={
+            isDividendLoading
+              ? 'กำลังโหลดรายการ XD'
+              : dividendRows.length > 0
+                ? `${dividendRows.length} รายการ XD | เฉลี่ย ${(avgDividendYield * 100).toFixed(2)}%`
+                : 'ยังไม่มีรายการ XD จริงในปีนี้'
+          }
           icon="💵"
           color="bg-purple-50 border-purple-200"
         />
@@ -352,24 +363,34 @@ export default function PortfolioAnalytics({ items, realHoldings }: PortfolioAna
                {/* Dividend Calendar */}
                <div>
                   <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span>📅</span> Dividend Calendar (Estimated)
+                    <span>📅</span> Dividend Calendar (Actual XD)
                   </h3>
-                  <div className="h-[250px] mb-4">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={calendarData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                        <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `฿${(val/1000).toFixed(0)}k`} tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                        <Tooltip
-                          formatter={(value: any) => [`฿${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, 'ปันผลรับ']}
-                          labelStyle={{ color: '#334155', fontWeight: 'bold' }}
-                          cursor={{fill: '#f8fafc'}}
-                        />
-                        <Bar dataKey="amount" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <p className="text-xs text-slate-400 text-center">*ปฏิทินประมาณการ อ้างอิงรอบการจ่ายปันผลปกติของหุ้นไทย (เม.ย. และ ก.ย.)</p>
+                  {isDividendLoading ? (
+                    <div className="h-[250px] mb-4 flex items-center justify-center rounded-xl border border-dashed border-slate-200 text-sm text-slate-400">
+                      กำลังโหลดรายการ XD จริง...
+                    </div>
+                  ) : dividendRows.length === 0 ? (
+                    <div className="h-[250px] mb-4 flex items-center justify-center rounded-xl border border-dashed border-slate-200 text-sm text-slate-400 text-center px-6">
+                      ยังไม่มีรายการ XD จริงสำหรับพอร์ตนี้ในปีปัจจุบัน
+                    </div>
+                  ) : (
+                    <div className="h-[250px] mb-4">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={calendarData}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                          <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `฿${(val/1000).toFixed(0)}k`} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                          <Tooltip
+                            formatter={(value: any) => [`฿${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, 'ปันผลรับ']}
+                            labelStyle={{ color: '#334155', fontWeight: 'bold' }}
+                            cursor={{fill: '#f8fafc'}}
+                          />
+                          <Bar dataKey="amount" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                  <p className="text-xs text-slate-400 text-center">*อิงจากรายการ XD จริงของหุ้นที่มีธุรกรรมอยู่ในพอร์ตเท่านั้น</p>
                </div>
            </div>
         </div>

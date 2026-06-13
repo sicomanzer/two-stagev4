@@ -7,6 +7,12 @@ import { calculateFScore, calculateZScore } from '@/lib/calculations';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
+type FundamentalsCacheHit = {
+  history: any[];
+  source: 'supabase' | 'local-cache';
+  updatedAt?: string | null;
+};
+
 // Lazy load the large JSON file
 async function getFundamentalsCache() {
   try {
@@ -73,31 +79,40 @@ const mergeFundamentalsToYearMap = (yearMap: Map<number, any>, fundamentals: any
     });
 };
 
-async function readFundamentalsCache(ticker: string) {
+async function readFundamentalsCache(ticker: string): Promise<FundamentalsCacheHit | null> {
   try {
     const tickerKey = ticker.toUpperCase();
 
-    // 1. Try Supabase Database first
-    if (supabase) {
-      const { data, error } = await supabase
+    // 1. Try Supabase Database first because it is updated by the sync workflow.
+    if (supabaseAdmin || supabase) {
+      const client = supabaseAdmin || supabase;
+      const { data, error } = await client
         .from('stock_fundamentals')
-        .select('history')
+        .select('history,updated_at')
         .eq('ticker', tickerKey)
         .single();
-        
-      if (!error && data && data.history) {
+
+      if (!error && data && Array.isArray(data.history) && data.history.length > 0) {
         console.log(`[Cache] Retrieved ${tickerKey} from Supabase DB`);
-        return data.history;
+        return {
+          history: data.history,
+          source: 'supabase',
+          updatedAt: data.updated_at ?? null,
+        };
       }
     }
 
-    // 2. Fallback to Local JSON 
+    // 2. Fallback to Local JSON only when Supabase has no record.
     console.log(`[Cache] Fetching ${tickerKey} from local JSON fallback...`);
     const cache = await getFundamentalsCache();
     if (cache) {
       const node = (cache as any)?.tickers?.[tickerKey] || (cache as any)?.[tickerKey];
       if (node && Array.isArray(node.history)) {
-        return node.history;
+        return {
+          history: node.history,
+          source: 'local-cache',
+          updatedAt: (cache as any)?.updatedAt ?? null,
+        };
       }
     }
   } catch (e) {
@@ -510,10 +525,14 @@ export async function GET(request: Request) {
         console.warn(`[thaifin] ⚠️ Server unavailable (${thaifinErr.message}), using Yahoo data only`);
     }
     if (!mergedFromThaifin) {
-        const cachedHistory = await readFundamentalsCache(tickerClean);
-        if (cachedHistory && cachedHistory.length > 0) {
-            mergeFundamentalsToYearMap(yearMap, cachedHistory, 'cache');
-            console.log(`[thaifin-cache] ✅ Merged ${cachedHistory.length} years for ${tickerClean}`);
+        const cachedFundamentals = await readFundamentalsCache(tickerClean);
+        if (cachedFundamentals && cachedFundamentals.history.length > 0) {
+            const fallbackSource =
+                cachedFundamentals.source === 'supabase' ? 'supabase' : 'cache';
+            mergeFundamentalsToYearMap(yearMap, cachedFundamentals.history, fallbackSource);
+            console.log(
+                `[fundamentals-fallback] ✅ Merged ${cachedFundamentals.history.length} years for ${tickerClean} from ${cachedFundamentals.source}`
+            );
         } else {
             // Check Supabase Cache as last resort
             try {
@@ -916,6 +935,14 @@ export async function GET(request: Request) {
       finalDe = quarterlyLiabilities / quarterlyEquity;
     }
 
+    const historySourceCounts = history.reduce((acc: Record<string, number>, entry: any) => {
+      const source = entry?.source || 'unknown';
+      acc[source] = (acc[source] || 0) + 1;
+      return acc;
+    }, {});
+    const primaryFundamentalsSource =
+      Object.entries(historySourceCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
     const data = {
       currentPrice: currentPrice,
       d0: d0,
@@ -939,6 +966,8 @@ export async function GET(request: Request) {
       thaiCompanyName: THAI_COMPANY_NAMES[tickerClean] || null,
       currency: quote.financialData?.financialCurrency,
       history: history, // Add history to response
+      fundamentalsSources: Object.keys(historySourceCounts),
+      primaryFundamentalsSource,
       ratioBands: ratioBands, // Add detailed monthly ratio bands
       
       // Simple FCF proxy calculation (Net Income as fallback if FCF not directly available)

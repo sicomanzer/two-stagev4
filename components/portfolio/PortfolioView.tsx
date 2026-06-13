@@ -188,7 +188,11 @@ export default function PortfolioView({
         {/* ─── Analytics ─── */}
         {showAnalytics && portfolio.length > 0 && (
           <div className="p-6 border-b border-slate-200 animate-in fade-in slide-in-from-top-4 duration-300">
-            <PortfolioAnalytics items={portfolio} realHoldings={realHoldings} />
+            <PortfolioAnalytics
+              items={portfolio}
+              realHoldings={realHoldings}
+              currentPortfolioId={currentPortfolioId}
+            />
           </div>
         )}
 
