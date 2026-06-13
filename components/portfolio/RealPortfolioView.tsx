@@ -118,21 +118,39 @@ export default function RealPortfolioView({
         </div>
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Realized P/L</p>
-          <div className={`flex items-end gap-2 ${summary.realizedPL >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-            <p className="text-2xl font-bold">
-              {summary.realizedPL > 0 ? '+' : ''}{summary.realizedPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </p>
+          <div className="space-y-1.5">
+            <div className={`flex items-end gap-2 ${summary.realizedPLAverageCost >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              <p className="text-lg font-bold">
+                {summary.realizedPLAverageCost > 0 ? '+' : ''}{summary.realizedPLAverageCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <span className="text-[11px] font-semibold mb-0.5 text-slate-500">Avg Cost</span>
+            </div>
+            <div className={`flex items-end gap-2 ${summary.realizedPLFifo >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              <p className="text-lg font-bold">
+                {summary.realizedPLFifo > 0 ? '+' : ''}{summary.realizedPLFifo.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <span className="text-[11px] font-semibold mb-0.5 text-slate-500">FIFO</span>
+            </div>
           </div>
-          <p className="text-xs text-slate-400 mt-1">กำไร/ขาดทุน ที่เกิดขึ้นจริง</p>
+          <p className="text-xs text-slate-400 mt-1">กำไร/ขาดทุน ที่เกิดขึ้นจริงทั้ง 2 วิธี</p>
         </div>
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-2xl text-white shadow-sm">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total P/L</p>
-          <div className={`flex items-end gap-2 ${summary.totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            <p className="text-2xl font-bold">
-              {summary.totalPL > 0 ? '+' : ''}{summary.totalPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </p>
+          <div className="space-y-1.5">
+            <div className={`flex items-end gap-2 ${summary.totalPLAverageCost >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <p className="text-lg font-bold">
+                {summary.totalPLAverageCost > 0 ? '+' : ''}{summary.totalPLAverageCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <span className="text-[11px] font-semibold mb-0.5 text-slate-400">Avg Cost</span>
+            </div>
+            <div className={`flex items-end gap-2 ${summary.totalPLFifo >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <p className="text-lg font-bold">
+                {summary.totalPLFifo > 0 ? '+' : ''}{summary.totalPLFifo.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <span className="text-[11px] font-semibold mb-0.5 text-slate-400">FIFO</span>
+            </div>
           </div>
-          <p className="text-xs text-slate-500 mt-1">กำไรสุทธิรวมทั้งหมด</p>
+          <p className="text-xs text-slate-500 mt-1">รวม Unrealized + Realized ของแต่ละวิธี</p>
         </div>
       </div>
       )}
@@ -151,18 +169,19 @@ export default function RealPortfolioView({
                 <th className="px-6 py-1.5 text-right">Market Value</th>
                 <th className="px-6 py-1.5 text-right">Unrealized P/L</th>
                 <th className="px-6 py-1.5 text-right">% Unrealized</th>
-                <th className="px-6 py-1.5 text-right">Realized P/L</th>
+                <th className="px-6 py-1.5 text-right">Realized Avg</th>
+                <th className="px-6 py-1.5 text-right">Realized FIFO</th>
                 <th className="px-6 py-1.5 text-center">Manage</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                    <td colSpan={10} className="px-6 py-8 text-center text-slate-400">Loading portfolio data...</td>
+                    <td colSpan={11} className="px-6 py-8 text-center text-slate-400">Loading portfolio data...</td>
                 </tr>
               ) : holdings.length === 0 ? (
                 <tr>
-                    <td colSpan={10} className="px-6 py-8 text-center text-slate-400">
+                    <td colSpan={11} className="px-6 py-8 text-center text-slate-400">
                         <div className="flex flex-col items-center gap-2">
                             <Briefcase size={32} className="opacity-20" />
                             <p>ยังไม่มีรายการในพอร์ตนี้</p>
@@ -185,8 +204,11 @@ export default function RealPortfolioView({
                     <td className={`px-6 py-1.5 text-right font-bold ${h.percentUnrealizedPL >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                         {h.percentUnrealizedPL > 0 ? '+' : ''}{h.percentUnrealizedPL.toFixed(2)}%
                     </td>
-                    <td className={`px-6 py-1.5 text-right font-medium ${h.realizedPL >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                        {h.realizedPL !== 0 ? (h.realizedPL > 0 ? '+' : '') + h.realizedPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}
+                    <td className={`px-6 py-1.5 text-right font-medium ${(h.realizedPLAverageCost ?? h.realizedPL) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {(h.realizedPLAverageCost ?? h.realizedPL) !== 0 ? ((h.realizedPLAverageCost ?? h.realizedPL) > 0 ? '+' : '') + (h.realizedPLAverageCost ?? h.realizedPL).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}
+                    </td>
+                    <td className={`px-6 py-1.5 text-right font-medium ${(h.realizedPLFifo ?? h.realizedPL) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {(h.realizedPLFifo ?? h.realizedPL) !== 0 ? ((h.realizedPLFifo ?? h.realizedPL) > 0 ? '+' : '') + (h.realizedPLFifo ?? h.realizedPL).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}
                     </td>
                     <td className="px-6 py-1.5 text-center">
                         <button

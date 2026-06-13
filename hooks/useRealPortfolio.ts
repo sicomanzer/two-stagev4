@@ -7,6 +7,8 @@ export interface PortfolioHolding {
   avgCost: number;
   totalCost: number;
   realizedPL: number;
+  realizedPLAverageCost: number;
+  realizedPLFifo: number;
   currentPrice: number;
   marketValue: number;
   unrealizedPL: number;
@@ -22,7 +24,11 @@ export interface PortfolioSummary {
   marketValue: number;
   unrealizedPL: number;
   realizedPL: number;
+  realizedPLAverageCost: number;
+  realizedPLFifo: number;
   totalPL: number;
+  totalPLAverageCost: number;
+  totalPLFifo: number;
 }
 
 export function useRealPortfolio(currentPortfolioId: string | null) {
@@ -32,7 +38,11 @@ export function useRealPortfolio(currentPortfolioId: string | null) {
     marketValue: 0,
     unrealizedPL: 0,
     realizedPL: 0,
-    totalPL: 0
+    realizedPLAverageCost: 0,
+    realizedPLFifo: 0,
+    totalPL: 0,
+    totalPLAverageCost: 0,
+    totalPLFifo: 0
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,14 +104,25 @@ export function useRealPortfolio(currentPortfolioId: string | null) {
       const totalCost = enrichedData.reduce((acc, h) => acc + h.totalCost, 0);
       const marketValue = enrichedData.reduce((acc, h) => acc + h.marketValue, 0);
       const unrealizedPL = enrichedData.reduce((acc, h) => acc + h.unrealizedPL, 0);
-      const realizedPL = enrichedData.reduce((acc, h) => acc + h.realizedPL, 0);
+      const realizedPLAverageCost = enrichedData.reduce(
+        (acc, h) => acc + (h.realizedPLAverageCost ?? h.realizedPL ?? 0),
+        0
+      );
+      const realizedPLFifo = enrichedData.reduce(
+        (acc, h) => acc + (h.realizedPLFifo ?? h.realizedPL ?? 0),
+        0
+      );
 
       setSummary({
         totalCost,
         marketValue,
         unrealizedPL,
-        realizedPL,
-        totalPL: unrealizedPL + realizedPL
+        realizedPL: realizedPLAverageCost,
+        realizedPLAverageCost,
+        realizedPLFifo,
+        totalPL: unrealizedPL + realizedPLAverageCost,
+        totalPLAverageCost: unrealizedPL + realizedPLAverageCost,
+        totalPLFifo: unrealizedPL + realizedPLFifo
       });
 
     } catch (err: any) {
