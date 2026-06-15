@@ -5,7 +5,7 @@ import ScreenerHeatmap, { METRIC_CONFIG } from './ScreenerHeatmap';
 import ScreenerStockCard from './ScreenerStockCard';
 import ScreenerSectorView from './ScreenerSectorView';
 
-type ScreenerPreset = 'previous' | 'latest' | 'no_filter' | 'vi' | 'high_dividend' | 'safe_haven' | 'quality_dividend' | 'contrarian';
+type ScreenerPreset = 'previous' | 'latest' | 'no_filter' | 'vi' | 'high_dividend' | 'safe_haven' | 'quality_dividend' | 'contrarian' | 'teacher_10y' | 'enhanced_10y';
 
 type ViewMode = 'table' | 'heatmap' | 'cards';
 
@@ -71,16 +71,28 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
   const [preset, setPreset] = useState<ScreenerPreset>('latest');
   const [epsGrowthMin, setEpsGrowthMin] = useState<number | ''>(0);
   const [dpsGrowthMin, setDpsGrowthMin] = useState<number | ''>(0);
+  const [growthYears, setGrowthYears] = useState<number | ''>(5);
+  const [strictGrowthWindow, setStrictGrowthWindow] = useState(false);
+  const [revenueGrowthMin, setRevenueGrowthMin] = useState<number | ''>('');
+  const [netProfitGrowthMin, setNetProfitGrowthMin] = useState<number | ''>('');
+  const [npmDeltaMin, setNpmDeltaMin] = useState<number | ''>('');
+  const [maxRevenueDownYears, setMaxRevenueDownYears] = useState<number | ''>('');
+  const [maxNetProfitDownYears, setMaxNetProfitDownYears] = useState<number | ''>('');
+  const [maxEpsDownYears, setMaxEpsDownYears] = useState<number | ''>('');
+  const [positiveEpsYearsMin, setPositiveEpsYearsMin] = useState<number | ''>('');
+  const [dividendMode, setDividendMode] = useState<'and' | 'or'>('and');
   const [peBandMode, setPeBandMode] = useState<string>('none');
   const [pbvBandMode, setPbvBandMode] = useState<string>('none');
-  const [fScoreMin, setFScoreMin] = useState<number | ''>(5);
-  const [zScoreMin, setZScoreMin] = useState<number | ''>(2.5);
+  const [fScoreMin, setFScoreMin] = useState<number | ''>('');
+  const [zScoreMin, setZScoreMin] = useState<number | ''>('');
   const [viScoreMin, setViScoreMin] = useState<number | ''>(12);
   const [marketCycleMode, setMarketCycleMode] = useState<string>('any');
   
   // New metrics
   const [yieldMin, setYieldMin] = useState<number | ''>(5);
   const [deMax, setDeMax] = useState<number | ''>(1);
+  const [dePolicy, setDePolicy] = useState<'strict' | 'sector-aware' | 'ignore-financials'>('strict');
+  const [financialDeSectorMultiplierMax, setFinancialDeSectorMultiplierMax] = useState<number | ''>(1.1);
   const [peMax, setPeMax] = useState<number | ''>(12);
   const [pbvMax, setPbvMax] = useState<number | ''>(2.5);
   const [roeMin, setRoeMin] = useState<number | ''>(15);
@@ -173,13 +185,89 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
   const applyPreset = (nextPreset: ScreenerPreset) => {
     setPreset(nextPreset);
 
+    const resetLongTerm = () => {
+      setGrowthYears(5);
+      setStrictGrowthWindow(false);
+      setRevenueGrowthMin('');
+      setNetProfitGrowthMin('');
+      setNpmDeltaMin('');
+      setMaxRevenueDownYears('');
+      setMaxNetProfitDownYears('');
+      setMaxEpsDownYears('');
+      setPositiveEpsYearsMin('');
+      setDividendMode('and');
+      setDePolicy('strict');
+      setFinancialDeSectorMultiplierMax(1.1);
+    };
+
+    if (nextPreset === 'teacher_10y') {
+      setGrowthYears(10);
+      setStrictGrowthWindow(true);
+      setRevenueGrowthMin(0);
+      setNetProfitGrowthMin(0);
+      setEpsGrowthMin(0);
+      setDpsGrowthMin(0);
+      setNpmDeltaMin(0);
+      setMaxRevenueDownYears('');
+      setMaxNetProfitDownYears('');
+      setMaxEpsDownYears('');
+      setPositiveEpsYearsMin('');
+      setDividendMode('or');
+      setPeBandMode('none');
+      setPbvBandMode('none');
+      setFScoreMin('');
+      setZScoreMin('');
+      setViScoreMin('');
+      setYieldMin('');
+      setDeMax(1);
+      setDePolicy('sector-aware');
+      setFinancialDeSectorMultiplierMax(1.05);
+      setPeMax('');
+      setPbvMax('');
+      setRoeMin('');
+      setDividendStreakMin(5);
+      setMarketCycleMode('any');
+      return;
+    }
+
+    if (nextPreset === 'enhanced_10y') {
+      setGrowthYears(10);
+      setStrictGrowthWindow(true);
+      setRevenueGrowthMin(3);
+      setNetProfitGrowthMin(5);
+      setEpsGrowthMin(5);
+      setDpsGrowthMin(3);
+      setNpmDeltaMin(0);
+      setMaxRevenueDownYears(3);
+      setMaxNetProfitDownYears(3);
+      setMaxEpsDownYears(3);
+      setPositiveEpsYearsMin(10);
+      setDividendMode('or');
+      setPeBandMode('below_avg');
+      setPbvBandMode('none');
+      setFScoreMin('');
+      setZScoreMin('');
+      setViScoreMin(12);
+      setYieldMin('');
+      setDeMax(1);
+      setDePolicy('sector-aware');
+      setFinancialDeSectorMultiplierMax(1.05);
+      setPeMax(20);
+      setPbvMax(3);
+      setRoeMin(12);
+      setDividendStreakMin(5);
+      setMarketCycleMode('any');
+      return;
+    }
+
     if (nextPreset === 'quality_dividend') {
+      resetLongTerm();
       setEpsGrowthMin(0);
       setDpsGrowthMin(0);
       setPeBandMode('none');
       setPbvBandMode('none');
-      setFScoreMin(6);
-      setZScoreMin(2.5);
+      setFScoreMin('');
+      setZScoreMin('');
       setViScoreMin(12);
       setYieldMin(5);
       setDeMax(1.2);
@@ -192,12 +280,13 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
     }
 
     if (nextPreset === 'high_dividend') {
+      resetLongTerm();
       setEpsGrowthMin(0);
       setDpsGrowthMin(0);  // High dividend doesn't always grow DPS wildly, yield is key
       setPeBandMode('none');
       setPbvBandMode('none');
-      setFScoreMin(4);     // Relaxed
-      setZScoreMin(1.2);   // Relaxed (dividend stocks often have debt)
+      setFScoreMin('');
+      setZScoreMin('');
       setViScoreMin(10);
       setYieldMin(6);      // Aggressive yield
       setDeMax(2.0);
@@ -210,12 +299,13 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
     }
 
     if (nextPreset === 'vi') {
+      resetLongTerm();
       setEpsGrowthMin(0);  // Just positive growth is fine
       setDpsGrowthMin(0);
       setPeBandMode('below_avg'); // Only require PE to be cheap relative to history
       setPbvBandMode('none');     // Demanding both PE & PBV below average is too strict
-      setFScoreMin(5);            // Solid baseline
-      setZScoreMin(1.8);          // 2.99 is way too strict for non-manufacturing
+      setFScoreMin('');
+      setZScoreMin('');
       setViScoreMin(12);
       setYieldMin(3);
       setDeMax(1.5);              // Typical healthy debt
@@ -228,12 +318,13 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
     }
 
     if (nextPreset === 'safe_haven') {
+      resetLongTerm();
       setEpsGrowthMin(0);
       setDpsGrowthMin(0);
       setPeBandMode('none');
       setPbvBandMode('none');
-      setFScoreMin(7);     // Very strong F-Score
-      setZScoreMin(2.99);  // Safe zone
+      setFScoreMin('');
+      setZScoreMin('');
       setViScoreMin(12);
       setYieldMin(2);
       setDeMax(0.5);       // Minimal debt
@@ -246,12 +337,13 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
     }
 
     if (nextPreset === 'contrarian') {
+      resetLongTerm();
       setEpsGrowthMin(0);
       setDpsGrowthMin('');
       setPeBandMode('below_minus_1_sd');
       setPbvBandMode('below_minus_1_sd');
-      setFScoreMin(5);
-      setZScoreMin(1.8);
+      setFScoreMin('');
+      setZScoreMin('');
       setViScoreMin(12);
       setYieldMin('');
       setDeMax(2.0);
@@ -264,8 +356,18 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
     }
 
     if (nextPreset === 'no_filter') {
+      setGrowthYears('');
+      setStrictGrowthWindow(false);
+      setRevenueGrowthMin('');
+      setNetProfitGrowthMin('');
       setEpsGrowthMin('');
       setDpsGrowthMin('');
+      setNpmDeltaMin('');
+      setMaxRevenueDownYears('');
+      setMaxNetProfitDownYears('');
+      setMaxEpsDownYears('');
+      setPositiveEpsYearsMin('');
+      setDividendMode('and');
       setPeBandMode('none');
       setPbvBandMode('none');
       setFScoreMin('');
@@ -273,6 +375,8 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
       setViScoreMin('');
       setYieldMin('');
       setDeMax('');
+      setDePolicy('strict');
+      setFinancialDeSectorMultiplierMax(1.1);
       setPeMax('');
       setPbvMax('');
       setRoeMin('');
@@ -282,12 +386,13 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
     }
 
     if (nextPreset === 'previous') {
+      resetLongTerm();
       setEpsGrowthMin(0);
       setDpsGrowthMin(0);
       setPeBandMode('none'); // No strict band requirement
       setPbvBandMode('none');
-      setFScoreMin(5);
-      setZScoreMin(1.8);
+      setFScoreMin('');
+      setZScoreMin('');
       setViScoreMin(10);
       setYieldMin(4);
       setDeMax(2.0);
@@ -300,12 +405,13 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
     }
 
     // Default: 'latest' (สูตรเข้มข้น - Strict but possible)
+    resetLongTerm();
     setEpsGrowthMin(5);
     setDpsGrowthMin(0);
     setPeBandMode('below_avg');
     setPbvBandMode('none');
-    setFScoreMin(6);
-    setZScoreMin(2.0);
+    setFScoreMin('');
+    setZScoreMin('');
     setViScoreMin(12);
     setYieldMin(4);
     setDeMax(1.5);
@@ -326,8 +432,18 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          growthYears: growthYears === '' ? undefined : Number(growthYears),
+          strictGrowthWindow,
+          revenueGrowthMin: revenueGrowthMin === '' ? undefined : Number(revenueGrowthMin),
+          netProfitGrowthMin: netProfitGrowthMin === '' ? undefined : Number(netProfitGrowthMin),
           epsGrowthMin: epsGrowthMin === '' ? undefined : Number(epsGrowthMin),
           dpsGrowthMin: dpsGrowthMin === '' ? undefined : Number(dpsGrowthMin),
+          npmDeltaMin: npmDeltaMin === '' ? undefined : Number(npmDeltaMin),
+          maxRevenueDownYears: maxRevenueDownYears === '' ? undefined : Number(maxRevenueDownYears),
+          maxNetProfitDownYears: maxNetProfitDownYears === '' ? undefined : Number(maxNetProfitDownYears),
+          maxEpsDownYears: maxEpsDownYears === '' ? undefined : Number(maxEpsDownYears),
+          positiveEpsYearsMin: positiveEpsYearsMin === '' ? undefined : Number(positiveEpsYearsMin),
+          dividendMode,
           peBandMode: peBandMode === 'none' ? undefined : peBandMode,
           pbvBandMode: pbvBandMode === 'none' ? undefined : pbvBandMode,
           fScoreMin: fScoreMin === '' ? undefined : Number(fScoreMin),
@@ -335,6 +451,8 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
           viScoreMin: viScoreMin === '' ? undefined : Number(viScoreMin),
           yieldMin: yieldMin === '' ? undefined : Number(yieldMin),
           deMax: deMax === '' ? undefined : Number(deMax),
+          dePolicy,
+          financialDeSectorMultiplierMax: financialDeSectorMultiplierMax === '' ? undefined : Number(financialDeSectorMultiplierMax),
           peMax: peMax === '' ? undefined : Number(peMax),
           pbvMax: pbvMax === '' ? undefined : Number(pbvMax),
           roeMin: roeMin === '' ? undefined : Number(roeMin),
@@ -367,7 +485,7 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
     setAiSummary(null);
     try {
       const criteria = {
-        preset, epsGrowthMin, dividendStreakMin, peMax, pbvMax, roeMin, viScoreMin
+        preset, growthYears, revenueGrowthMin, netProfitGrowthMin, epsGrowthMin, dpsGrowthMin, npmDeltaMin, dividendMode, dividendStreakMin, dePolicy, peMax, pbvMax, roeMin, viScoreMin
       };
 
       const res = await fetch('/api/ai/screener', {
@@ -425,12 +543,20 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
 
   const exportToCSV = () => {
     if (results.length === 0) return;
-    const headers = ['Ticker', 'Price', 'EPS CAGR', 'DPS CAGR', 'Yield', 'ROE', 'P/E', 'P/BV', 'PE -1SD', 'PBV -1SD', 'D/E', 'F-Score', 'Z-Score', 'VI Quality', 'Fundamentals Source', 'Snapshot Source', 'Fundamentals Updated', 'Snapshot Updated', 'Market Cycle'];
+    const headers = ['Ticker', 'Price', 'Growth Years', 'Revenue CAGR', 'Net Profit CAGR', 'EPS CAGR', 'DPS CAGR', 'NPM Delta', 'Revenue Down Years', 'Net Profit Down Years', 'EPS Down Years', 'Positive EPS Years', 'Yield', 'ROE', 'P/E', 'P/BV', 'PE -1SD', 'PBV -1SD', 'D/E', 'D/E Policy', 'D/E Threshold', 'F-Score', 'Z-Score', 'VI Quality', 'Fundamentals Source', 'Snapshot Source', 'Fundamentals Updated', 'Snapshot Updated', 'Market Cycle'];
     const csvData = sortedResults.map(r => [
       r.ticker,
       r.currentPrice,
+      r.growthYears ?? '',
+      r.revenueCAGR?.toFixed(2) ?? '',
+      r.netProfitCAGR?.toFixed(2) ?? '',
       r.epsCAGR?.toFixed(2) ?? '',
       r.dpsCAGR?.toFixed(2) ?? '',
+      r.npmDelta?.toFixed(2) ?? '',
+      r.revenueDownYears ?? '',
+      r.netProfitDownYears ?? '',
+      r.epsDownYears ?? '',
+      r.positiveEpsYears ?? '',
       r.latestYield?.toFixed(2) ?? '',
       r.latestROE?.toFixed(2),
       r.latestPE?.toFixed(2),
@@ -438,6 +564,8 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
       r.peMinus1SD?.toFixed(2),
       r.pbvMinus1SD?.toFixed(2),
       r.latestDE?.toFixed(2),
+      r.dePolicyApplied || '',
+      r.deThresholdApplied?.toFixed(2) ?? '',
       r.fScore ?? '',
       r.zScore?.toFixed(2) ?? '',
       r.viScore,
@@ -526,8 +654,10 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
             </div>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-10 gap-3">
             {[
+              { id: 'teacher_10y', name: '🧑‍🏫 Kavi 10Y', desc: 'สูตรตามอาจารย์' },
+              { id: 'enhanced_10y', name: '🚀 10Y Enhanced', desc: 'โตจริง + เข้มกว่า' },
               { id: 'latest', name: '👑 สูตรเข้มข้น', desc: 'คัดหุ้นสุดยอดVI' },
               { id: 'previous', name: '⚖️ สูตรสมดุล', desc: 'ไม่ตึงเกินไป' },
               { id: 'vi', name: '🎯 Value Investing', desc: 'เน้นราคาถูกและดี' },
@@ -551,6 +681,9 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
               </button>
             ))}
           </div>
+          <div className="rounded-2xl border border-indigo-100 bg-indigo-50/70 px-4 py-3 text-sm text-slate-700">
+            <span className="font-black text-indigo-700">สูตรใหม่:</span> `Kavi 10Y` จะเน้น Revenue, Net Profit, EPS, NPM, DPS และ D/E ตามมุมมองอาจารย์ ส่วน `10Y Enhanced` จะเพิ่มความสม่ำเสมอของกำไร, EPS ต้องบวกครบ และ D/E แบบเทียบกลุ่มการเงิน
+          </div>
         </div>
       </div>
 
@@ -563,12 +696,28 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
             </h3>
             
             <ModernMetricInput 
+               label="Growth Window" subtitle="ช่วงเวลาที่ใช้คำนวณ" unit="Y" 
+               min={3} max={10} step={1} value={growthYears} onChange={setGrowthYears} highlightColor="bg-sky-500" 
+            />
+            <ModernMetricInput 
+               label="Revenue Growth" subtitle="CAGR ขั้นต่ำ" unit="%" 
+               min={0} max={20} step={1} value={revenueGrowthMin} onChange={setRevenueGrowthMin} highlightColor="bg-blue-400" 
+            />
+            <ModernMetricInput 
+               label="Net Profit Growth" subtitle="CAGR ขั้นต่ำ" unit="%" 
+               min={0} max={25} step={1} value={netProfitGrowthMin} onChange={setNetProfitGrowthMin} highlightColor="bg-blue-600" 
+            />
+            <ModernMetricInput 
                label="EPS Growth" subtitle="5Y CAGR ขั้นต่ำ" unit="%" 
                min={0} max={30} step={1} value={epsGrowthMin} onChange={setEpsGrowthMin} highlightColor="bg-blue-500" 
             />
             <ModernMetricInput 
-               label="DPS Growth" subtitle="5Y CAGR ขั้นต่ำ" unit="%" 
+               label="DPS Growth" subtitle="CAGR ขั้นต่ำ" unit="%" 
                min={0} max={30} step={1} value={dpsGrowthMin} onChange={setDpsGrowthMin} highlightColor="bg-cyan-500" 
+            />
+            <ModernMetricInput 
+               label="NPM Delta" subtitle="ส่วนต่างมาร์จิ้นปลายงวด-ต้นงวด" unit="pt" 
+               min={0} max={20} step={0.5} value={npmDeltaMin} onChange={setNpmDeltaMin} highlightColor="bg-sky-700" 
             />
             <ModernMetricInput 
                label="Dividend Yield" subtitle="อัตราปันผลตอบแทน" unit="%" 
@@ -578,6 +727,13 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
                label="Return on Equity" subtitle="ROE ขั้นต่ำ" unit="%" 
                min={0} max={40} step={1} value={roeMin} onChange={setRoeMin} highlightColor="bg-indigo-500" 
             />
+            <div className="group relative bg-white/70 backdrop-blur-md border border-slate-200/60 p-3.5 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+              <label className="block text-xs font-black text-slate-800 tracking-wide uppercase mb-2">Growth Window Rule</label>
+              <label className="flex items-center gap-2 text-sm font-bold text-slate-600">
+                <input type="checkbox" checked={strictGrowthWindow} onChange={(e) => setStrictGrowthWindow(e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                ต้องมีข้อมูลครบทุกปีในช่วงที่เลือก
+              </label>
+            </div>
           </div>
 
           {/* Valuation Criteria Panel */}
@@ -647,6 +803,17 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
                min={0} max={15} step={1} value={dividendStreakMin} onChange={setDividendStreakMin} highlightColor="bg-lime-500"
             />
             <div className="group relative bg-white/70 backdrop-blur-md border border-slate-200/60 p-3.5 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+              <label className="block text-xs font-black text-slate-800 tracking-wide uppercase mb-2">Dividend Rule</label>
+              <select
+                value={dividendMode}
+                onChange={(e) => setDividendMode(e.target.value as 'and' | 'or')}
+                className="w-full p-2.5 text-sm font-bold border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-slate-50 cursor-pointer"
+              >
+                <option value="and">AND: โตและจ่ายต่อเนื่อง</option>
+                <option value="or">OR: โตหรือจ่ายต่อเนื่อง</option>
+              </select>
+            </div>
+            <div className="group relative bg-white/70 backdrop-blur-md border border-slate-200/60 p-3.5 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
               <label className="block text-xs font-black text-slate-800 tracking-wide uppercase mb-2">Market Cycle</label>
               <select
                 value={marketCycleMode}
@@ -663,6 +830,38 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
             <ModernMetricInput 
                label="Max D/E Ratio" subtitle="หนี้สินต่อทุน สูงสุด" unit="x" 
                min={0.1} max={5} step={0.1} value={deMax} onChange={setDeMax} highlightColor="bg-rose-500" 
+            />
+            <div className="group relative bg-white/70 backdrop-blur-md border border-slate-200/60 p-3.5 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+              <label className="block text-xs font-black text-slate-800 tracking-wide uppercase mb-2">D/E Policy</label>
+              <select
+                value={dePolicy}
+                onChange={(e) => setDePolicy(e.target.value as 'strict' | 'sector-aware' | 'ignore-financials')}
+                className="w-full p-2.5 text-sm font-bold border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-slate-50 cursor-pointer"
+              >
+                <option value="strict">ใช้ D/E เดียวกันทุกหุ้น</option>
+                <option value="sector-aware">หุ้นการเงินเทียบ median กลุ่ม</option>
+                <option value="ignore-financials">ไม่ใช้ D/E ตัดหุ้นการเงิน</option>
+              </select>
+            </div>
+            <ModernMetricInput
+               label="Financial D/E Cap" subtitle="คูณ median ของกลุ่มการเงิน" unit="x"
+               min={0.8} max={2} step={0.05} value={financialDeSectorMultiplierMax} onChange={setFinancialDeSectorMultiplierMax} highlightColor="bg-rose-400"
+            />
+            <ModernMetricInput
+               label="Max Revenue Down Years" subtitle="จำนวนปีที่รายได้ลดลงสูงสุด" unit="Y"
+               min={0} max={9} step={1} value={maxRevenueDownYears} onChange={setMaxRevenueDownYears} highlightColor="bg-emerald-400"
+            />
+            <ModernMetricInput
+               label="Max Profit Down Years" subtitle="จำนวนปีที่กำไรลดลงสูงสุด" unit="Y"
+               min={0} max={9} step={1} value={maxNetProfitDownYears} onChange={setMaxNetProfitDownYears} highlightColor="bg-green-400"
+            />
+            <ModernMetricInput
+               label="Max EPS Down Years" subtitle="จำนวนปีที่ EPS ลดลงสูงสุด" unit="Y"
+               min={0} max={9} step={1} value={maxEpsDownYears} onChange={setMaxEpsDownYears} highlightColor="bg-lime-400"
+            />
+            <ModernMetricInput
+               label="Positive EPS Years" subtitle="จำนวนปี EPS ต้องเป็นบวกขั้นต่ำ" unit="Y"
+               min={0} max={10} step={1} value={positiveEpsYearsMin} onChange={setPositiveEpsYearsMin} highlightColor="bg-emerald-700"
             />
           </div>
         </div>
@@ -935,7 +1134,7 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
             <div className="py-12 bg-slate-50 rounded-xl border border-slate-100 flex flex-col items-center justify-center text-slate-500">
               <Search size={48} className="text-slate-300 mb-4" />
               <p>ไม่พบหุ้นที่ผ่านเกณฑ์ทั้งหมดที่คุณตั้งไว้</p>
-              <p className="text-sm mt-2">โปรดลองผ่อนปรนเกณฑ์บางข้อ หรือใช้ preset 🔮 Contrarian เพื่อหาหุ้นเด่นที่ถูกมองข้าม</p>
+              <p className="text-sm mt-2">โปรดลองผ่อนปรนเกณฑ์บางข้อ หรือสลับไปใช้ preset 🧑‍🏫 Kavi 10Y / 🚀 10Y Enhanced เพื่อโฟกัสหุ้นเติบโตระยะยาว</p>
             </div>
           )}
         </div>

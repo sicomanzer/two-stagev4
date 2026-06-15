@@ -13,6 +13,7 @@ interface StockCardProps {
 export default function ScreenerStockCard({ stock, rank, onSelectTicker, onSave, onJournal }: StockCardProps) {
   const r = stock;
   const viScoreMax = r.viScoreMax ?? 18;
+  const growthYearsLabel = `${r.growthYears ?? 5}Y`;
   const viRating = r.viScore >= 15 ? { label: 'Strong Buy', color: 'bg-emerald-500 text-white', icon: '🟢' }
     : r.viScore >= 12 ? { label: 'Buy', color: 'bg-emerald-100 text-emerald-700', icon: '🟡' }
     : r.viScore >= 9 ? { label: 'Watch', color: 'bg-amber-100 text-amber-700', icon: '🟠' }
@@ -21,9 +22,11 @@ export default function ScreenerStockCard({ stock, rank, onSelectTicker, onSave,
   const risks: string[] = [];
   if (r.latestDE > 2) risks.push('D/E สูง');
   if (typeof r.epsCAGR === 'number' && r.epsCAGR < 0) risks.push('EPS ลดลง');
+  if (typeof r.netProfitCAGR === 'number' && r.netProfitCAGR < 0) risks.push(`กำไร ${growthYearsLabel} หดตัว`);
   if (typeof r.fScore === 'number' && r.fScore <= 3) risks.push('F-Score ต่ำ');
   if (typeof r.zScore === 'number' && r.zScore < 1.8) risks.push('Z-Score เสี่ยง');
   if (r.latestPE > 25) risks.push('PE แพง');
+  if (typeof r.epsDownYears === 'number' && r.epsDownYears >= 4) risks.push('EPS ผันผวนหลายปี');
 
   const strengths: string[] = [];
   if (r.latestROE >= 15) strengths.push(`ROE ${r.latestROE.toFixed(1)}% สูง`);
@@ -31,6 +34,9 @@ export default function ScreenerStockCard({ stock, rank, onSelectTicker, onSave,
   if (typeof r.fScore === 'number' && r.fScore >= 7) strengths.push(`F-Score ${r.fScore}/9 แข็งแกร่ง`);
   if (r.latestDE < 0.5) strengths.push('หนี้ต่ำมาก');
   if (typeof r.epsCAGR === 'number' && r.epsCAGR > 10) strengths.push(`EPS โต ${r.epsCAGR.toFixed(0)}%`);
+  if (typeof r.revenueCAGR === 'number' && r.revenueCAGR > 5) strengths.push(`รายได้ ${growthYearsLabel} โต ${r.revenueCAGR.toFixed(0)}%`);
+  if (typeof r.netProfitCAGR === 'number' && r.netProfitCAGR > 5) strengths.push(`กำไร ${growthYearsLabel} โต ${r.netProfitCAGR.toFixed(0)}%`);
+  if (typeof r.npmDelta === 'number' && r.npmDelta > 0) strengths.push(`NPM ดีขึ้น ${r.npmDelta.toFixed(1)} จุด`);
   if (r.dividendStreakYears >= 5) strengths.push(`ปันผล ${r.dividendStreakYears}ปี ต่อเนื่อง`);
 
   const rankBadge = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `#${rank + 1}`;
@@ -83,7 +89,10 @@ export default function ScreenerStockCard({ stock, rank, onSelectTicker, onSave,
               { label: 'ROE', value: `${r.latestROE?.toFixed(1)}%`, good: r.latestROE >= 15 },
               { label: 'D/E', value: r.latestDE?.toFixed(2), good: r.latestDE < 1 },
               { label: 'Yield', value: typeof r.latestYield === 'number' ? `${r.latestYield.toFixed(1)}%` : '-', good: typeof r.latestYield === 'number' && r.latestYield >= 4 },
+              { label: `${growthYearsLabel} Rev`, value: typeof r.revenueCAGR === 'number' ? `${r.revenueCAGR.toFixed(1)}%` : '-', good: typeof r.revenueCAGR === 'number' && r.revenueCAGR > 3 },
+              { label: `${growthYearsLabel} NP`, value: typeof r.netProfitCAGR === 'number' ? `${r.netProfitCAGR.toFixed(1)}%` : '-', good: typeof r.netProfitCAGR === 'number' && r.netProfitCAGR > 5 },
               { label: 'EPS Growth', value: typeof r.epsCAGR === 'number' ? `${r.epsCAGR.toFixed(1)}%` : '-', good: typeof r.epsCAGR === 'number' && r.epsCAGR > 5 },
+              { label: 'NPM Δ', value: typeof r.npmDelta === 'number' ? `${r.npmDelta.toFixed(1)}pt` : '-', good: typeof r.npmDelta === 'number' && r.npmDelta >= 0 },
             ].map(m => (
               <div key={m.label} className="text-center">
                 <div className="text-[9px] text-slate-400 font-bold uppercase">{m.label}</div>

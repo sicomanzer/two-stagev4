@@ -8,12 +8,16 @@ interface HeatmapProps {
 
 const METRIC_CONFIG: Record<string, { label: string; higherIsBetter: boolean; format: (v: number) => string }> = {
   viScore: { label: 'VI Quality', higherIsBetter: true, format: v => `${v}/18` },
+  revenueCAGR: { label: 'Revenue CAGR', higherIsBetter: true, format: v => `${v.toFixed(1)}%` },
+  netProfitCAGR: { label: 'Net Profit CAGR', higherIsBetter: true, format: v => `${v.toFixed(1)}%` },
+  npmDelta: { label: 'NPM Delta', higherIsBetter: true, format: v => `${v.toFixed(1)}pt` },
   latestYield: { label: 'Div Yield', higherIsBetter: true, format: v => `${v.toFixed(1)}%` },
   latestPE: { label: 'P/E', higherIsBetter: false, format: v => v.toFixed(1) },
   latestPBV: { label: 'P/BV', higherIsBetter: false, format: v => v.toFixed(2) },
   latestROE: { label: 'ROE', higherIsBetter: true, format: v => `${v.toFixed(1)}%` },
   fScore: { label: 'F-Score', higherIsBetter: true, format: v => `${v}/9` },
   zScore: { label: 'Z-Score', higherIsBetter: true, format: v => v.toFixed(2) },
+  positiveEpsYears: { label: 'Positive EPS Years', higherIsBetter: true, format: v => `${v.toFixed(0)}Y` },
   compositeRank: { label: 'Rank', higherIsBetter: false, format: v => `#${v}` },
 };
 

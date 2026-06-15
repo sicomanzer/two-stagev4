@@ -5,6 +5,9 @@ import FloatingChatbot from '@/components/layout/FloatingChatbot';
 export const metadata: Metadata = {
   title: 'VI Stock Analyzer — Two-Stage DDM Calculator',
   description: 'เครื่องมือวิเคราะห์หุ้นสำหรับนักลงทุน Value Investing — DDM, Graham Number, Stock Scorecard, PE/PBV Band, Trend Analysis',
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
@@ -14,15 +17,6 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
             try {
-              // Protect fetch from being overwritten
-              const originalFetch = window.fetch;
-              if (originalFetch) {
-                Object.defineProperty(window, 'fetch', {
-                  get: function() { return originalFetch; },
-                  set: function() { console.warn('Attempted to overwrite window.fetch'); },
-                  configurable: true
-                });
-              }
               // Setup MutationObserver to continuously strip 'bis_skin_checked' attribute
               // before React hydrates, preventing the mismatch error completely.
               const observer = new MutationObserver(function(mutations) {

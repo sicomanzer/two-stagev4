@@ -147,6 +147,72 @@ const calculateStats = (data: number[]) => {
   return { avg, sd };
 };
 
+const average = (values: number[]) => {
+  if (values.length === 0) return null;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+};
+
+const getMetricWindow = (history: any[], years: number, strictWindow: boolean) => {
+  const normalizedYears = Math.max(3, Math.min(Number.isFinite(years) ? years : 5, 10));
+  const window = history.slice(-normalizedYears);
+  if (strictWindow && window.length < normalizedYears) return null;
+  return window;
+};
+
+const getNumericSeries = (history: any[], selector: (entry: any) => unknown) => {
+  return history.map((entry) => {
+    const value = Number(selector(entry));
+    return Number.isFinite(value) ? value : null;
+  });
+};
+
+const countDecliningYears = (values: (number | null)[]) => {
+  let declines = 0;
+  let comparisons = 0;
+  for (let i = 1; i < values.length; i++) {
+    const previous = values[i - 1];
+    const current = values[i];
+    if (previous === null || current === null) continue;
+    comparisons += 1;
+    if (current < previous) declines += 1;
+  }
+  return comparisons > 0 ? declines : null;
+};
+
+const countPositiveYears = (values: (number | null)[]): number => {
+  return values.reduce<number>((count, value) => (value !== null && value > 0 ? count + 1 : count), 0);
+};
+
+const calculateNpmDelta = (history: any[]) => {
+  const values = getNumericSeries(history, (entry) => entry.npm).filter((value): value is number => value !== null);
+  if (values.length < 2) return null;
+  const comparisonYears = Math.min(3, Math.floor(values.length / 2));
+  if (comparisonYears < 1) return null;
+  const earlyAverage = average(values.slice(0, comparisonYears));
+  const latestAverage = average(values.slice(-comparisonYears));
+  if (earlyAverage === null || latestAverage === null) return null;
+  return latestAverage - earlyAverage;
+};
+
+const isFinancialBusiness = (sector?: string | null, industry?: string | null) => {
+  const text = `${sector ?? ''} ${industry ?? ''}`.toLowerCase();
+  return /(bank|banking|finance|financial|insurance|securities|asset|capital market|consumer finance|leasing|credit|ธนาคาร|การเงิน|ประกัน|หลักทรัพย์)/.test(text);
+};
+
+const getFinancialBucket = (sector?: string | null, industry?: string | null) => {
+  if (sector && sector.trim()) return sector.trim().toLowerCase();
+  if (industry && industry.trim()) return industry.trim().toLowerCase();
+  return 'financial-other';
+};
+
+const getMedian = (values: number[]) => {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 1) return sorted[middle];
+  return (sorted[middle - 1] + sorted[middle]) / 2;
+};
+
 const getDividendStreakYears = (history: any[]) => {
   const currentYear = new Date().getFullYear();
   let streak = 0;
@@ -233,14 +299,33 @@ export async function POST(request: Request) {
       viScoreMin,
       yieldMin,
       deMax,
+      dePolicy,
+      financialDeSectorMultiplierMax,
       peMax,
       pbvMax,
       roeMin,
       marketCycleMode,
-      dividendStreakMin
+      dividendStreakMin,
+      dividendMode,
+      growthYears,
+      strictGrowthWindow,
+      revenueGrowthMin,
+      netProfitGrowthMin,
+      npmDeltaMin,
+      maxRevenueDownYears,
+      maxNetProfitDownYears,
+      maxEpsDownYears,
+      positiveEpsYearsMin
     } = body;
     const effectiveViScoreMin = viScoreMin !== undefined ? Math.min(Number(viScoreMin), 18) : undefined;
     const effectiveDividendStreakMin = dividendStreakMin !== undefined ? Math.max(0, Number(dividendStreakMin)) : undefined;
+    const effectiveGrowthYears = growthYears !== undefined ? Math.max(3, Math.min(Number(growthYears), 10)) : 5;
+    const effectiveStrictGrowthWindow = strictGrowthWindow === true;
+    const effectiveDePolicy: 'strict' | 'sector-aware' | 'ignore-financials' =
+      dePolicy === 'sector-aware' || dePolicy === 'ignore-financials' ? dePolicy : 'strict';
+    const effectiveFinancialDeSectorMultiplierMax =
+      financialDeSectorMultiplierMax !== undefined ? Math.max(0.8, Math.min(Number(financialDeSectorMultiplierMax), 2)) : 1.1;
+    const effectiveDividendMode: 'and' | 'or' = dividendMode === 'or' ? 'or' : 'and';
 
     const cache = (await getFundamentalsCacheFromSupabase()) || (await getFundamentalsCache());
     if (!cache || !cache.tickers) {
@@ -248,6 +333,21 @@ export async function POST(request: Request) {
     }
 
     const tickers = Object.keys(cache.tickers);
+    const financialDeSeriesByBucket: Record<string, number[]> = {};
+    for (const ticker of tickers) {
+      const data = cache.tickers[ticker];
+      const history = Array.isArray(data?.history) ? [...data.history].sort((a: any, b: any) => (a.year || 0) - (b.year || 0)) : [];
+      if (history.length === 0 || !isFinancialBusiness(data?.sector, data?.industry)) continue;
+      const latestEntry = history[history.length - 1];
+      const latestDeValue = Number(latestEntry?.de);
+      if (!Number.isFinite(latestDeValue) || latestDeValue <= 0) continue;
+      const bucket = getFinancialBucket(data?.sector, data?.industry);
+      financialDeSeriesByBucket[bucket] = financialDeSeriesByBucket[bucket] || [];
+      financialDeSeriesByBucket[bucket].push(latestDeValue);
+    }
+    const financialDeMedianByBucket = Object.fromEntries(
+      Object.entries(financialDeSeriesByBucket).map(([bucket, values]) => [bucket, getMedian(values)])
+    ) as Record<string, number | null>;
     
     let liveQuotes: Record<string, ScreenerLiveQuote> = (await getMarketSnapshotFromSupabase()) || {};
 
@@ -274,6 +374,8 @@ export async function POST(request: Request) {
     }
 
     const results = [];
+    let computedFScoreCount = 0;
+    let computedZScoreCount = 0;
     const snapshotSourceCounts: Record<string, number> = {
       supabase: 0,
       'yahoo-live': 0,
@@ -293,15 +395,27 @@ export async function POST(request: Request) {
         dps: deriveDividendPerShare(h),
       }));
 
-      const recent5 = normalizedHistory.slice(-5);
+      const growthWindow = getMetricWindow(normalizedHistory, effectiveGrowthYears, effectiveStrictGrowthWindow);
+      const revenueSeries = growthWindow ? getNumericSeries(growthWindow, (h) => h.revenue) : [];
+      const netProfitSeries = growthWindow ? getNumericSeries(growthWindow, (h) => h.netProfit) : [];
+      const epsSeries = growthWindow ? getNumericSeries(growthWindow, (h) => h.eps) : [];
+      const dpsSeries = growthWindow ? getNumericSeries(growthWindow, (h) => h.dps) : [];
       
       // Basic metrics
-      const epsCAGR = calculateCAGR(recent5.map((h: any) => h.eps));
-      const dpsCAGR = calculateCAGR(recent5.map((h: any) => h.dps));
+      const revenueCAGR = growthWindow ? calculateCAGR(revenueSeries) : null;
+      const netProfitCAGR = growthWindow ? calculateCAGR(netProfitSeries) : null;
+      const epsCAGR = growthWindow ? calculateCAGR(epsSeries) : null;
+      const dpsCAGR = growthWindow ? calculateCAGR(dpsSeries) : null;
+      const npmDelta = growthWindow ? calculateNpmDelta(growthWindow) : null;
+      const revenueDownYears = growthWindow ? countDecliningYears(revenueSeries) : null;
+      const netProfitDownYears = growthWindow ? countDecliningYears(netProfitSeries) : null;
+      const epsDownYears = growthWindow ? countDecliningYears(epsSeries) : null;
+      const positiveEpsYears = growthWindow ? countPositiveYears(epsSeries) : 0;
 
       // Calculate F-Score
       const fScoreRes = calculateFScore(normalizedHistory);
       const fScore = fScoreRes ? fScoreRes.score : null;
+      if (fScore !== null) computedFScoreCount += 1;
       
       // Calculate Z-Score
       const lastHistory = normalizedHistory[normalizedHistory.length - 1];
@@ -309,6 +423,7 @@ export async function POST(request: Request) {
       const marketCap = lastHistory.mktCap || (currentPriceFromHistory && lastHistory.shares ? currentPriceFromHistory * lastHistory.shares : null);
       const zScoreRes = calculateZScore(normalizedHistory, marketCap);
       const zScore = zScoreRes ? zScoreRes.score : null;
+      if (zScore !== null) computedZScoreCount += 1;
 
       // Calculate PE and PBV Bands (Annual approximation)
       const peValues = normalizedHistory.map((h: any) => h.pe).filter((v: any) => v !== null && v > 0 && v < 100);
@@ -330,7 +445,7 @@ export async function POST(request: Request) {
       let pbvMinus1SD = pbvStats.avg - pbvStats.sd;
 
       const latestROE = lastHistory.roe ? lastHistory.roe : 0;
-      const latestDE = lastHistory.de !== null && lastHistory.de !== undefined ? lastHistory.de : 0;
+      const latestDE = lastHistory.de !== null && lastHistory.de !== undefined ? lastHistory.de : null;
       const latestYield = liveQuote?.yield ?? (lastHistory.dividendYield !== null && lastHistory.dividendYield !== undefined 
           ? lastHistory.dividendYield 
           : (lastHistory.dps && lastHistory.close ? (lastHistory.dps / lastHistory.close) * 100 : null));
@@ -351,20 +466,49 @@ export async function POST(request: Request) {
       const viScoreMax = Math.max(scorecard.maxScore - 2, 0);
       const marketCycle = getMarketCycle(normalizedHistory, currentPrice, latestPE, peStats, latestPBV, pbvStats);
       const dividendStreakYears = getDividendStreakYears(normalizedHistory);
+      const isFinancial = isFinancialBusiness(data.sector, data.industry);
+      const financialBucket = getFinancialBucket(data.sector, data.industry);
+      const financialSectorDeMedian = financialDeMedianByBucket[financialBucket] ?? null;
+      const effectiveDeThreshold =
+        isFinancial && effectiveDePolicy === 'sector-aware' && financialSectorDeMedian !== null
+          ? financialSectorDeMedian * effectiveFinancialDeSectorMultiplierMax
+          : deMax !== undefined
+            ? Number(deMax)
+            : null;
 
       // Check Filters
+      if (revenueGrowthMin !== undefined && (revenueCAGR === null || (revenueCAGR * 100) < Number(revenueGrowthMin))) continue;
+      if (netProfitGrowthMin !== undefined && (netProfitCAGR === null || (netProfitCAGR * 100) < Number(netProfitGrowthMin))) continue;
       if (epsGrowthMin !== undefined && (epsCAGR === null || (epsCAGR * 100) < epsGrowthMin)) continue;
-      if (dpsGrowthMin !== undefined && (dpsCAGR === null || (dpsCAGR * 100) < dpsGrowthMin)) continue;
-      if (fScoreMin !== undefined && (fScore === null || fScore < fScoreMin)) continue;
-      if (zScoreMin !== undefined && (zScore === null || zScore < zScoreMin)) continue;
+      if (npmDeltaMin !== undefined && (npmDelta === null || npmDelta < Number(npmDeltaMin))) continue;
+      const dpsGrowthPass = dpsGrowthMin === undefined || (dpsCAGR !== null && (dpsCAGR * 100) >= Number(dpsGrowthMin));
+      const dividendStreakPass = effectiveDividendStreakMin === undefined || dividendStreakYears >= effectiveDividendStreakMin;
+      if (effectiveDividendMode === 'or') {
+        if (!dpsGrowthPass && !dividendStreakPass) continue;
+      } else {
+        if (!dpsGrowthPass) continue;
+        if (!dividendStreakPass) continue;
+      }
+      if (maxRevenueDownYears !== undefined && (revenueDownYears === null || revenueDownYears > Number(maxRevenueDownYears))) continue;
+      if (maxNetProfitDownYears !== undefined && (netProfitDownYears === null || netProfitDownYears > Number(maxNetProfitDownYears))) continue;
+      if (maxEpsDownYears !== undefined && (epsDownYears === null || epsDownYears > Number(maxEpsDownYears))) continue;
+      if (positiveEpsYearsMin !== undefined && positiveEpsYears < Number(positiveEpsYearsMin)) continue;
+      if (fScoreMin !== undefined && fScore !== null && fScore < fScoreMin) continue;
+      if (zScoreMin !== undefined && zScore !== null && zScore < zScoreMin) continue;
       if (effectiveViScoreMin !== undefined && viScore < effectiveViScoreMin) continue;
       if (yieldMin !== undefined && (latestYield === null || latestYield < yieldMin)) continue;
-      if (deMax !== undefined && latestDE > deMax) continue;
+      if (deMax !== undefined) {
+        if (latestDE === null) continue;
+        if (isFinancial && effectiveDePolicy === 'ignore-financials') {
+          // Skip D/E hard filter for financial companies when explicitly requested.
+        } else if (effectiveDeThreshold !== null && latestDE > effectiveDeThreshold) {
+          continue;
+        }
+      }
       if (peMax !== undefined && (!latestPE || latestPE > peMax)) continue;
       if (pbvMax !== undefined && (!latestPBV || latestPBV > pbvMax)) continue;
       if (roeMin !== undefined && latestROE < roeMin) continue;
       if (marketCycleMode !== undefined && marketCycle.phase !== marketCycleMode) continue;
-      if (effectiveDividendStreakMin !== undefined && dividendStreakYears < effectiveDividendStreakMin) continue;
 
       if (peBandMode === 'below_minus_1_sd') {
         if (!latestPE || !peStats.avg || latestPE > peMinus1SD) continue;
@@ -383,8 +527,16 @@ export async function POST(request: Request) {
         companyName: data.companyName,
         sector: data.sector,
         industry: data.industry,
+        growthYears: effectiveGrowthYears,
+        revenueCAGR: revenueCAGR !== null ? revenueCAGR * 100 : null,
+        netProfitCAGR: netProfitCAGR !== null ? netProfitCAGR * 100 : null,
         epsCAGR: epsCAGR !== null ? epsCAGR * 100 : null,
         dpsCAGR: dpsCAGR !== null ? dpsCAGR * 100 : null,
+        npmDelta,
+        revenueDownYears,
+        netProfitDownYears,
+        epsDownYears,
+        positiveEpsYears,
         fScore,
         fScoreAvailable: fScore !== null,
         zScore,
@@ -404,9 +556,14 @@ export async function POST(request: Request) {
         latestYield,
         yieldUnit: 'percent',
         dividendStreakYears,
+        dividendMode: effectiveDividendMode,
         marketCycle: marketCycle.phase,
         marketCycleLabel: marketCycle.label,
         marketCycleZScore: marketCycle.zScore,
+        isFinancial,
+        dePolicyApplied: effectiveDePolicy,
+        deThresholdApplied: effectiveDeThreshold,
+        sectorDeMedian: financialSectorDeMedian,
         fundamentalsSource: data.source,
         fundamentalsUpdatedAt: data.updatedAt ?? cache.updatedAt,
         snapshotSource,
@@ -422,6 +579,18 @@ export async function POST(request: Request) {
     if (snapshotSourceCounts['historical-fallback'] > 0) {
       warnings.push(`มี ${snapshotSourceCounts['historical-fallback']} หุ้นที่ fallback ไปใช้ข้อมูลย้อนหลัง เพราะ snapshot ล่าสุดไม่ครบ`);
     }
+    if (effectiveGrowthYears >= 10) {
+      warnings.push(`กำลังใช้หน้าต่างวิเคราะห์ ${effectiveGrowthYears} ปี${effectiveStrictGrowthWindow ? 'แบบต้องมีข้อมูลครบทุกปี' : ''}`);
+    }
+    if (effectiveDePolicy === 'sector-aware') {
+      warnings.push('หุ้นกลุ่มการเงินใช้ D/E แบบเทียบ median ของกลุ่มธุรกิจเดียวกัน');
+    }
+    if (fScoreMin !== undefined && computedFScoreCount === 0) {
+      warnings.push('Piotroski F-Score ยังไม่พร้อมในข้อมูลชุดนี้ จึงไม่สามารถใช้กรองได้');
+    }
+    if (zScoreMin !== undefined && computedZScoreCount === 0) {
+      warnings.push('Altman Z-Score ยังไม่พร้อมในข้อมูลชุดนี้ จึงไม่สามารถใช้กรองได้');
+    }
 
     return NextResponse.json({
       total: tickers.length,
@@ -434,6 +603,13 @@ export async function POST(request: Request) {
         snapshotSourceCounts,
         usedProxyMetrics: false,
         yieldUnit: 'percent',
+        growthYears: effectiveGrowthYears,
+        strictGrowthWindow: effectiveStrictGrowthWindow,
+        dePolicy: effectiveDePolicy,
+        financialDeSectorMultiplierMax: effectiveFinancialDeSectorMultiplierMax,
+        dividendMode: effectiveDividendMode,
+        fScoreComputedCount: computedFScoreCount,
+        zScoreComputedCount: computedZScoreCount,
       }
     });
 
