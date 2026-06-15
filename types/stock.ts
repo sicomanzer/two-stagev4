@@ -291,7 +291,7 @@ export interface ScenarioAnalysis {
 
 // ===== App Mode =====
 
-export type AppMode = 'single' | 'multi' | 'portfolio' | 'real_portfolio' | 'screener' | 'dividend_events';
+export type AppMode = 'single' | 'multi' | 'portfolio' | 'real_portfolio' | 'screener' | 'safe_buy' | 'dividend_events';
 
 export type GrowthMethod = 'sustainable' | 'historical' | 'preset';
 

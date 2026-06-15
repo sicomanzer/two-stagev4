@@ -24,6 +24,7 @@ import RealPortfolioView from '@/components/portfolio/RealPortfolioView';
 import DividendEventsView from '@/components/portfolio/DividendEventsView';
 import TransactionModal from '@/components/portfolio/TransactionModal';
 import ScreenerView from '@/components/stock/ScreenerView';
+import SafeBuyView from '@/components/stock/SafeBuyView';
 import InvestmentJournal from '@/components/InvestmentJournal';
 import Login from '@/components/auth/Login';
 import DailyBriefingPanel from '@/components/layout/DailyBriefingPanel';
@@ -771,9 +772,11 @@ TTW`);
             )}
 
             {/* Results Area */}
-            <div suppressHydrationWarning className={`${mode === 'portfolio' || mode === 'real_portfolio' || mode === 'screener' || mode === 'dividend_events' ? 'lg:col-span-3' : 'lg:col-span-2'} space-y-6 lg:order-first`}>
+            <div suppressHydrationWarning className={`${mode === 'portfolio' || mode === 'real_portfolio' || mode === 'screener' || mode === 'safe_buy' || mode === 'dividend_events' ? 'lg:col-span-3' : 'lg:col-span-2'} space-y-6 lg:order-first`}>
               {mode === 'screener' ? (
                 <ScreenerView onSelectTicker={handleSelectScreenerTicker} />
+              ) : mode === 'safe_buy' ? (
+                <SafeBuyView onSelectTicker={handleSelectScreenerTicker} />
               ) : mode === 'multi' ? (
                 <MultiScreeningView
                   multiResults={multiResults}

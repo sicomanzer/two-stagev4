@@ -42,6 +42,12 @@ export default function Header({ mode, setMode, setError, setShowSettings }: Hea
           Screener
         </button>
         <button 
+          onClick={() => { setMode('safe_buy'); setError(null); }}
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${mode === 'safe_buy' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          Safe Buy
+        </button>
+        <button 
           onClick={() => { setMode('portfolio'); setError(null); }}
           className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${mode === 'portfolio' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-500 hover:text-slate-700'}`}
         >
