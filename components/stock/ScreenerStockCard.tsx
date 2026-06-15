@@ -12,24 +12,25 @@ interface StockCardProps {
 
 export default function ScreenerStockCard({ stock, rank, onSelectTicker, onSave, onJournal }: StockCardProps) {
   const r = stock;
-  const viRating = r.viScore >= 16 ? { label: 'Strong Buy', color: 'bg-emerald-500 text-white', icon: '🟢' }
-    : r.viScore >= 13 ? { label: 'Buy', color: 'bg-emerald-100 text-emerald-700', icon: '🟡' }
-    : r.viScore >= 10 ? { label: 'Watch', color: 'bg-amber-100 text-amber-700', icon: '🟠' }
+  const viScoreMax = r.viScoreMax ?? 18;
+  const viRating = r.viScore >= 15 ? { label: 'Strong Buy', color: 'bg-emerald-500 text-white', icon: '🟢' }
+    : r.viScore >= 12 ? { label: 'Buy', color: 'bg-emerald-100 text-emerald-700', icon: '🟡' }
+    : r.viScore >= 9 ? { label: 'Watch', color: 'bg-amber-100 text-amber-700', icon: '🟠' }
     : { label: 'Avoid', color: 'bg-red-100 text-red-700', icon: '🔴' };
 
   const risks: string[] = [];
   if (r.latestDE > 2) risks.push('D/E สูง');
-  if (r.epsCAGR < 0) risks.push('EPS ลดลง');
-  if (r.fScore <= 3) risks.push('F-Score ต่ำ');
-  if (r.zScore < 1.8) risks.push('Z-Score เสี่ยง');
+  if (typeof r.epsCAGR === 'number' && r.epsCAGR < 0) risks.push('EPS ลดลง');
+  if (typeof r.fScore === 'number' && r.fScore <= 3) risks.push('F-Score ต่ำ');
+  if (typeof r.zScore === 'number' && r.zScore < 1.8) risks.push('Z-Score เสี่ยง');
   if (r.latestPE > 25) risks.push('PE แพง');
 
   const strengths: string[] = [];
   if (r.latestROE >= 15) strengths.push(`ROE ${r.latestROE.toFixed(1)}% สูง`);
-  if (r.latestYield >= 5) strengths.push(`Yield ${r.latestYield.toFixed(1)}% ดี`);
-  if (r.fScore >= 7) strengths.push(`F-Score ${r.fScore}/9 แข็งแกร่ง`);
+  if (typeof r.latestYield === 'number' && r.latestYield >= 5) strengths.push(`Yield ${r.latestYield.toFixed(1)}% ดี`);
+  if (typeof r.fScore === 'number' && r.fScore >= 7) strengths.push(`F-Score ${r.fScore}/9 แข็งแกร่ง`);
   if (r.latestDE < 0.5) strengths.push('หนี้ต่ำมาก');
-  if (r.epsCAGR > 10) strengths.push(`EPS โต ${r.epsCAGR.toFixed(0)}%`);
+  if (typeof r.epsCAGR === 'number' && r.epsCAGR > 10) strengths.push(`EPS โต ${r.epsCAGR.toFixed(0)}%`);
   if (r.dividendStreakYears >= 5) strengths.push(`ปันผล ${r.dividendStreakYears}ปี ต่อเนื่อง`);
 
   const rankBadge = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `#${rank + 1}`;
@@ -46,13 +47,13 @@ export default function ScreenerStockCard({ stock, rank, onSelectTicker, onSave,
                 <span className="text-lg font-black text-slate-900">{r.ticker}</span>
                 <span className="text-sm">{rankBadge}</span>
               </div>
-              <div className="text-xs text-slate-400 font-bold">฿{r.currentPrice?.toFixed(2)} • {r.sector || r.marketCycleLabel || ''}</div>
+              <div className="text-xs text-slate-400 font-bold">฿{r.currentPrice?.toFixed(2)} • {r.sector || 'ไม่ระบุ sector'}</div>
             </div>
           </div>
           {/* VI Rating Badge */}
           <div className={`${viRating.color} px-3 py-2 rounded-xl text-center mb-3`}>
             <span className="text-sm font-black">{viRating.icon} {viRating.label}</span>
-            <span className="text-xs font-bold ml-2">VI Score {r.viScore}/20</span>
+            <span className="text-xs font-bold ml-2">VI Quality {r.viScore}/{viScoreMax}</span>
           </div>
           {/* Quick Actions */}
           <div className="flex gap-2">
@@ -81,8 +82,8 @@ export default function ScreenerStockCard({ stock, rank, onSelectTicker, onSave,
               { label: 'P/BV', value: r.latestPBV?.toFixed(2), good: r.latestPBV < 1.5 },
               { label: 'ROE', value: `${r.latestROE?.toFixed(1)}%`, good: r.latestROE >= 15 },
               { label: 'D/E', value: r.latestDE?.toFixed(2), good: r.latestDE < 1 },
-              { label: 'Yield', value: `${r.latestYield?.toFixed(1)}%`, good: r.latestYield >= 4 },
-              { label: 'EPS Growth', value: `${r.epsCAGR?.toFixed(1)}%`, good: r.epsCAGR > 5 },
+              { label: 'Yield', value: typeof r.latestYield === 'number' ? `${r.latestYield.toFixed(1)}%` : '-', good: typeof r.latestYield === 'number' && r.latestYield >= 4 },
+              { label: 'EPS Growth', value: typeof r.epsCAGR === 'number' ? `${r.epsCAGR.toFixed(1)}%` : '-', good: typeof r.epsCAGR === 'number' && r.epsCAGR > 5 },
             ].map(m => (
               <div key={m.label} className="text-center">
                 <div className="text-[9px] text-slate-400 font-bold uppercase">{m.label}</div>
@@ -116,8 +117,8 @@ export default function ScreenerStockCard({ stock, rank, onSelectTicker, onSave,
           </div>
           {/* Quality Scores */}
           <div className="mt-3 pt-3 border-t border-red-100 grid grid-cols-3 gap-2 text-center">
-            <div><div className="text-[9px] text-slate-400 font-bold">F-Score</div><div className={`text-sm font-black ${r.fScore >= 7 ? 'text-emerald-600' : r.fScore >= 5 ? 'text-amber-600' : 'text-red-500'}`}>{r.fScore}/9</div></div>
-            <div><div className="text-[9px] text-slate-400 font-bold">Z-Score</div><div className={`text-sm font-black ${r.zScore >= 2.99 ? 'text-emerald-600' : r.zScore >= 1.8 ? 'text-amber-600' : 'text-red-500'}`}>{r.zScore?.toFixed(2)}</div></div>
+            <div><div className="text-[9px] text-slate-400 font-bold">F-Score</div><div className={`text-sm font-black ${typeof r.fScore === 'number' ? (r.fScore >= 7 ? 'text-emerald-600' : r.fScore >= 5 ? 'text-amber-600' : 'text-red-500') : 'text-slate-400'}`}>{typeof r.fScore === 'number' ? `${r.fScore}/9` : '-'}</div></div>
+            <div><div className="text-[9px] text-slate-400 font-bold">Z-Score</div><div className={`text-sm font-black ${typeof r.zScore === 'number' ? (r.zScore >= 2.99 ? 'text-emerald-600' : r.zScore >= 1.8 ? 'text-amber-600' : 'text-red-500') : 'text-slate-400'}`}>{typeof r.zScore === 'number' ? r.zScore.toFixed(2) : '-'}</div></div>
             <div><div className="text-[9px] text-slate-400 font-bold">Cycle</div><div className="text-sm font-black text-slate-600">{r.marketCycleLabel || '-'}</div></div>
           </div>
         </div>

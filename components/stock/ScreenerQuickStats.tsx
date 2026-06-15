@@ -10,6 +10,7 @@ interface QuickStatsProps {
 export default function ScreenerQuickStats({ results, total, matched }: QuickStatsProps) {
   if (results.length === 0) return null;
 
+  const viScoreMax = results[0]?.viScoreMax ?? 18;
   const avgViScore = results.reduce((a, r) => a + (r.viScore || 0), 0) / results.length;
   const avgYield = results.reduce((a, r) => a + (r.latestYield || 0), 0) / results.length;
   const avgPE = results.filter(r => r.latestPE > 0).reduce((a, r, _, arr) => a + r.latestPE / arr.length, 0);
@@ -20,19 +21,19 @@ export default function ScreenerQuickStats({ results, total, matched }: QuickSta
   // VI Score distribution
   const dist = { excellent: 0, good: 0, fair: 0, low: 0 };
   results.forEach(r => {
-    if (r.viScore >= 16) dist.excellent++;
-    else if (r.viScore >= 13) dist.good++;
-    else if (r.viScore >= 10) dist.fair++;
+    if (r.viScore >= 15) dist.excellent++;
+    else if (r.viScore >= 12) dist.good++;
+    else if (r.viScore >= 9) dist.fair++;
     else dist.low++;
   });
 
   const stats = [
     { icon: <Award size={18} />, label: 'ผ่านเกณฑ์', value: `${matched}/${total}`, sub: `${((matched/total)*100).toFixed(1)}%`, color: 'from-indigo-500 to-purple-600', bg: 'bg-indigo-50' },
-    { icon: <BarChart3 size={18} />, label: 'VI Score เฉลี่ย', value: avgViScore.toFixed(1), sub: '/20', color: 'from-violet-500 to-indigo-600', bg: 'bg-violet-50' },
+    { icon: <BarChart3 size={18} />, label: 'VI Quality เฉลี่ย', value: avgViScore.toFixed(1), sub: `/${viScoreMax}`, color: 'from-violet-500 to-indigo-600', bg: 'bg-violet-50' },
     { icon: <TrendingUp size={18} />, label: 'Yield เฉลี่ย', value: `${avgYield.toFixed(2)}%`, sub: `PE avg ${avgPE.toFixed(1)}`, color: 'from-emerald-500 to-teal-600', bg: 'bg-emerald-50' },
     { icon: <Zap size={18} />, label: 'Top ROE', value: topROE.ticker, sub: `${topROE.latestROE?.toFixed(1)}%`, color: 'from-amber-500 to-orange-600', bg: 'bg-amber-50' },
     { icon: <Shield size={18} />, label: 'Safest (Z)', value: safest.ticker, sub: `Z=${safest.zScore?.toFixed(2)}`, color: 'from-cyan-500 to-blue-600', bg: 'bg-cyan-50' },
-    { icon: <Target size={18} />, label: 'Best VI', value: bestValue.ticker, sub: `${bestValue.viScore}/20`, color: 'from-rose-500 to-pink-600', bg: 'bg-rose-50' },
+    { icon: <Target size={18} />, label: 'Best VI', value: bestValue.ticker, sub: `${bestValue.viScore}/${viScoreMax}`, color: 'from-rose-500 to-pink-600', bg: 'bg-rose-50' },
   ];
 
   return (
@@ -52,31 +53,31 @@ export default function ScreenerQuickStats({ results, total, matched }: QuickSta
 
       {/* VI Score Distribution Bar */}
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">VI Score Distribution</h4>
+        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">VI Quality Distribution</h4>
         <div className="flex rounded-xl overflow-hidden h-6 shadow-inner border border-slate-100">
           {dist.excellent > 0 && (
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-[9px] font-black text-white transition-all" style={{ width: `${(dist.excellent/results.length)*100}%` }} title={`Excellent (16+): ${dist.excellent}`}>
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-[9px] font-black text-white transition-all" style={{ width: `${(dist.excellent/results.length)*100}%` }} title={`Excellent (15+): ${dist.excellent}`}>
               {dist.excellent > 0 && `⭐${dist.excellent}`}
             </div>
           )}
           {dist.good > 0 && (
-            <div className="bg-gradient-to-r from-emerald-400 to-emerald-500 flex items-center justify-center text-[9px] font-black text-white" style={{ width: `${(dist.good/results.length)*100}%` }} title={`Good (13-15): ${dist.good}`}>
+            <div className="bg-gradient-to-r from-emerald-400 to-emerald-500 flex items-center justify-center text-[9px] font-black text-white" style={{ width: `${(dist.good/results.length)*100}%` }} title={`Good (12-14): ${dist.good}`}>
               {`✓${dist.good}`}
             </div>
           )}
           {dist.fair > 0 && (
-            <div className="bg-gradient-to-r from-amber-400 to-amber-500 flex items-center justify-center text-[9px] font-black text-white" style={{ width: `${(dist.fair/results.length)*100}%` }} title={`Fair (10-12): ${dist.fair}`}>
+            <div className="bg-gradient-to-r from-amber-400 to-amber-500 flex items-center justify-center text-[9px] font-black text-white" style={{ width: `${(dist.fair/results.length)*100}%` }} title={`Fair (9-11): ${dist.fair}`}>
               {`~${dist.fair}`}
             </div>
           )}
           {dist.low > 0 && (
-            <div className="bg-gradient-to-r from-slate-300 to-slate-400 flex items-center justify-center text-[9px] font-black text-white" style={{ width: `${(dist.low/results.length)*100}%` }} title={`Low (<10): ${dist.low}`}>
+            <div className="bg-gradient-to-r from-slate-300 to-slate-400 flex items-center justify-center text-[9px] font-black text-white" style={{ width: `${(dist.low/results.length)*100}%` }} title={`Low (<9): ${dist.low}`}>
               {`${dist.low}`}
             </div>
           )}
         </div>
         <div className="flex gap-4 mt-2 text-[10px] font-bold text-slate-400">
-          <span>⭐ Excellent (16+)</span><span>✓ Good (13-15)</span><span>~ Fair (10-12)</span><span>○ Low (&lt;10)</span>
+          <span>⭐ Excellent (15+)</span><span>✓ Good (12-14)</span><span>~ Fair (9-11)</span><span>○ Low (&lt;9)</span>
         </div>
       </div>
     </div>

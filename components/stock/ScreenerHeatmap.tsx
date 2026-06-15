@@ -7,7 +7,7 @@ interface HeatmapProps {
 }
 
 const METRIC_CONFIG: Record<string, { label: string; higherIsBetter: boolean; format: (v: number) => string }> = {
-  viScore: { label: 'VI Score', higherIsBetter: true, format: v => `${v}/20` },
+  viScore: { label: 'VI Quality', higherIsBetter: true, format: v => `${v}/18` },
   latestYield: { label: 'Div Yield', higherIsBetter: true, format: v => `${v.toFixed(1)}%` },
   latestPE: { label: 'P/E', higherIsBetter: false, format: v => v.toFixed(1) },
   latestPBV: { label: 'P/BV', higherIsBetter: false, format: v => v.toFixed(2) },

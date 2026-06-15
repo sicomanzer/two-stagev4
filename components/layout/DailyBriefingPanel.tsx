@@ -36,15 +36,19 @@ export default function DailyBriefingPanel() {
         });
         
         const data = await res.json();
-        
-        if (data.briefing) {
+
+        if (!res.ok) {
+          throw new Error(data?.error || 'Failed to load daily briefing');
+        }
+
+        if (typeof data?.briefing === 'string' && data.briefing.trim()) {
           setBriefing(data.briefing);
           localStorage.setItem(cacheKey, JSON.stringify({
             date: today,
             content: data.briefing
           }));
         } else {
-          throw new Error('No briefing returned');
+          setError('ไม่สามารถโหลดข้อคิดเช้านี้ได้');
         }
       } catch (err: any) {
         console.error('Failed to load briefing:', err);

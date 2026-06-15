@@ -90,6 +90,7 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
   const [results, setResults] = useState<any[]>([]);
   const [stats, setStats] = useState<{ total: number; matched: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [scanWarnings, setScanWarnings] = useState<string[]>([]);
   
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -103,7 +104,7 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
   const [showSector, setShowSector] = useState(false);
   const [selectedForSave, setSelectedForSave] = useState<Set<string>>(new Set());
 
-  const [fundamentalsStatus, setFundamentalsStatus] = useState<{
+  const [snapshotStatus, setSnapshotStatus] = useState<{
     supabaseLastUpdatedAt: string | null;
     supabaseCount: number;
     workflowLastRunAt: string | null;
@@ -111,17 +112,28 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
     workflowLastRunConclusion: string | null;
     canTriggerToday: boolean | null;
   } | null>(null);
+  const [fundamentalsStatus, setFundamentalsStatus] = useState<{
+    localCacheUpdatedAt: string | null;
+    localCacheCount: number;
+    supabaseLastUpdatedAt: string | null;
+  } | null>(null);
   const [isTriggeringSync, setIsTriggeringSync] = useState(false);
   const [syncTriggerError, setSyncTriggerError] = useState<string | null>(null);
   const [syncTriggerOk, setSyncTriggerOk] = useState(false);
 
   useEffect(() => {
     let mounted = true;
-    fetch('/api/system/market-snapshot-status')
-      .then((r) => r.json())
-      .then((d) => {
+    Promise.allSettled([
+      fetch('/api/system/market-snapshot-status').then((r) => r.json()),
+      fetch('/api/system/fundamentals-status').then((r) => r.json()),
+    ]).then(([snapshotResult, fundamentalsResult]) => {
         if (!mounted) return;
-        setFundamentalsStatus(d);
+        if (snapshotResult.status === 'fulfilled') {
+          setSnapshotStatus(snapshotResult.value);
+        }
+        if (fundamentalsResult.status === 'fulfilled') {
+          setFundamentalsStatus(fundamentalsResult.value);
+        }
       })
       .catch(() => {});
     return () => {
@@ -133,9 +145,11 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
     return new Date(a).toLocaleDateString('en-CA') === new Date(b).toLocaleDateString('en-CA');
   };
 
-  const lastUpdatedAt = fundamentalsStatus?.supabaseLastUpdatedAt || null;
-  const isFundamentalsStale = lastUpdatedAt ? !isSameLocalDay(lastUpdatedAt, new Date().toISOString()) : false;
-  const canTriggerToday = fundamentalsStatus?.canTriggerToday ?? null;
+  const snapshotLastUpdatedAt = snapshotStatus?.supabaseLastUpdatedAt || null;
+  const fundamentalsLastUpdatedAt = fundamentalsStatus?.supabaseLastUpdatedAt || null;
+  const isSnapshotStale = snapshotLastUpdatedAt ? !isSameLocalDay(snapshotLastUpdatedAt, new Date().toISOString()) : false;
+  const isFundamentalsStale = fundamentalsLastUpdatedAt ? !isSameLocalDay(fundamentalsLastUpdatedAt, new Date().toISOString()) : false;
+  const canTriggerToday = snapshotStatus?.canTriggerToday ?? null;
 
   const handleTriggerSync = async () => {
     setIsTriggeringSync(true);
@@ -337,9 +351,11 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
       const data = await res.json();
       setResults(data.results);
       setStats({ total: data.total, matched: data.matched });
+      setScanWarnings(Array.isArray(data.warnings) ? data.warnings : []);
       setAiSummary(null); // Reset AI summary when new scan is run
     } catch (err: any) {
       setError(err.message);
+      setScanWarnings([]);
     } finally {
       setIsLoading(false);
     }
@@ -409,22 +425,26 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
 
   const exportToCSV = () => {
     if (results.length === 0) return;
-    const headers = ['Ticker', 'Price', 'EPS CAGR', 'DPS CAGR', 'Yield', 'ROE', 'P/E', 'P/BV', 'PE -1SD', 'PBV -1SD', 'D/E', 'F-Score', 'Z-Score', 'VI Score', 'Market Cycle'];
+    const headers = ['Ticker', 'Price', 'EPS CAGR', 'DPS CAGR', 'Yield', 'ROE', 'P/E', 'P/BV', 'PE -1SD', 'PBV -1SD', 'D/E', 'F-Score', 'Z-Score', 'VI Quality', 'Fundamentals Source', 'Snapshot Source', 'Fundamentals Updated', 'Snapshot Updated', 'Market Cycle'];
     const csvData = sortedResults.map(r => [
       r.ticker,
       r.currentPrice,
-      r.epsCAGR?.toFixed(2),
-      r.dpsCAGR?.toFixed(2),
-      r.latestYield?.toFixed(2),
+      r.epsCAGR?.toFixed(2) ?? '',
+      r.dpsCAGR?.toFixed(2) ?? '',
+      r.latestYield?.toFixed(2) ?? '',
       r.latestROE?.toFixed(2),
       r.latestPE?.toFixed(2),
       r.latestPBV?.toFixed(2),
       r.peMinus1SD?.toFixed(2),
       r.pbvMinus1SD?.toFixed(2),
       r.latestDE?.toFixed(2),
-      r.fScore,
-      r.zScore?.toFixed(2),
+      r.fScore ?? '',
+      r.zScore?.toFixed(2) ?? '',
       r.viScore,
+      r.fundamentalsSource || '',
+      r.snapshotSource || '',
+      r.fundamentalsUpdatedAt || '',
+      r.snapshotUpdatedAt || '',
       r.marketCycleLabel || ''
     ].join(','));
     
@@ -455,37 +475,54 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
              </div>
           </div>
 
-          {fundamentalsStatus && (
-            <div className={`rounded-2xl border px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3 ${
-              isFundamentalsStale ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'
-            }`}>
-              <div className="text-sm font-bold text-slate-700">
-                <span className="mr-2">อัปเดตอัตราส่วน (Snapshot):</span>
-                <span className="font-black">
-                  {lastUpdatedAt ? new Date(lastUpdatedAt).toLocaleString('th-TH') : 'ไม่ทราบเวลาอัปเดต'}
-                </span>
-                <span className="ml-2 text-xs font-bold text-slate-500">
-                  ({fundamentalsStatus.supabaseCount ?? 0} ตัว)
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                {syncTriggerError && <div className="text-xs font-bold text-rose-600">{syncTriggerError}</div>}
-                {syncTriggerOk && <div className="text-xs font-bold text-emerald-700">สั่งรันแล้ว</div>}
-                {isFundamentalsStale && canTriggerToday === false && (
-                  <div className="text-xs font-bold text-slate-600">วันนี้สั่งอัปเดตไปแล้ว</div>
-                )}
-                {isFundamentalsStale && canTriggerToday !== false && (
-                  <button
-                    type="button"
-                    onClick={handleTriggerSync}
-                    disabled={isTriggeringSync}
-                    className="inline-flex items-center gap-2 rounded-xl px-3 py-2 border border-slate-200 bg-white text-slate-700 text-xs font-black hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isTriggeringSync ? <Loader2 size={14} className="animate-spin" /> : <RefreshCcw size={14} />}
-                    อัปเดตอัตราส่วนล่าสุด
-                  </button>
-                )}
-              </div>
+          {(snapshotStatus || fundamentalsStatus) && (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+              {snapshotStatus && (
+                <div className={`rounded-2xl border px-4 py-3 flex flex-col gap-3 ${
+                  isSnapshotStale ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'
+                }`}>
+                  <div>
+                    <div className="text-[11px] font-black text-slate-500 uppercase tracking-wider">Market Snapshot</div>
+                    <div className="text-sm font-bold text-slate-700 mt-1">
+                      {snapshotLastUpdatedAt ? new Date(snapshotLastUpdatedAt).toLocaleString('th-TH') : 'ไม่ทราบเวลาอัปเดต'}
+                      <span className="ml-2 text-xs font-bold text-slate-500">({snapshotStatus.supabaseCount ?? 0} ตัว)</span>
+                    </div>
+                    <div className="text-xs font-bold text-slate-500 mt-1">ใช้กับราคา, P/E, P/BV และ Dividend Yield ล่าสุด</div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {syncTriggerError && <div className="text-xs font-bold text-rose-600">{syncTriggerError}</div>}
+                    {syncTriggerOk && <div className="text-xs font-bold text-emerald-700">สั่งรัน snapshot แล้ว</div>}
+                    {isSnapshotStale && canTriggerToday === false && (
+                      <div className="text-xs font-bold text-slate-600">วันนี้สั่งอัปเดต snapshot ไปแล้ว</div>
+                    )}
+                    {isSnapshotStale && canTriggerToday !== false && (
+                      <button
+                        type="button"
+                        onClick={handleTriggerSync}
+                        disabled={isTriggeringSync}
+                        className="inline-flex items-center gap-2 rounded-xl px-3 py-2 border border-slate-200 bg-white text-slate-700 text-xs font-black hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isTriggeringSync ? <Loader2 size={14} className="animate-spin" /> : <RefreshCcw size={14} />}
+                        อัปเดต Snapshot ล่าสุด
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+              {fundamentalsStatus && (
+                <div className={`rounded-2xl border px-4 py-3 flex flex-col gap-2 ${
+                  isFundamentalsStale ? 'bg-amber-50 border-amber-200' : 'bg-sky-50 border-sky-200'
+                }`}>
+                  <div className="text-[11px] font-black text-slate-500 uppercase tracking-wider">Fundamentals</div>
+                  <div className="text-sm font-bold text-slate-700">
+                    {fundamentalsLastUpdatedAt ? new Date(fundamentalsLastUpdatedAt).toLocaleString('th-TH') : 'ไม่ทราบเวลาอัปเดตจาก Supabase'}
+                  </div>
+                  <div className="text-xs font-bold text-slate-500">ใช้กับงบการเงินย้อนหลัง, growth, F-Score, Z-Score และ sector</div>
+                  <div className="text-xs font-bold text-slate-500">
+                    Local fallback cache: {fundamentalsStatus.localCacheUpdatedAt ? new Date(fundamentalsStatus.localCacheUpdatedAt).toLocaleString('th-TH') : 'ไม่พบ'} ({fundamentalsStatus.localCacheCount ?? 0} ตัว)
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -602,8 +639,8 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
                min={0} max={10} step={0.1} value={zScoreMin} onChange={setZScoreMin} highlightColor="bg-green-500" 
             />
             <ModernMetricInput 
-               label="VI Scorecard" subtitle="คะแนนอัตโนมัติ 0-20" unit="Pts" 
-               min={0} max={20} step={1} value={viScoreMin} onChange={setViScoreMin} highlightColor="bg-purple-500" 
+               label="VI Quality Score" subtitle="คะแนนอัตโนมัติ 0-18 (ไม่รวม MOS)" unit="Pts" 
+               min={0} max={18} step={1} value={viScoreMin} onChange={setViScoreMin} highlightColor="bg-purple-500" 
             />
             <ModernMetricInput
                label="Dividend Streak" subtitle="ปีที่จ่ายปันผลต่อเนื่องขั้นต่ำ" unit="Y"
@@ -709,6 +746,17 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
             </div>
           </div>
 
+          {scanWarnings.length > 0 && (
+            <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <div className="text-xs font-black text-amber-700 uppercase tracking-wider mb-2">Scan Warnings</div>
+              <div className="space-y-1">
+                {scanWarnings.map((warning, index) => (
+                  <p key={index} className="text-sm font-bold text-amber-800">- {warning}</p>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Tier 1: Quick Stats Dashboard */}
           {results.length > 0 && <ScreenerQuickStats results={sortedResults} total={stats.total} matched={stats.matched} />}
 
@@ -812,14 +860,14 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
                         <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('latestDE')}>D/E {renderSortIcon('latestDE')}</th>
                         <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('fScore')}>F {renderSortIcon('fScore')}</th>
                         <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('zScore')}>Z {renderSortIcon('zScore')}</th>
-                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('viScore')}>VI {renderSortIcon('viScore')}</th>
+                        <th className="p-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 group" onClick={() => handleSort('viScore')}>VI Q {renderSortIcon('viScore')}</th>
                         <th className="p-2 text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-slate-600">
                       {sortedResults.map((r, i) => {
                         const isExpanded = expandedRows[r.ticker];
-                        const viRating = r.viScore >= 16 ? '🟢' : r.viScore >= 13 ? '🟡' : r.viScore >= 10 ? '🟠' : '🔴';
+                        const viRating = r.viScore >= 15 ? '🟢' : r.viScore >= 12 ? '🟡' : r.viScore >= 9 ? '🟠' : '🔴';
                         const rankBadge = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
                         const isSaved = selectedForSave.has(r.ticker);
                         return (
@@ -835,17 +883,17 @@ export default function ScreenerView({ onSelectTicker, onSaveToFavorites, onOpen
                                 </div>
                               </td>
                               <td className="p-3 text-right font-medium text-sm tabular-nums">{r.currentPrice?.toFixed(2) || '-'}</td>
-                              <td className={`p-3 text-center text-xs ${r.epsCAGR > 0 ? 'text-emerald-500' : 'text-red-500'}`}>{r.epsCAGR?.toFixed(1)}%</td>
-                              <td className={`p-3 text-center text-xs ${r.dpsCAGR > 0 ? 'text-emerald-500' : 'text-red-500'}`}>{r.dpsCAGR?.toFixed(1)}%</td>
-                              <td className={`p-3 text-center text-xs font-bold ${r.latestYield >= 5 ? 'text-emerald-700 bg-emerald-50/80' : ''}`}>{r.latestYield?.toFixed(2)}%</td>
+                              <td className={`p-3 text-center text-xs ${typeof r.epsCAGR === 'number' ? (r.epsCAGR > 0 ? 'text-emerald-500' : 'text-red-500') : 'text-slate-400'}`}>{typeof r.epsCAGR === 'number' ? `${r.epsCAGR.toFixed(1)}%` : '-'}</td>
+                              <td className={`p-3 text-center text-xs ${typeof r.dpsCAGR === 'number' ? (r.dpsCAGR > 0 ? 'text-emerald-500' : 'text-red-500') : 'text-slate-400'}`}>{typeof r.dpsCAGR === 'number' ? `${r.dpsCAGR.toFixed(1)}%` : '-'}</td>
+                              <td className={`p-3 text-center text-xs font-bold ${typeof r.latestYield === 'number' && r.latestYield >= 5 ? 'text-emerald-700 bg-emerald-50/80' : ''}`}>{typeof r.latestYield === 'number' ? `${r.latestYield.toFixed(2)}%` : '-'}</td>
                               <td className={`p-3 text-center text-xs font-bold ${r.latestROE >= 15 ? 'text-emerald-700 bg-emerald-50/80' : ''}`}>{r.latestROE?.toFixed(1)}%</td>
                               <td className={`p-3 text-center text-xs ${r.latestPE && r.peMinus1SD && r.latestPE <= r.peMinus1SD ? 'text-emerald-700 bg-emerald-50/80 font-bold' : ''}`}>{r.latestPE?.toFixed(1) || '-'}</td>
                               <td className={`p-3 text-center text-xs ${r.latestPBV && r.pbvMinus1SD && r.latestPBV <= r.pbvMinus1SD ? 'text-emerald-700 bg-emerald-50/80 font-bold' : ''}`}>{r.latestPBV?.toFixed(2) || '-'}</td>
                               <td className="p-3 text-center text-[10px] text-slate-400">{r.peMinus1SD?.toFixed(1) || '-'}</td>
                               <td className={`p-3 text-center text-xs ${r.latestDE < 0.5 ? 'text-emerald-600 font-bold' : r.latestDE > 2 ? 'text-red-500 font-bold' : ''}`}>{r.latestDE?.toFixed(2) || '-'}</td>
-                              <td className={`p-3 text-center text-xs font-bold ${r.fScore >= 7 ? 'text-emerald-700 bg-emerald-50/80' : r.fScore <= 3 ? 'text-red-500' : ''}`}>{r.fScore}/9</td>
-                              <td className={`p-3 text-center text-xs font-bold ${r.zScore >= 2.99 ? 'text-emerald-700 bg-emerald-50/80' : r.zScore < 1.8 ? 'text-red-500' : ''}`}>{r.zScore?.toFixed(2)}</td>
-                              <td className={`p-3 text-center text-xs font-black ${r.viScore >= 15 ? 'text-indigo-700 bg-indigo-100/50' : r.viScore >= 12 ? 'text-indigo-600' : ''}`}>{viRating} {r.viScore}/20</td>
+                              <td className={`p-3 text-center text-xs font-bold ${typeof r.fScore === 'number' ? (r.fScore >= 7 ? 'text-emerald-700 bg-emerald-50/80' : r.fScore <= 3 ? 'text-red-500' : '') : 'text-slate-400'}`}>{typeof r.fScore === 'number' ? `${r.fScore}/9` : '-'}</td>
+                              <td className={`p-3 text-center text-xs font-bold ${typeof r.zScore === 'number' ? (r.zScore >= 2.99 ? 'text-emerald-700 bg-emerald-50/80' : r.zScore < 1.8 ? 'text-red-500' : '') : 'text-slate-400'}`}>{typeof r.zScore === 'number' ? r.zScore.toFixed(2) : '-'}</td>
+                              <td className={`p-3 text-center text-xs font-black ${r.viScore >= 15 ? 'text-indigo-700 bg-indigo-100/50' : r.viScore >= 12 ? 'text-indigo-600' : ''}`}>{viRating} {r.viScore}/{r.viScoreMax ?? 18}</td>
                               <td className="p-3 text-center">
                                 <div className="flex items-center justify-center gap-1">
                                   <button onClick={() => setExpandedRows(p => ({...p, [r.ticker]: !p[r.ticker]}))}

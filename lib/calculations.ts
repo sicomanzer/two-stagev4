@@ -800,13 +800,25 @@ export function calculateZScore(
 }
 
 export function calculateCAGR(values: (number | null)[]): number | null {
-  const filtered = values.filter((v): v is number => v != null && v > 0);
-  if (filtered.length < 2) return null;
+  const firstIndex = values.findIndex((v): v is number => v != null && Number.isFinite(v));
+  if (firstIndex === -1) return null;
 
-  const start = filtered[0];
-  const end = filtered[filtered.length - 1];
-  const years = filtered.length - 1;
+  let lastIndex = -1;
+  for (let i = values.length - 1; i > firstIndex; i--) {
+    const value = values[i];
+    if (value != null && Number.isFinite(value)) {
+      lastIndex = i;
+      break;
+    }
+  }
 
+  if (lastIndex === -1) return null;
+
+  const start = values[firstIndex] as number;
+  const end = values[lastIndex] as number;
+  const years = lastIndex - firstIndex;
+
+  // CAGR is not meaningful when either endpoint is zero/negative.
   if (start <= 0 || end <= 0 || years <= 0) return null;
   return Math.pow(end / start, 1 / years) - 1;
 }

@@ -10,7 +10,7 @@ export default function ScreenerSectorView({ results }: SectorViewProps) {
     const sectors: Record<string, { tickers: string[]; avgPE: number; avgYield: number; avgVI: number; count: number }> = {};
     
     results.forEach(r => {
-      const sector = r.sector || r.marketCycleLabel || 'ไม่ระบุ';
+      const sector = r.sector || 'ไม่ระบุ';
       if (!sectors[sector]) sectors[sector] = { tickers: [], avgPE: 0, avgYield: 0, avgVI: 0, count: 0 };
       sectors[sector].tickers.push(r.ticker);
       sectors[sector].avgPE += r.latestPE || 0;
@@ -39,6 +39,7 @@ export default function ScreenerSectorView({ results }: SectorViewProps) {
       <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-4">
         <PieChart size={16} className="text-indigo-500" /> Sector Breakdown
       </h4>
+      <p className="text-[11px] font-bold text-slate-400 mb-4">แสดงจาก sector จริงของข้อมูล fundamentals เท่านั้น</p>
       
       {/* Sector Bar */}
       <div className="flex rounded-xl overflow-hidden h-8 mb-4 shadow-inner border border-slate-100">

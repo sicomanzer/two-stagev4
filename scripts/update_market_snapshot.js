@@ -13,6 +13,13 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+function normalizeDividendYield(value) {
+  if (value === null || value === undefined) return null;
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return null;
+  return Math.abs(numeric) <= 1 ? numeric * 100 : numeric;
+}
+
 async function withRetry(fn, { retries = 3, baseDelayMs = 1500 } = {}) {
   let lastErr = null;
   for (let i = 0; i < retries; i++) {
@@ -74,7 +81,7 @@ async function main() {
         price: q.regularMarketPrice ?? null,
         pe: q.trailingPE ?? null,
         pbv: q.priceToBook ?? null,
-        dividend_yield: q.dividendYield ?? null,
+        dividend_yield: normalizeDividendYield(q.dividendYield),
         updated_at: nowIso
       });
     }
